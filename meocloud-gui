@@ -1,0 +1,6 @@
+#!/usr/bin/python2
+from meocloud_gui.application import Application
+
+if __name__ == "__main__":
+    app = Application()
+    app.run(None)
