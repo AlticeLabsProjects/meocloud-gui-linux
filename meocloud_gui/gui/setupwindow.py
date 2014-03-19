@@ -33,5 +33,6 @@ class SetupWindow(Gtk.Window):
 
         meocloud_gui.utils.create_startup_file()
 
+        self.app.running = False
         self.app.on_activate()
         self.destroy()
