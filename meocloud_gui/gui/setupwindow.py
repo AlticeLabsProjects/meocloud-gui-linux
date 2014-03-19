@@ -1,7 +1,7 @@
 import os
 from gi.repository import Gtk, Gio
 from meocloud_gui.preferences import Preferences
-
+import meocloud_gui.utils
 
 class SetupWindow(Gtk.Window):
     __gtype_name__ = 'SetupWindow'
@@ -30,6 +30,8 @@ class SetupWindow(Gtk.Window):
     def on_login(self, w):
         prefs = Preferences()
         prefs.put("Account", "LoggedIn", "True")
+
+        meocloud_gui.utils.create_startup_file()
 
         self.app.on_activate()
         self.destroy()

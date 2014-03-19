@@ -1,6 +1,7 @@
 import os.path
 from gi.repository import Gtk, Gio
 from meocloud_gui.preferences import Preferences
+import meocloud_gui.utils
 
 
 class PrefsWindow(Gtk.Window):
@@ -58,15 +59,19 @@ class PrefsWindow(Gtk.Window):
 
         download_entry = Gtk.Entry()
         upload_entry = Gtk.Entry()
-        download_entry.set_sensitive(prefs.get("Network", "ThrottleDownload",
-                                     "False") == "True")
-        upload_entry.set_sensitive(prefs.get("Network", "ThrottleUpload",
-                                   "False") == "True")
+        download_entry.set_sensitive(int(prefs.get("Network", "ThrottleDownload",
+                                     "0")) > 0)
+        download_entry.set_text(prefs.get("Network", "ThrottleDownload", "100"))
+        download_entry.connect("changed", lambda w: self.throttle_value_changed(w, "Download"))
+        upload_entry.set_sensitive(int(prefs.get("Network", "ThrottleUpload",
+                                   "0")) > 0)
+        upload_entry.set_text(prefs.get("Network", "ThrottleUpload", "100"))
+        upload_entry.connect("changed", lambda w: self.throttle_value_changed(w, "Upload"))
 
-        upload_check_active = prefs.get("Network", "ThrottleUpload",
-                                        "False") == "True"
-        download_check_active = prefs.get("Network", "ThrottleDownload",
-                                          "False") == "True"
+        upload_check_active = int(prefs.get("Network", "ThrottleUpload",
+                                        "0")) > 0
+        download_check_active = int(prefs.get("Network", "ThrottleDownload",
+                                          "0")) > 0
         upload_check = Gtk.CheckButton("Upload")
         upload_check.set_active(upload_check_active)
         upload_check.connect("toggled", lambda w:
@@ -114,33 +119,7 @@ class PrefsWindow(Gtk.Window):
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
-
-            desktop_file = open(file_path, 'w')
-            desktop_file.write("[Desktop Entry]\n")
-            desktop_file.write("Type=Application\n")
-            desktop_file.write("Name=MEO Cloud\n")
-            desktop_file.write("Exec=" + os.path.join(os.getcwd(),
-                               "meocloud-gui") + "\n")
-            desktop_file.close()
-
-    @static
-    def create_startup_file():
-        folder_path = os.path.join(os.path.expanduser('~'),
-                                   '.config/autostart')
-        file_path = os.path.join(folder_path, 'meocloud.desktop')
-
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-
-        desktop_file = open(file_path, 'w')
-        desktop_file.write("[Desktop Entry]\n")
-        desktop_file.write("Type=Application\n")
-        desktop_file.write("Name=MEO Cloud\n")
-        desktop_file.write("Exec=" + os.path.join(os.getcwd(),
-                               "meocloud-gui") + "\n")
-        desktop_file.close()
+            meocloud_gui.utils.create_startup_file()
 
     def on_choose_folder(self, w):
         dialog = Gtk.FileChooserDialog("Please choose a folder", self,
@@ -160,15 +139,29 @@ class PrefsWindow(Gtk.Window):
 
     def toggle_throttle(self, w, throttle):
         prefs = Preferences()
+        old_val = prefs.get("Network", "Throttle" + throttle, "0")
 
-        old_val = prefs.get("Network", "Throttle" + throttle, "False")
-
-        if old_val == "True":
-            prefs.put("Network", "Throttle" + throttle, "False")
+        if int(old_val) > 0:
+            prefs.put("Network", "Throttle" + throttle, "0")
             w.set_sensitive(False)
         else:
-            prefs.put("Network", "Throttle" + throttle, "True")
+            try:
+                val = int(w.get_text())
+            except:
+                val = 100
+
+            prefs.put("Network", "Throttle" + throttle, val)
             w.set_sensitive(True)
+
+    def throttle_value_changed(self, w, throttle):
+        prefs = Preferences()
+
+        try:
+            val = int(w.get_text())
+        except:
+            val = 100
+
+        prefs.put("Network", "Throttle" + throttle, val)
 
     def set_proxy(self, w, proxy):
         if w.get_active():
