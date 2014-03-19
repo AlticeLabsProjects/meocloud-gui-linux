@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gio
 from meocloud_gui.preferences import Preferences
 import meocloud_gui.utils
 
+from meocloud_gui.core import api
 from meocloud_gui.settings import (CONFIG_PATH)
                                    
 
@@ -177,6 +178,8 @@ class PrefsWindow(Gtk.Window):
             val = 100
 
         prefs.put("Network", "Throttle" + throttle, val)
+        self.app.core_client.networkSettingsChanged(
+            api.get_network_settings(prefs))
 
     def set_proxy(self, w, proxy):
         if w.get_active():
