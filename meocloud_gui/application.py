@@ -139,7 +139,7 @@ class Application(Gtk.Application):
 
     def show_prefs(self, w):
         if not self.prefs_window:
-            self.prefs_window = PrefsWindow()
+            self.prefs_window = PrefsWindow(self)
             self.prefs_window.connect("destroy", self.prefs_window_destroyed)
             self.prefs_window.logout_button.connect("clicked", self.on_logout)
             self.prefs_window.show_all()

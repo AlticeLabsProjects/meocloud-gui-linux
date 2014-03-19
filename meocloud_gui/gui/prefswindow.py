@@ -1,16 +1,21 @@
 import os.path
+import glob
+import os
 from gi.repository import Gtk, Gio
 from meocloud_gui.preferences import Preferences
 import meocloud_gui.utils
 
+from meocloud_gui.settings import (CONFIG_PATH)
+                                   
 
 class PrefsWindow(Gtk.Window):
     __gtype_name__ = 'PrefsWindow'
 
-    def __init__(self):
+    def __init__(self, app):
         Gtk.Window.__init__(self)
         self.set_title("Preferences")
-
+        
+        self.app = app
         prefs = Preferences()
 
         general_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -136,6 +141,16 @@ class PrefsWindow(Gtk.Window):
             prefs.put("Advanced", "Folder", dialog.get_filename())
 
         dialog.destroy()
+        
+        self.app.stop_threads()
+        
+        wildcard = CONFIG_PATH + '/*'
+        r = glob.glob(wildcard)
+        for i in r:
+            if not "gui" in i:
+                os.remove(i)
+                
+        self.app.restart_core()
 
     def toggle_throttle(self, w, throttle):
         prefs = Preferences()
