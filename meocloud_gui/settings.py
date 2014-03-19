@@ -1,5 +1,5 @@
-from meocloud_gui.utils import get_own_dir
 import os
+import sys
 
 # Timeouts
 DEFAULT_TIMEOUT = 3
@@ -29,8 +29,10 @@ DEBUG_OFF_PATH = os.path.join(CONFIG_PATH, 'debug.off')
 
 UI_CONFIG_PATH = os.path.join(CONFIG_PATH, 'gui')
 
-CORE_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH, 'meocloud_core_listener.socket')
-DAEMON_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH, 'meocloud_daemon_listener.socket')
+CORE_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
+                                            'meocloud_core_listener.socket')
+DAEMON_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
+                                            'meocloud_daemon_listener.socket')
 
 UI_CONFIG_DB_FILE = os.path.join(UI_CONFIG_PATH, 'ui_config.yaml')
 
@@ -47,6 +49,14 @@ CORE_WATCHDOG_PERIOD = 20
 DAEMON_VERSION_CHECKER_PERIOD = 3600
 
 DEFAULT_NOTIFS_TAIL_LINES = 10
+
+
+def get_own_dir(own_filename):
+    if getattr(sys, "frozen", False):
+        own_path = sys.executable
+    else:
+        own_path = os.path.join(os.getcwd(), own_filename)
+    return os.path.dirname(own_path)
 
 
 def _get_current_version():

@@ -28,10 +28,10 @@ class PrefsWindow(Gtk.Window):
         general_box.add(start_at_login)
 
         # account
-        login_label = Gtk.Label("You are logged in with email@email.com.")
-        logout_button = Gtk.Button("Logout")
+        login_label = Gtk.Label("You are logged in with " + prefs.get('Account', 'email', '') + ".")
+        self.logout_button = Gtk.Button("Logout")
         account_box.add(login_label)
-        account_box.add(logout_button)
+        account_box.add(self.logout_button)
 
         # network
         proxy_label = Gtk.Label(" <b>Proxy</b>")

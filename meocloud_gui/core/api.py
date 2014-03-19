@@ -1,20 +1,57 @@
 import urlparse
+import threading
+import keyring
+
+# GLib and Gdk
+from gi.repository import GLib, Gdk
+
 from meocloud_gui.protocol.ttypes import NetworkSettings, Account
 #from meocloud_gui.settings import RC4_KEY
 #from meocloud.client.linux.daemon import rc4
 from meocloud_gui.utils import get_proxy, get_ratelimits
 
 
+def get_account_dict(ui_config):
+    account_dict = dict()
+
+    class AccountCallback: 
+        def __init__(self, ui_config):
+            self.ui_config = ui_config 
+            self.event = threading.Event() 
+            self.result = None 
+        def __call__(self): 
+            Gdk.threads_enter() 
+            try:
+                account_dict['clientID'] = keyring.get_password('meocloud', 'clientID')
+                account_dict['authKey'] = keyring.get_password('meocloud', 'authKey')
+                account_dict['email'] = self.ui_config.get('Account', 'email', None)
+                account_dict['name'] = self.ui_config.get('Account', 'name', None)
+                account_dict['deviceName'] = self.ui_config.get('Account', 'deviceName', None)
+            finally: 
+                Gdk.flush() 
+                Gdk.threads_leave() 
+                self.event.set() 
+            return False
+    
+    # Keyring must run in the main thread,
+    # otherwise we segfault.
+    account_callback = AccountCallback(ui_config)
+    account_callback.event.clear()
+    GLib.idle_add(account_callback)
+    account_callback.event.wait()
+    
+    return account_dict
+
+
 def unlink(core_client, ui_config):
-    account_dict = ui_config.get('Account', 'Account', None)
-    if account_dict:
-        if 'clientID' in account_dict:
-            account_dict['clientID'] = rc4.decrypt(account_dict['clientID'], RC4_KEY)
-        if 'authKey' in account_dict:
-            account_dict['authKey'] = rc4.decrypt(account_dict['authKey'], RC4_KEY)
+    account_dict = get_account_dict(ui_config)
+    if account_dict['clientID'] and account_dict['authKey']:
         account = Account(**account_dict)
-        ui_config.unset('account')
-        ui_config.unset('cloud_home')
+        keyring.delete_password('meocloud', 'clientID')
+        keyring.delete_password('meocloud', 'authKey')
+        self.ui_config.put('Account', 'email', '')
+        self.ui_config.put('Account', 'name', '')
+        self.ui_config.put('Account', 'deviceName', '')
         core_client.unlink(account)
         return True
     return False

@@ -1,11 +1,10 @@
 # Python standard library imports
 import os
 import subprocess
-import threading
 import keyring
 
-# GLib and Gdk
-from gi.repository import GLib, Gdk
+# GLib
+from gi.repository import GLib
 
 # Thrift related imports
 from meocloud_gui.protocol import UI
@@ -13,11 +12,12 @@ from meocloud_gui.protocol.ttypes import Account, State
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.settings import LOGGER_NAME #, RC4_KEY
+from meocloud_gui.settings import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
 #from meocloud.client.linux.daemon.communication import DaemonState, Events, AsyncResults
 from meocloud_gui.core import api
 #from meocloud.client.linux.utils import get_error_code
 #from meocloud.client.linux.messages import DYING_MESSAGES
+import meocloud_gui.utils
 
 # Logging
 import logging
@@ -25,22 +25,22 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class CoreListener(ThriftListener):
-    def __init__(self, socket, core_client, ui_config, notifs_handler):
-        handler = CoreListenerHandler(core_client, ui_config, notifs_handler)
+    def __init__(self, socket, core_client, ui_config, notifs_handler, app):
+        handler = CoreListenerHandler(core_client, ui_config, notifs_handler, app)
         processor = UI.Processor(handler)
         super(CoreListener, self).__init__('CoreListener', socket, processor)
 
 
 class CoreListenerHandler(UI.Iface):
-    def __init__(self, core_client, ui_config, notifs_handler):
+    def __init__(self, core_client, ui_config, notifs_handler, app):
         super(CoreListenerHandler, self).__init__()
         self.core_client = core_client
         self.ui_config = ui_config
         self.notifs_handler = notifs_handler
+        self.app = app
 
     def start_sync(self):
-        # TODO Do not hardcode my path
-        cloud_home = self.ui_config.get('Advanced', 'Folder', '/home/ivo/MEOCloud')
+        cloud_home = self.ui_config.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
         if not cloud_home:
             log.warning('CoreListener.start_sync: no cloud_home in config, will unlink and shutdown')
             api.unlink(self.core_client, self.ui_config)
@@ -62,45 +62,23 @@ class CoreListenerHandler(UI.Iface):
 
     def account(self):
         log.debug('CoreListener.account() <<<<')    
-        account_dict = dict()
-
-        class AccountCallback: 
-            def __init__(self, ui_config):
-                self.ui_config = ui_config 
-                self.event = threading.Event() 
-                self.result = None 
-            def __call__(self): 
-                Gdk.threads_enter() 
-                try:
-                    account_dict['clientID'] = keyring.get_password('meocloud', 'clientID')
-                    account_dict['authKey'] = keyring.get_password('meocloud', 'authKey')
-                    account_dict['email'] = self.ui_config.get('Account', 'email', None)
-                    account_dict['name'] = self.ui_config.get('Account', 'name', None)
-                    account_dict['deviceName'] = self.ui_config.get('Account', 'deviceName', None)
-                finally: 
-                    Gdk.flush() 
-                    Gdk.threads_leave() 
-                    self.event.set() 
-                return False
         
-        # Keyring must run in the main thread,
-        # otherwise we segfault.
-        account_callback = AccountCallback(self.ui_config)
-        account_callback.event.clear()
-        GLib.idle_add(account_callback)
-        account_callback.event.wait()
+        account_dict = api.get_account_dict(self.ui_config)
    
         return Account(**account_dict)
 
     def beginAuthorization(self):
         log.debug('CoreListener.beginAuthorization() <<<<')
-        # If we are receiving a begin authorization, then either we had
-        # no credentials store or they were wrong. In any case, it's better
-        # to try and delete the credentials to avoid upsetting the server.
-        #self.ui_config.unset('account')
-        #self.update_state(DaemonState.AUTHORIZATION_REQUIRED)
-        # TODO do not hardcore device name
-        subprocess.call(["xdg-open", self.core_client.authorizeWithDeviceName("desktop")])
+        GLib.idle_add(self.beginAuthorizationIdle)
+        
+    def beginAuthorizationIdle(self):
+        self.app.setup.login_button.connect("clicked", self.beginAuthorizationBrowser)
+        self.app.setup.show_all()
+        
+    def beginAuthorizationBrowser(self, w):
+        subprocess.Popen(["xdg-open",
+                        self.core_client.authorizeWithDeviceName
+                        (self.app.setup.device_entry.get_text())])
 
     def authorized(self, account):
         log.debug('CoreListener.authorized({0}) <<<<'.format(account))
@@ -112,12 +90,16 @@ class CoreListenerHandler(UI.Iface):
             'deviceName': account.deviceName
         }
 
-        GLib.idle_add (lambda: keyring.set_password("meocloud", "clientID", account_dict['clientID']))
-        GLib.idle_add (lambda: keyring.set_password("meocloud", "authKey", account_dict['authKey']))
+        GLib.idle_add(lambda: keyring.set_password("meocloud", "clientID", account_dict['clientID']))
+        GLib.idle_add(lambda: keyring.set_password("meocloud", "authKey", account_dict['authKey']))
         self.ui_config.put('Account', 'email', account_dict['email'])
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
         self.ui_config.put('Account', 'LoggedIn', 'True')
+
+        GLib.idle_add(self.app.setup.hide)
+        meocloud_gui.utils.create_startup_file()
+        self.app.restart_core()
 
     def endAuthorization(self):
         log.debug('CoreListener.endAuthorization() <<<<')
@@ -176,7 +158,8 @@ class CoreListenerHandler(UI.Iface):
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
-        self.notifs_handler.handle(note)
+        #self.notifs_handler.handle(note)
+        #print note
 
     def remoteDirectoryListing(self, statusCode, path, listing):  # i32 statusCode, string path, listing
         log.debug('CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(statusCode, path, listing))

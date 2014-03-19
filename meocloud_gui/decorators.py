@@ -45,7 +45,7 @@ def retry(max_tries, delay=3, backoff=2, sleep_func=None):
                 except RetryFailed:
                     # Do not sleep after the last retry
                     if current_try < max_tries - 1:
-                        sleep_func(current_delay) # wait...
+                        sleep_func(current_delay)  # wait...
                         current_delay *= backoff  # make future wait longer
             # No more retries
             raise TooManyRetries()

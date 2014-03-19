@@ -43,7 +43,8 @@ class TSimpleServer(TServer):
             except (socket_module.error, TTransport.TTransportException):
                 # This occurs all the time, just ignore it
                 # and keep waiting for more connections
-                # log.debug('{0}: Server error, will restart serving: {1}'.format(self.name, e))
+                # log.debug('{0}: Server error, will restart serving:
+                # {1}'.format(self.name, e))
                 pass
             finally:
                 itrans.close()
@@ -71,7 +72,8 @@ class ThriftListener(object):
         transport = TSocket.TServerSocket(unix_socket=socket)
         tfactory = TTransport.TBufferedTransportFactory()
         pfactory = TBinaryProtocol.TBinaryProtocolAcceleratedFactory()
-        listener_server = TSimpleServer(self.name, processor, transport, tfactory, pfactory)
+        listener_server = TSimpleServer(self.name, processor, transport,
+                                        tfactory, pfactory)
         return listener_server
 
     def start(self):
@@ -112,13 +114,15 @@ class ThriftClient(object):
         self.connected = True
 
 
-def wrap_client_call(timeout=DEFAULT_TIMEOUT, max_retries=MAX_RETRIES, sleep_time=SLEEP_TIME, backoff=BACKOFF):
+def wrap_client_call(timeout=DEFAULT_TIMEOUT, max_retries=MAX_RETRIES,
+                     sleep_time=SLEEP_TIME, backoff=BACKOFF):
     def decorator(f):
         def wrapper(self, *args, **kwargs):
             args_str_list = ['{0}'.format(arg) for arg in args]
             kwargs_str_list = ['{0}={1}'.format(k, v) for k, v in kwargs.items()]
             all_args_str = ', '.join(args_str_list + kwargs_str_list)
-            #log.debug('{0}.{1}({2}) >>>>'.format(self.__class__.__name__, f.__name__, all_args_str))
+            #log.debug('{0}.{1}({2}) >>>>'.format(self.__class__.__name__,
+            #           f.__name__, all_args_str))
             with self.mutex:
                 # log.debug('{0}.{1}: mutex acquired'.format(self.__class__.__name__, f.__name__))
                 try:
