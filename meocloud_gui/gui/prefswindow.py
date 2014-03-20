@@ -8,7 +8,7 @@ import meocloud_gui.utils
 
 from meocloud_gui.core import api
 from meocloud_gui.settings import (CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH)
-                                   
+
 
 class PrefsWindow(Gtk.Window):
     __gtype_name__ = 'PrefsWindow'
@@ -16,7 +16,7 @@ class PrefsWindow(Gtk.Window):
     def __init__(self, app):
         Gtk.Window.__init__(self)
         self.set_title("Preferences")
-        
+
         prefs = Preferences()
         self.app = app
         self.selective_sync = SelectiveSyncWindow(self.app)
@@ -36,7 +36,8 @@ class PrefsWindow(Gtk.Window):
         general_box.add(start_at_login)
 
         # account
-        login_label = Gtk.Label("You are logged in with " + prefs.get('Account', 'email', '') + ".")
+        login_label = Gtk.Label("You are logged in with " +
+                                prefs.get('Account', 'email', '') + ".")
         self.logout_button = Gtk.Button("Unlink")
         account_box.add(login_label)
         account_box.add(self.logout_button)
@@ -67,19 +68,23 @@ class PrefsWindow(Gtk.Window):
 
         download_entry = Gtk.Entry()
         upload_entry = Gtk.Entry()
-        download_entry.set_sensitive(int(prefs.get("Network", "ThrottleDownload",
-                                     "0")) > 0)
-        download_entry.set_text(prefs.get("Network", "ThrottleDownload", "100"))
-        download_entry.connect("changed", lambda w: self.throttle_value_changed(w, "Download"))
+        download_entry.set_sensitive(int(prefs.get("Network",
+                                                   "ThrottleDownload",
+                                                   "0")) > 0)
+        download_entry.set_text(prefs.get("Network", "ThrottleDownload",
+                                          "100"))
+        download_entry.connect("changed", lambda w:
+                               self.throttle_value_changed(w, "Download"))
         upload_entry.set_sensitive(int(prefs.get("Network", "ThrottleUpload",
                                    "0")) > 0)
         upload_entry.set_text(prefs.get("Network", "ThrottleUpload", "100"))
-        upload_entry.connect("changed", lambda w: self.throttle_value_changed(w, "Upload"))
+        upload_entry.connect("changed", lambda w:
+                             self.throttle_value_changed(w, "Upload"))
 
         upload_check_active = int(prefs.get("Network", "ThrottleUpload",
-                                        "0")) > 0
+                                            "0")) > 0
         download_check_active = int(prefs.get("Network", "ThrottleDownload",
-                                          "0")) > 0
+                                              "0")) > 0
         upload_check = Gtk.CheckButton("Upload")
         upload_check.set_active(upload_check_active)
         upload_check.connect("toggled", lambda w:
@@ -102,7 +107,7 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(bandwidth_label, False, False, 5)
         network_box.pack_start(download_box, False, False, 0)
         network_box.pack_start(upload_box, False, False, 5)
-        
+
         if prefs.get("Network", "Proxy", "Automatic") == "Manual":
             proxy_manual.set_active(True)
             self.proxy_manual_url.show()
@@ -151,7 +156,7 @@ class PrefsWindow(Gtk.Window):
                                         "Select", Gtk.ResponseType.OK))
         dialog.set_default_size(800, 400)
         response = dialog.run()
-        
+
         if response == Gtk.ResponseType.OK:
             new_path = os.path.join(dialog.get_filename())
             dialog.destroy()
@@ -168,6 +173,7 @@ class PrefsWindow(Gtk.Window):
                 prefs.put("Advanced", "Folder", new_path)
                 GLib.source_remove(timeout)
                 GLib.idle_add(prog.destroy)
+
             def pulse():
                 prog.progress.pulse()
                 return True
@@ -175,7 +181,8 @@ class PrefsWindow(Gtk.Window):
 
             old_path = prefs.get("Advanced", "Folder", CLOUD_HOME_DEFAULT_PATH)
             meocloud_gui.utils.move_folder_async(old_path, new_path,
-                                                 lambda p: end(prog, timeout, p))
+                                                 lambda p:
+                                                 end(prog, timeout, p))
         else:
             dialog.destroy()
 
@@ -206,7 +213,7 @@ class PrefsWindow(Gtk.Window):
         prefs.put("Network", "Throttle" + throttle, val)
         self.app.core_client.networkSettingsChanged(
             api.get_network_settings(prefs))
-            
+
     def proxy_value_changed(self, w):
         prefs = Preferences()
         prefs.put("Network", "ProxyURL", self.proxy_manual_url.get_text())
@@ -217,7 +224,7 @@ class PrefsWindow(Gtk.Window):
         if w.get_active():
             prefs = Preferences()
             prefs.put("Network", "Proxy", proxy)
-            
+
             if proxy == "Manual":
                 self.proxy_manual_url.show()
                 prefs.put("Network", "ProxyURL",

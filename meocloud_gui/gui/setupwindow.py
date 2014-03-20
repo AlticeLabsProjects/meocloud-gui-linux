@@ -14,7 +14,7 @@ class SetupWindow(Gtk.Window):
         self.add(box)
 
         box.add(Gtk.Label("Welcome"))
-        
+
         device_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.device_entry = Gtk.Entry()
         device_box.pack_start(Gtk.Label(""), True, True, 0)
@@ -22,7 +22,7 @@ class SetupWindow(Gtk.Window):
         device_box.pack_start(self.device_entry, False, False, 0)
         device_box.pack_start(Gtk.Label(""), True, True, 0)
         box.add(device_box)
-        
+
         self.login_button = Gtk.Button("Login")
         box.add(self.login_button)
 

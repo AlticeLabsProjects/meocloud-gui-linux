@@ -25,7 +25,7 @@ class TrayIcon (GObject.Object):
         self.app.quit()
 
     def tray_popup(self, widget, button=None, time=None, data=None):
-        if time == None:
+        if time is None:
             time = Gtk.get_current_event().get_time()
 
         self.menu.show_all()

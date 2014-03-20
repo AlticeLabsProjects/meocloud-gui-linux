@@ -20,7 +20,7 @@ from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS,
                                    DAEMON_LOCK_PATH,  DEV_MODE,
                                    VERSION, DAEMON_VERSION_CHECKER_PERIOD,
                                    CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
-                                   
+
 from meocloud_gui import codes
 
 try:
@@ -48,7 +48,7 @@ class Application(Gtk.Application):
         self.core = None
         self.setup = None
         self.ignored_directories = []
-        
+
         self.sync_thread = None
         self.menu_thread = None
         self.listener_thread = None
@@ -61,19 +61,21 @@ class Application(Gtk.Application):
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 run_setup = True
-            
+
                 try:
                     keyring.delete_password('meocloud', 'clientID')
                     keyring.delete_password('meocloud', 'authKey')
                 except:
                     pass
-                    
-                if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat')):
-                    os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'))
+
+                if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                               'ignored_directories.dat')):
+                    os.remove(os.path.join(UI_CONFIG_PATH,
+                                           'ignored_directories.dat'))
             else:
                 run_setup = False
-                
-                if not os.path.exists(prefs.get("Advanced", "Folder", 
+
+                if not os.path.exists(prefs.get("Advanced", "Folder",
                                                 CLOUD_HOME_DEFAULT_PATH)):
                     missing = MissingDialog(self)
                     missing.run()
@@ -81,15 +83,17 @@ class Application(Gtk.Application):
             if not self.missing_quit:
                 utils.create_required_folders()
                 utils.init_logging()
-                
-                if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat')):
+
+                if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                               'ignored_directories.dat')):
                     try:
-                        f = open(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'), "r")
+                        f = open(os.path.join(UI_CONFIG_PATH,
+                                              'ignored_directories.dat'), "r")
                         self.ignored_directories = cPickle.load(f)
                         f.close()
                     except:
                         pass
-                        
+
                 self.setup = SetupWindow()
 
                 menuitem_folder = Gtk.MenuItem("Open Folder")
@@ -112,7 +116,8 @@ class Application(Gtk.Application):
 
                 menuitem_folder.connect("activate", self.open_folder)
                 menuitem_site.connect("activate", self.open_website)
-                self.menuitem_changestatus.connect("activate", self.toggle_status)
+                self.menuitem_changestatus.connect("activate",
+                                                   self.toggle_status)
                 menuitem_prefs.connect("activate", self.show_prefs)
                 menuitem_quit.connect("activate", lambda w: self.quit())
 
@@ -123,12 +128,12 @@ class Application(Gtk.Application):
     def update_menu(self, status=None):
         if self.watchdog_thread.isAlive:
             try:
-                if status == None:
+                if status is None:
                     status = self.core_client.currentStatus()
                 self.update_storage(status.usedQuota, status.totalQuota)
 
                 sync_status = self.core_client.currentSyncStatus()
-                
+
                 if (status.state == codes.CORE_INITIALIZING or
                    status.state == codes.CORE_AUTHORIZING or
                    status.state == codes.CORE_WAITING):
@@ -158,7 +163,7 @@ class Application(Gtk.Application):
                     self.update_menu_action("Resume")
             except:
                 pass
-                
+
     def start_menu(self):
         while True:
             try:
@@ -184,10 +189,10 @@ class Application(Gtk.Application):
 
     def update_status(self, status):
         self.menuitem_status.set_label(status)
-        
+
     def update_menu_action(self, action):
         self.menuitem_changestatus.set_label(action)
-        
+
     def toggle_status(self, w):
         if self.offline:
             self.offline = False
@@ -221,13 +226,14 @@ class Application(Gtk.Application):
     def on_logout(self, w):
         self.prefs_window.destroy()
         Thread(target=self.on_logout_thread).start()
-        
+
     def on_logout_thread(self):
         meocloud_gui.core.api.unlink(self.core_client, Preferences())
-        
+
         if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
             os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
-        if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat')):
+        if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                       'ignored_directories.dat')):
             os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'))
         utils.purge_all()
 
@@ -237,14 +243,14 @@ class Application(Gtk.Application):
     def open_folder(self, w):
         prefs = Preferences()
         subprocess.Popen(["xdg-open", prefs.get('Advanced', 'Folder',
-                        CLOUD_HOME_DEFAULT_PATH)])
+                                                CLOUD_HOME_DEFAULT_PATH)])
 
     def open_website(self, w):
         subprocess.Popen(["xdg-open", self.core_client.webLoginURL()])
 
     def restart_core(self, ignore_sync=False):
         prefs = Preferences()
-    
+
         self.core_client = CoreClient()
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
                                           self.core_client, prefs,

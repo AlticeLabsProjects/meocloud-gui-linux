@@ -14,32 +14,33 @@ from meocloud_gui.utils import get_proxy, get_ratelimits
 def get_account_dict(ui_config):
     account_dict = dict()
 
-    class AccountCallback: 
+    class AccountCallback:
         def __init__(self, ui_config):
-            self.ui_config = ui_config 
-            self.event = threading.Event() 
-            self.result = None 
-        def __call__(self): 
-            Gdk.threads_enter() 
+            self.ui_config = ui_config
+            self.event = threading.Event()
+            self.result = None
+
+        def __call__(self):
+            Gdk.threads_enter()
             try:
                 account_dict['clientID'] = keyring.get_password('meocloud', 'clientID')
                 account_dict['authKey'] = keyring.get_password('meocloud', 'authKey')
                 account_dict['email'] = self.ui_config.get('Account', 'email', None)
                 account_dict['name'] = self.ui_config.get('Account', 'name', None)
                 account_dict['deviceName'] = self.ui_config.get('Account', 'deviceName', None)
-            finally: 
-                Gdk.flush() 
-                Gdk.threads_leave() 
-                self.event.set() 
+            finally:
+                Gdk.flush()
+                Gdk.threads_leave()
+                self.event.set()
             return False
-    
+
     # Keyring must run in the main thread,
     # otherwise we segfault.
     account_callback = AccountCallback(ui_config)
     account_callback.event.clear()
     GLib.idle_add(account_callback)
     account_callback.event.wait()
-    
+
     return account_dict
 
 

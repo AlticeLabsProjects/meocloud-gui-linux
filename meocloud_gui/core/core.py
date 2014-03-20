@@ -4,8 +4,10 @@ import signal
 from time import sleep
 from subprocess import Popen
 
-from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS, DAEMON_LISTENER_SOCKET_ADDRESS,
-                                            LOGGER_NAME, CORE_BINARY_FILENAME, CORE_PID_PATH, CORE_WATCHDOG_PERIOD)
+from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS,
+                                   DAEMON_LISTENER_SOCKET_ADDRESS,
+                                   LOGGER_NAME, CORE_BINARY_FILENAME,
+                                   CORE_PID_PATH, CORE_WATCHDOG_PERIOD)
 from meocloud_gui.utils import test_already_running, get_own_dir
 
 import logging

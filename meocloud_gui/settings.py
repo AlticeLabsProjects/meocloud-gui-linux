@@ -33,7 +33,8 @@ UI_CONFIG_PATH = os.path.join(CONFIG_PATH, 'gui')
 CORE_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
                                             'meocloud_core_listener.socket')
 DAEMON_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
-                                            'meocloud_daemon_listener.socket')
+                                              'meocloud_daemon_listener.socket'
+                                              )
 
 UI_CONFIG_DB_FILE = os.path.join(UI_CONFIG_PATH, 'ui_config.yaml')
 

@@ -26,7 +26,9 @@ def init_logging():
         fmt_str = '%(asctime)s %(levelname)s %(process)d %(message)s'
         formatter = logging.Formatter(fmt_str)
         # (automatically rotated every week)
-        handler = logging.handlers.TimedRotatingFileHandler(LOG_PATH, when='W6', backupCount=1)
+        handler = logging.handlers.TimedRotatingFileHandler(LOG_PATH,
+                                                            when='W6',
+                                                            backupCount=1)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
@@ -39,6 +41,7 @@ def purge_all():
     purge_file = open(PURGEALL_PATH, 'w')
     purge_file.close()
 
+
 def purge_meta():
     purge_file = open(PURGEMETA_PATH, 'w')
     purge_file.close()
@@ -46,7 +49,7 @@ def purge_meta():
 
 def create_required_folders():
     prefs = Preferences()
-    
+
     cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
 
     if not os.path.exists(cloud_home):
@@ -58,7 +61,7 @@ def create_required_folders():
 
 def clean_cloud_path():
     prefs = Preferences()
-    
+
     cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
 
     if os.path.exists(cloud_home):
@@ -119,22 +122,22 @@ def get_ratelimits(ui_config):
     upload_limit = int(ui_config.get('Network', 'ThrottleUpload', 0))
 
     return download_limit, upload_limit
-    
+
 
 def convert_size(size):
     if size > 0:
         size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-        i = int(math.floor(math.log(size,1024)))
-        p = math.pow(1024,i)
-        s = round(size/p,2)
+        i = int(math.floor(math.log(size, 1024)))
+        p = math.pow(1024, i)
+        s = round(size/p, 2)
         if (s > 0):
-            return '%s %s' % (s,size_name[i])
+            return '%s %s' % (s, size_name[i])
         else:
             return '0 B'
     else:
         return '0 B'
-    
-    
+
+
 def move_folder_async(src, dst, callback=None):
     def move_folder_thread(src, dst, callback):
         if os.listdir(dst) == []:
@@ -144,8 +147,7 @@ def move_folder_async(src, dst, callback=None):
             cloud_home = os.path.join(dst, "MEOCloud")
 
         shutil.move(src, dst)
-        if callback != None:
+        if callback is not None:
             callback(cloud_home)
-        
+
     Thread(target=move_folder_thread, args=(src, dst, callback)).start()
-    

@@ -43,12 +43,12 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config = ui_config
         self.notifs_handler = notifs_handler
         self.app = app
-        
+
         Notify.init('MEOCloud')
 
     def start_sync(self):
         self.app.core_client.setIgnoredDirectories(self.app.ignored_directories)
-    
+
         cloud_home = self.ui_config.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
         if not cloud_home:
             log.warning('CoreListener.start_sync: no cloud_home in config, will unlink and shutdown')
@@ -70,24 +70,24 @@ class CoreListenerHandler(UI.Iface):
     ### THRIFT METHODS ###
 
     def account(self):
-        log.debug('CoreListener.account() <<<<')    
-        
+        log.debug('CoreListener.account() <<<<')
+
         account_dict = api.get_account_dict(self.ui_config)
-   
+
         return Account(**account_dict)
 
     def beginAuthorization(self):
         log.debug('CoreListener.beginAuthorization() <<<<')
         GLib.idle_add(self.beginAuthorizationIdle)
-        
+
     def beginAuthorizationIdle(self):
         self.app.setup.login_button.connect("clicked", self.beginAuthorizationBrowser)
         self.app.setup.show_all()
-        
+
     def beginAuthorizationBrowser(self, w):
         subprocess.Popen(["xdg-open",
-                        self.core_client.authorizeWithDeviceName
-                        (self.app.setup.device_entry.get_text())])
+                         self.core_client.authorizeWithDeviceName
+                         (self.app.setup.device_entry.get_text())])
 
     def authorized(self, account):
         log.debug('CoreListener.authorized({0}) <<<<'.format(account))
@@ -176,10 +176,9 @@ class CoreListenerHandler(UI.Iface):
             lang = 'en'
 
         if note.type != 0:
-            notif_string = NOTIFICATIONS[lang][str(note.code) + 
-                               "_description"].format(*note.parameters)
-            notification = Notify.Notification.new(NOTIFICATIONS[lang][
-                                str(note.code) + "_title"], notif_string, '')
+            notif_string = NOTIFICATIONS[lang][str(note.code) +
+                                               "_description"].format(*note.parameters)
+            notification = Notify.Notification.new(NOTIFICATIONS[lang][str(note.code) + "_title"], notif_string, '')
             notification.show()
 
     def remoteDirectoryListing(self, statusCode, path, listing):  # i32 statusCode, string path, listing
