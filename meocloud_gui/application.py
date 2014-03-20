@@ -67,6 +67,9 @@ class Application(Gtk.Application):
                     keyring.delete_password('meocloud', 'authKey')
                 except:
                     pass
+                    
+                if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat')):
+                    os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'))
             else:
                 run_setup = False
                 
@@ -222,9 +225,13 @@ class Application(Gtk.Application):
     def on_logout_thread(self):
         meocloud_gui.core.api.unlink(self.core_client, Preferences())
         
-        os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
+        if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
+            os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
+        if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat')):
+            os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'))
         utils.purge_all()
 
+        self.ignored_directories = []
         self.restart_core(True)
 
     def open_folder(self, w):
