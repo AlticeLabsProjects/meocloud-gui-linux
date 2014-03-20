@@ -24,6 +24,7 @@ CORE_LOCK_PATH = os.path.join(CONFIG_PATH, 'daemon.lock')
 CORE_PID_PATH = os.path.join(CONFIG_PATH, 'daemon.pid')
 
 PURGEMETA_PATH = os.path.join(CONFIG_PATH, 'purgemeta')
+PURGEALL_PATH = os.path.join(CONFIG_PATH, 'purgeall')
 DEBUG_ON_PATH = os.path.join(CONFIG_PATH, 'debug.on')
 DEBUG_OFF_PATH = os.path.join(CONFIG_PATH, 'debug.off')
 
@@ -36,8 +37,8 @@ DAEMON_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
 
 UI_CONFIG_DB_FILE = os.path.join(UI_CONFIG_PATH, 'ui_config.yaml')
 
-LOGGER_NAME = 'meocloud_ui'
-LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_ui.log')
+LOGGER_NAME = 'meocloud_gui'
+LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_gui.log')
 NOTIFICATIONS_LOG_PATH = os.path.join(UI_CONFIG_PATH, 'user_notifications.log')
 
 DAEMON_BINARY_FILENAME = 'daemon'

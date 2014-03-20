@@ -1,12 +1,12 @@
 import os.path
-import glob
 import os
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 from meocloud_gui.preferences import Preferences
+from meocloud_gui.gui.progressdialog import ProgressDialog
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
-from meocloud_gui.settings import (CONFIG_PATH)
+from meocloud_gui.settings import (CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH)
                                    
 
 class PrefsWindow(Gtk.Window):
@@ -51,10 +51,10 @@ class PrefsWindow(Gtk.Window):
             proxy_automatic, "Manual")
         proxy_manual.connect("toggled", lambda w: self.set_proxy(w,
                              "Manual"))
-        if prefs.get("Network", "Proxy", "Automatic") == "Manual":
-            proxy_manual.set_active(True)
-        else:
-            proxy_automatic.set_active(True)
+        self.proxy_manual_url = Gtk.Entry()
+        self.proxy_manual_url.set_text(prefs.get("Network", "ProxyURL", ""))
+        self.proxy_manual_url.set_no_show_all(True)
+        self.proxy_manual_url.connect("changed", self.proxy_value_changed)
 
         bandwidth_label = Gtk.Label(" <b>Bandwidth</b>")
         bandwidth_label.set_use_markup(True)
@@ -96,15 +96,23 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(proxy_label, False, False, 5)
         network_box.pack_start(proxy_automatic, False, False, 0)
         network_box.pack_start(proxy_manual, False, False, 0)
+        network_box.pack_start(self.proxy_manual_url, False, False, 0)
         network_box.pack_start(bandwidth_label, False, False, 5)
         network_box.pack_start(download_box, False, False, 0)
         network_box.pack_start(upload_box, False, False, 5)
+        
+        if prefs.get("Network", "Proxy", "Automatic") == "Manual":
+            proxy_manual.set_active(True)
+            self.proxy_manual_url.show()
+        else:
+            proxy_automatic.set_active(True)
 
         # advanced
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
                                    "Choose Folder"))
         folder_button.connect("clicked", self.on_choose_folder)
         selective_button = Gtk.Button("Selective Sync")
+        selective_button.connect("clicked", lambda w: self.app.core_client.requestRemoteDirectoryListing('/'))
         advanced_box.add(folder_button)
         advanced_box.add(selective_button)
 
@@ -134,24 +142,32 @@ class PrefsWindow(Gtk.Window):
                                         Gtk.ResponseType.CANCEL,
                                         "Select", Gtk.ResponseType.OK))
         dialog.set_default_size(800, 400)
-
         response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            w.set_label(dialog.get_filename())
-            prefs = Preferences()
-            prefs.put("Advanced", "Folder", dialog.get_filename())
-
+        new_path = os.path.join(dialog.get_filename())
         dialog.destroy()
         
-        self.app.stop_threads()
-        
-        wildcard = CONFIG_PATH + '/*'
-        r = glob.glob(wildcard)
-        for i in r:
-            if not "gui" in i:
-                os.remove(i)
-                
-        self.app.restart_core()
+        if response == Gtk.ResponseType.OK:
+            prefs = Preferences()
+            self.app.stop_threads()
+            meocloud_gui.utils.purge_meta()
+
+            prog = ProgressDialog()
+            prog.show_all()
+
+            def end(prog, timeout, new_path):
+                self.app.restart_core()
+                w.set_label(new_path)
+                prefs.put("Advanced", "Folder", new_path)
+                GLib.source_remove(timeout)
+                GLib.idle_add(prog.destroy)
+            def pulse():
+                prog.progress.pulse()
+                return True
+            timeout = GLib.timeout_add(200, pulse)
+
+            old_path = prefs.get("Advanced", "Folder", CLOUD_HOME_DEFAULT_PATH)
+            meocloud_gui.utils.move_folder_async(old_path, new_path,
+                                                 lambda p: end(prog, timeout, p))
 
     def toggle_throttle(self, w, throttle):
         prefs = Preferences()
@@ -180,8 +196,22 @@ class PrefsWindow(Gtk.Window):
         prefs.put("Network", "Throttle" + throttle, val)
         self.app.core_client.networkSettingsChanged(
             api.get_network_settings(prefs))
+            
+    def proxy_value_changed(self, w):
+        prefs = Preferences()
+        prefs.put("Network", "ProxyURL", self.proxy_manual_url.get_text())
+        self.app.core_client.networkSettingsChanged(
+            api.get_network_settings(prefs))
 
     def set_proxy(self, w, proxy):
         if w.get_active():
             prefs = Preferences()
             prefs.put("Network", "Proxy", proxy)
+            
+            if proxy == "Manual":
+                self.proxy_manual_url.show()
+                prefs.put("Network", "ProxyURL",
+                          self.proxy_manual_url.get_text())
+            else:
+                prefs.put("Network", "ProxyURL", "")
+                self.proxy_manual_url.hide()

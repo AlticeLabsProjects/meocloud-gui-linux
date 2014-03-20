@@ -11,6 +11,7 @@ from meocloud_gui.preferences import Preferences
 from meocloud_gui.core.core import Core
 from meocloud_gui.core.core_client import CoreClient
 from meocloud_gui.core.core_listener import CoreListener
+import meocloud_gui.core.api
 
 from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS,
                                    LOGGER_NAME, DAEMON_PID_PATH,
@@ -46,6 +47,7 @@ class Application(Gtk.Application):
         self.watchdog_thread = None
         
         utils.create_required_folders()
+        utils.init_logging()
 
     def on_activate(self, data=None):
         if not self.running:
@@ -92,15 +94,11 @@ class Application(Gtk.Application):
 
             self.hold()
 
-    def update_menu_loop(self):
-        while True:
-            self.update_menu()
-            sleep(10)
-
-    def update_menu(self):
+    def update_menu(self, status=None):
         if self.watchdog_thread.isAlive:
             try:
-                status = self.core_client.currentStatus()
+                if status == None:
+                    status = self.core_client.currentStatus()
                 self.update_storage(status.usedQuota, status.totalQuota)
                 sync_status = self.core_client.currentSyncStatus()
                 self.update_status(str(sync_status.pendingUploads) +
@@ -109,6 +107,17 @@ class Application(Gtk.Application):
                                     " downloads")
             except:
                 pass
+                
+    def start_menu(self):
+        while True:
+            try:
+                status = self.core_client.currentStatus()
+                if status.usedQuota or status.totalQuota:
+                    self.update_menu(status)
+                    break
+                sleep(1)
+            except:
+                sleep(1)
 
     def start_sync(self, prefs):
         cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
@@ -116,7 +125,6 @@ class Application(Gtk.Application):
         while True:
             try:
                 self.core_client.startSync(cloud_home)
-                self.update_menu()
                 if self.sync_thread.isAlive:
                     self.sync_thread._Thread__stop()
                 break
@@ -148,14 +156,13 @@ class Application(Gtk.Application):
 
     def on_logout(self, w):
         self.prefs_window.destroy()
-    
-        try:
-            keyring.delete_password("meocloud", "clientID")
-            keyring.delete_password("meocloud", "authKey")
-        except:
-            pass
-            
+        Thread(target=self.on_logout_thread).start()
+        
+    def on_logout_thread(self):
+        meocloud_gui.core.api.unlink(self.core_client, Preferences())
+        
         os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
+        utils.purge_all()
 
         self.restart_core(True)
 
@@ -183,7 +190,7 @@ class Application(Gtk.Application):
         self.listener_thread = Thread(target=self.core_listener.start)
         self.watchdog_thread = Thread(target=self.core.watchdog)
         self.sync_thread = Thread(target=self.start_sync, args=(prefs,))
-        self.menu_thread = Thread(target=self.update_menu_loop)
+        self.menu_thread = Thread(target=self.start_menu)
         self.listener_thread.start()
         self.watchdog_thread.start()
         if not ignore_sync:

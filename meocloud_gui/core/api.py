@@ -47,11 +47,11 @@ def unlink(core_client, ui_config):
     account_dict = get_account_dict(ui_config)
     if account_dict['clientID'] and account_dict['authKey']:
         account = Account(**account_dict)
-        keyring.delete_password('meocloud', 'clientID')
-        keyring.delete_password('meocloud', 'authKey')
-        self.ui_config.put('Account', 'email', '')
-        self.ui_config.put('Account', 'name', '')
-        self.ui_config.put('Account', 'deviceName', '')
+        GLib.idle_add(lambda: keyring.delete_password('meocloud', 'clientID'))
+        GLib.idle_add(lambda: keyring.delete_password('meocloud', 'authKey'))
+        ui_config.put('Account', 'email', '')
+        ui_config.put('Account', 'name', '')
+        ui_config.put('Account', 'deviceName', '')
         core_client.unlink(account)
         return True
     return False

@@ -10,11 +10,6 @@ class SetupWindow(Gtk.Window):
         Gtk.Window.__init__(self)
         self.set_title("Setup")
 
-        folder_path = os.path.join(os.path.expanduser('~'), 'MEOCloud')
-
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.add(box)
 

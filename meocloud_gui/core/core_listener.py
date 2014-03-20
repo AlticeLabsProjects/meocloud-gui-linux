@@ -2,9 +2,13 @@
 import os
 import subprocess
 import keyring
+import locale
 
 # GLib
 from gi.repository import GLib
+
+# Notifications
+from gi.repository import Notify
 
 # Thrift related imports
 from meocloud_gui.protocol import UI
@@ -17,6 +21,7 @@ from meocloud_gui.settings import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
 from meocloud_gui.core import api
 #from meocloud.client.linux.utils import get_error_code
 #from meocloud.client.linux.messages import DYING_MESSAGES
+from meocloud_gui.strings import NOTIFICATIONS
 import meocloud_gui.utils
 
 # Logging
@@ -38,6 +43,8 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config = ui_config
         self.notifs_handler = notifs_handler
         self.app = app
+        
+        Notify.init('MEOCloud')
 
     def start_sync(self):
         cloud_home = self.ui_config.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
@@ -95,9 +102,9 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config.put('Account', 'email', account_dict['email'])
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
-        self.ui_config.put('Account', 'LoggedIn', 'True')
 
         GLib.idle_add(self.app.setup.hide)
+        meocloud_gui.utils.clean_cloud_path()
         meocloud_gui.utils.create_startup_file()
         self.app.restart_core()
 
@@ -158,12 +165,25 @@ class CoreListenerHandler(UI.Iface):
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
-        #self.notifs_handler.handle(note)
-        #print note
+        
+        self.app.update_menu()
+
+        loc = locale.getlocale()
+        if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
+            lang = 'pt'
+        else:
+            lang = 'en'
+
+        if note.type != 0:
+            notif_string = NOTIFICATIONS[lang][str(note.code) + 
+                               "_description"].format(*note.parameters)
+            notification = Notify.Notification.new(NOTIFICATIONS[lang][
+                                str(note.code) + "_title"], notif_string, '')
+            notification.show()
 
     def remoteDirectoryListing(self, statusCode, path, listing):  # i32 statusCode, string path, listing
         log.debug('CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(statusCode, path, listing))
-        AsyncResults.remote_directory_listing.set({'statusCode': statusCode, 'path': path, 'listing': listing})
+        print listing
 
     def networkSettings(self):
         log.debug('CoreListener.networkSettings() <<<<')
