@@ -1,6 +1,7 @@
 import subprocess
 import os
 import keyring
+import cPickle
 from threading import Thread
 from time import sleep
 from gi.repository import Gtk, Gio
@@ -46,6 +47,7 @@ class Application(Gtk.Application):
         self.core_listener = None
         self.core = None
         self.setup = None
+        self.ignored_directories = []
         
         self.sync_thread = None
         self.menu_thread = None
@@ -76,6 +78,14 @@ class Application(Gtk.Application):
             if not self.missing_quit:
                 utils.create_required_folders()
                 utils.init_logging()
+                
+                if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat')):
+                    try:
+                        f = open(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'), "r")
+                        self.ignored_directories = cPickle.load(f)
+                        f.close()
+                    except:
+                        pass
                         
                 self.setup = SetupWindow()
 

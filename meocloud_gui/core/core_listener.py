@@ -47,6 +47,8 @@ class CoreListenerHandler(UI.Iface):
         Notify.init('MEOCloud')
 
     def start_sync(self):
+        self.app.core_client.setIgnoredDirectories(self.app.ignored_directories)
+    
         cloud_home = self.ui_config.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
         if not cloud_home:
             log.warning('CoreListener.start_sync: no cloud_home in config, will unlink and shutdown')
@@ -182,7 +184,8 @@ class CoreListenerHandler(UI.Iface):
 
     def remoteDirectoryListing(self, statusCode, path, listing):  # i32 statusCode, string path, listing
         log.debug('CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(statusCode, path, listing))
-        print listing
+        if self.app.prefs_window:
+            self.app.prefs_window.selective_sync.fill_with_folders(listing)
 
     def networkSettings(self):
         log.debug('CoreListener.networkSettings() <<<<')

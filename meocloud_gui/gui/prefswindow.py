@@ -3,6 +3,7 @@ import os
 from gi.repository import Gtk, Gio, GLib
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.progressdialog import ProgressDialog
+from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
@@ -16,8 +17,9 @@ class PrefsWindow(Gtk.Window):
         Gtk.Window.__init__(self)
         self.set_title("Preferences")
         
-        self.app = app
         prefs = Preferences()
+        self.app = app
+        self.selective_sync = SelectiveSyncWindow(self.app)
 
         general_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         account_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -112,7 +114,7 @@ class PrefsWindow(Gtk.Window):
                                    "Choose Folder"))
         folder_button.connect("clicked", self.on_choose_folder)
         selective_button = Gtk.Button("Selective Sync")
-        selective_button.connect("clicked", lambda w: self.app.core_client.requestRemoteDirectoryListing('/'))
+        selective_button.connect("clicked", self.on_selective_sync)
         advanced_box.add(folder_button)
         advanced_box.add(selective_button)
 
@@ -134,6 +136,12 @@ class PrefsWindow(Gtk.Window):
             os.remove(file_path)
         else:
             meocloud_gui.utils.create_startup_file()
+
+    def on_selective_sync(self, w):
+        self.selective_sync.destroy()
+        self.selective_sync = SelectiveSyncWindow(self.app)
+        self.app.core_client.requestRemoteDirectoryListing('/')
+        self.selective_sync.show_all()
 
     def on_choose_folder(self, w):
         dialog = Gtk.FileChooserDialog("Please choose a folder", self,
