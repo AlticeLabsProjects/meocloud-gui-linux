@@ -35,7 +35,7 @@ class PrefsWindow(Gtk.Window):
 
         # account
         login_label = Gtk.Label("You are logged in with " + prefs.get('Account', 'email', '') + ".")
-        self.logout_button = Gtk.Button("Logout")
+        self.logout_button = Gtk.Button("Unlink")
         account_box.add(login_label)
         account_box.add(self.logout_button)
 

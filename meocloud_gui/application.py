@@ -39,6 +39,7 @@ class Application(Gtk.Application):
 
         self.running = False
         self.paused = False
+        self.offline = False
         self.core_client = None
         self.core_listener = None
         self.core = None
@@ -127,6 +128,7 @@ class Application(Gtk.Application):
                     self.update_menu_action("Resume")
                 elif status.state == codes.CORE_OFFLINE:
                     self.paused = True
+                    self.offline = True
                     self.update_status("Offline")
                     self.update_menu_action("Resume")
                 else:
@@ -166,7 +168,11 @@ class Application(Gtk.Application):
         self.menuitem_changestatus.set_label(action)
         
     def toggle_status(self, w):
-        if self.paused:
+        if self.offline:
+            self.offline = False
+            self.paused = False
+            self.restart_core()
+        elif self.paused:
             self.core_client.unpause()
         else:
             self.core_client.pause()
