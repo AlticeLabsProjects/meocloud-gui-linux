@@ -18,6 +18,8 @@ from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS,
                                    DAEMON_LOCK_PATH,  DEV_MODE,
                                    VERSION, DAEMON_VERSION_CHECKER_PERIOD,
                                    CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
+                                   
+from meocloud_gui import codes
 
 try:
     from meocloud_gui.gui.indicator import Indicator as TrayIcon
@@ -46,7 +48,7 @@ class Application(Gtk.Application):
         self.menu_thread = None
         self.listener_thread = None
         self.watchdog_thread = None
-        
+
         utils.create_required_folders()
         utils.init_logging()
 
@@ -102,22 +104,35 @@ class Application(Gtk.Application):
                 if status == None:
                     status = self.core_client.currentStatus()
                 self.update_storage(status.usedQuota, status.totalQuota)
-                if status.state == 5:
-                    self.paused = True
-                    self.menuitem_changestatus.set_label("Resume")
-                else:
-                    self.paused = False
-                    self.menuitem_changestatus.set_label("Pause")
 
                 sync_status = self.core_client.currentSyncStatus()
-                if (sync_status.uploadRate > 0 or sync_status.downloadRate > 0 or
-                   sync_status.pendingUploads > 0 or sync_status.pendingUploads > 0 or
-                   sync_status.pendingIndexes > 0):
+                
+                if (status.state == codes.CORE_INITIALIZING or
+                   status.state == codes.CORE_AUTHORIZING or
+                   status.state == codes.CORE_WAITING):
+                    self.paused = True
+                    self.update_status("Initializing")
+                    self.update_menu_action("Resume")
+                elif status.state == codes.CORE_SYNCING:
+                    self.paused = False
                     self.update_status("Syncing")
-                elif status.state == 5:
-                    self.update_status("Paused")
-                else:
+                    self.update_menu_action("Pause")
+                elif status.state == codes.CORE_READY:
+                    self.paused = False
                     self.update_status("Ready")
+                    self.update_menu_action("Pause")
+                elif status.state == codes.CORE_PAUSED:
+                    self.paused = True
+                    self.update_status("Paused")
+                    self.update_menu_action("Resume")
+                elif status.state == codes.CORE_OFFLINE:
+                    self.paused = True
+                    self.update_status("Offline")
+                    self.update_menu_action("Resume")
+                else:
+                    self.paused = True
+                    self.update_status("Error")
+                    self.update_menu_action("Resume")
             except:
                 pass
                 
@@ -146,6 +161,9 @@ class Application(Gtk.Application):
 
     def update_status(self, status):
         self.menuitem_status.set_label(status)
+        
+    def update_menu_action(self, action):
+        self.menuitem_changestatus.set_label(action)
         
     def toggle_status(self, w):
         if self.paused:
