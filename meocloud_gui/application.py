@@ -36,6 +36,7 @@ class Application(Gtk.Application):
         self.trayicon.show()
 
         self.running = False
+        self.paused = False
         self.core_client = None
         self.core_listener = None
         self.core = None
@@ -70,8 +71,8 @@ class Application(Gtk.Application):
             menuitem_folder = Gtk.MenuItem("Open Folder")
             menuitem_site = Gtk.MenuItem("Open Website")
             self.menuitem_storage = Gtk.MenuItem("0 GB used of 16 GB")
-            self.menuitem_status = Gtk.MenuItem("Unknown")
-            menuitem_changestatus = Gtk.MenuItem("Pause/Resume")
+            self.menuitem_status = Gtk.MenuItem("Paused")
+            self.menuitem_changestatus = Gtk.MenuItem("Resume")
             menuitem_prefs = Gtk.MenuItem("Preferences")
             menuitem_quit = Gtk.MenuItem("Quit")
 
@@ -80,13 +81,14 @@ class Application(Gtk.Application):
             self.trayicon.add_menu_item(self.menuitem_storage)
             self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
             self.trayicon.add_menu_item(self.menuitem_status)
-            self.trayicon.add_menu_item(menuitem_changestatus)
+            self.trayicon.add_menu_item(self.menuitem_changestatus)
             self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
             self.trayicon.add_menu_item(menuitem_prefs)
             self.trayicon.add_menu_item(menuitem_quit)
 
             menuitem_folder.connect("activate", self.open_folder)
             menuitem_site.connect("activate", self.open_website)
+            self.menuitem_changestatus.connect("activate", self.toggle_status)
             menuitem_prefs.connect("activate", self.show_prefs)
             menuitem_quit.connect("activate", lambda w: self.quit())
 
@@ -100,11 +102,22 @@ class Application(Gtk.Application):
                 if status == None:
                     status = self.core_client.currentStatus()
                 self.update_storage(status.usedQuota, status.totalQuota)
+                if status.state == 5:
+                    self.paused = True
+                    self.menuitem_changestatus.set_label("Resume")
+                else:
+                    self.paused = False
+                    self.menuitem_changestatus.set_label("Pause")
+
                 sync_status = self.core_client.currentSyncStatus()
-                self.update_status(str(sync_status.pendingUploads) +
-                                   " uploads/" +
-                                   str(sync_status.pendingDownloads) +
-                                    " downloads")
+                if (sync_status.uploadRate > 0 or sync_status.downloadRate > 0 or
+                   sync_status.pendingUploads > 0 or sync_status.pendingUploads > 0 or
+                   sync_status.pendingIndexes > 0):
+                    self.update_status("Syncing")
+                elif status.state == 5:
+                    self.update_status("Paused")
+                else:
+                    self.update_status("Ready")
             except:
                 pass
                 
@@ -133,6 +146,12 @@ class Application(Gtk.Application):
 
     def update_status(self, status):
         self.menuitem_status.set_label(status)
+        
+    def toggle_status(self, w):
+        if self.paused:
+            self.core_client.unpause()
+        else:
+            self.core_client.pause()
 
     def update_storage(self, used, total):
         used = utils.convert_size(used)

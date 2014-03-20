@@ -113,6 +113,7 @@ class CoreListenerHandler(UI.Iface):
 
     def notifySystem(self, note):
         log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code, note.parameters))
+        self.app.update_menu()
 
         def handleSystemNotification():
             if note.code == codes.STATE_CHANGED:
