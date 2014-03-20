@@ -166,8 +166,6 @@ class CoreListenerHandler(UI.Iface):
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
-        
-        self.app.update_menu()
 
         loc = locale.getlocale()
         if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
