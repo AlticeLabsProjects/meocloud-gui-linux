@@ -143,10 +143,10 @@ class PrefsWindow(Gtk.Window):
                                         "Select", Gtk.ResponseType.OK))
         dialog.set_default_size(800, 400)
         response = dialog.run()
-        new_path = os.path.join(dialog.get_filename())
-        dialog.destroy()
         
         if response == Gtk.ResponseType.OK:
+            new_path = os.path.join(dialog.get_filename())
+            dialog.destroy()
             prefs = Preferences()
             self.app.stop_threads()
             meocloud_gui.utils.purge_meta()
@@ -168,6 +168,8 @@ class PrefsWindow(Gtk.Window):
             old_path = prefs.get("Advanced", "Folder", CLOUD_HOME_DEFAULT_PATH)
             meocloud_gui.utils.move_folder_async(old_path, new_path,
                                                  lambda p: end(prog, timeout, p))
+        else:
+            dialog.destroy()
 
     def toggle_throttle(self, w, throttle):
         prefs = Preferences()

@@ -7,6 +7,7 @@ from gi.repository import Gtk, Gio
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.setupwindow import SetupWindow
+from meocloud_gui.gui.missingdialog import MissingDialog
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.core.core import Core
 from meocloud_gui.core.core_client import CoreClient
@@ -37,6 +38,7 @@ class Application(Gtk.Application):
         self.trayicon = TrayIcon(self)
         self.trayicon.show()
 
+        self.missing_quit = False
         self.running = False
         self.paused = False
         self.offline = False
@@ -49,9 +51,6 @@ class Application(Gtk.Application):
         self.menu_thread = None
         self.listener_thread = None
         self.watchdog_thread = None
-
-        utils.create_required_folders()
-        utils.init_logging()
 
     def on_activate(self, data=None):
         if not self.running:
@@ -68,36 +67,45 @@ class Application(Gtk.Application):
                     pass
             else:
                 run_setup = False
-                    
-            self.setup = SetupWindow()
+                
+                if not os.path.exists(prefs.get("Advanced", "Folder", 
+                                                CLOUD_HOME_DEFAULT_PATH)):
+                    missing = MissingDialog(self)
+                    missing.run()
 
-            menuitem_folder = Gtk.MenuItem("Open Folder")
-            menuitem_site = Gtk.MenuItem("Open Website")
-            self.menuitem_storage = Gtk.MenuItem("0 GB used of 16 GB")
-            self.menuitem_status = Gtk.MenuItem("Paused")
-            self.menuitem_changestatus = Gtk.MenuItem("Resume")
-            menuitem_prefs = Gtk.MenuItem("Preferences")
-            menuitem_quit = Gtk.MenuItem("Quit")
+            if not self.missing_quit:
+                utils.create_required_folders()
+                utils.init_logging()
+                        
+                self.setup = SetupWindow()
 
-            self.trayicon.add_menu_item(menuitem_folder)
-            self.trayicon.add_menu_item(menuitem_site)
-            self.trayicon.add_menu_item(self.menuitem_storage)
-            self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
-            self.trayicon.add_menu_item(self.menuitem_status)
-            self.trayicon.add_menu_item(self.menuitem_changestatus)
-            self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
-            self.trayicon.add_menu_item(menuitem_prefs)
-            self.trayicon.add_menu_item(menuitem_quit)
+                menuitem_folder = Gtk.MenuItem("Open Folder")
+                menuitem_site = Gtk.MenuItem("Open Website")
+                self.menuitem_storage = Gtk.MenuItem("0 GB used of 16 GB")
+                self.menuitem_status = Gtk.MenuItem("Paused")
+                self.menuitem_changestatus = Gtk.MenuItem("Resume")
+                menuitem_prefs = Gtk.MenuItem("Preferences")
+                menuitem_quit = Gtk.MenuItem("Quit")
 
-            menuitem_folder.connect("activate", self.open_folder)
-            menuitem_site.connect("activate", self.open_website)
-            self.menuitem_changestatus.connect("activate", self.toggle_status)
-            menuitem_prefs.connect("activate", self.show_prefs)
-            menuitem_quit.connect("activate", lambda w: self.quit())
+                self.trayicon.add_menu_item(menuitem_folder)
+                self.trayicon.add_menu_item(menuitem_site)
+                self.trayicon.add_menu_item(self.menuitem_storage)
+                self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
+                self.trayicon.add_menu_item(self.menuitem_status)
+                self.trayicon.add_menu_item(self.menuitem_changestatus)
+                self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
+                self.trayicon.add_menu_item(menuitem_prefs)
+                self.trayicon.add_menu_item(menuitem_quit)
 
-            self.restart_core(run_setup)
+                menuitem_folder.connect("activate", self.open_folder)
+                menuitem_site.connect("activate", self.open_website)
+                self.menuitem_changestatus.connect("activate", self.toggle_status)
+                menuitem_prefs.connect("activate", self.show_prefs)
+                menuitem_quit.connect("activate", lambda w: self.quit())
 
-            self.hold()
+                self.restart_core(run_setup)
+
+                self.hold()
 
     def update_menu(self, status=None):
         if self.watchdog_thread.isAlive:
@@ -253,7 +261,8 @@ class Application(Gtk.Application):
         except:
             pass
 
-        self.core.stop()
+        if self.core:
+            self.core.stop()
 
     def quit(self):
         self.stop_threads()

@@ -35,6 +35,15 @@ def init_logging():
             pass
 
 
+def purge_all():
+    purge_file = open(PURGEALL_PATH, 'w')
+    purge_file.close()
+
+def purge_meta():
+    purge_file = open(PURGEMETA_PATH, 'w')
+    purge_file.close()
+
+
 def create_required_folders():
     prefs = Preferences()
     
@@ -42,6 +51,7 @@ def create_required_folders():
 
     if not os.path.exists(cloud_home):
         os.makedirs(cloud_home)
+        purge_meta()
     if not os.path.exists(UI_CONFIG_PATH):
         os.makedirs(UI_CONFIG_PATH)
 
@@ -123,15 +133,6 @@ def convert_size(size):
             return '0 B'
     else:
         return '0 B'
-
-
-def purge_all():
-    purge_file = open(PURGEALL_PATH, 'w')
-    purge_file.close()
-
-def purge_meta():
-    purge_file = open(PURGEMETA_PATH, 'w')
-    purge_file.close()
     
     
 def move_folder_async(src, dst, callback=None):
