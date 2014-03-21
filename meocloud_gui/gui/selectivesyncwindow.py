@@ -19,6 +19,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.set_title("Selective Sync")
 
         self.app = app
+        self.first_column = True
 
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.add(self.hbox)
@@ -27,43 +28,69 @@ class SelectiveSyncWindow(Gtk.Window):
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
 
-        self.liststore = None
         self.set_default_size(200, 200)
+        self.columns = []
+        self.separators = []
 
-    def fill_with_folders(self, folders):
-        if self.liststore is None:
-            self.liststore = Gtk.ListStore(str, bool)
+    def add_column(self, folders, path='/'):
+        if not self.first_column:
+            separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
+            self.separators.append(separator)
+            self.hbox.pack_start(separator, False, False, 0)
+        else:
+            self.first_column = False
+            
+        for i in range(len(path.split('/')) - 1, len(self.columns)):
+            self.hbox.remove(self.columns[len(path.split('/')) - 1])
+            col = self.columns[len(path.split('/')) - 1]
+            col.destroy()
+            self.columns.remove(col)
+            
+        for i in range(len(path.split('/')) - 1, len(self.separators)):
+            self.hbox.remove(self.separators[len(path.split('/')) - 1])
+            sep = self.separators[len(path.split('/')) - 1]
+            sep.destroy()
+            self.separators.remove(sep)
+    
+        liststore = Gtk.ListStore(str, bool, str)
 
-            treeview = Gtk.TreeView(model=self.liststore)
+        treeview = Gtk.TreeView(model=liststore)
+        treeview.connect("row-activated", lambda w, r, c: self.on_row_activated(w, r, c, liststore))
 
-            renderer_toggle = Gtk.CellRendererToggle()
-            renderer_toggle.connect("toggled", self.on_cell_toggled)
-            column_toggle = Gtk.TreeViewColumn("Sync", renderer_toggle,
-                                               active=1)
-            treeview.append_column(column_toggle)
+        renderer_toggle = Gtk.CellRendererToggle()
+        renderer_toggle.connect("toggled", lambda w, p: self.on_cell_toggled(w, p, liststore))
+        column_toggle = Gtk.TreeViewColumn("Sync", renderer_toggle,
+                                           active=1)
+        treeview.append_column(column_toggle)
 
-            renderer_text = Gtk.CellRendererText()
-            column_text = Gtk.TreeViewColumn("Folder", renderer_text, text=0)
-            treeview.append_column(column_text)
+        renderer_text = Gtk.CellRendererText()
+        column_text = Gtk.TreeViewColumn("Folder", renderer_text, text=0)
+        treeview.append_column(column_text)
 
-            self.hbox.remove(self.spinner)
-            self.hbox.pack_start(treeview, True, True, 0)
+        self.hbox.remove(self.spinner)
+        self.hbox.pack_start(treeview, True, True, 0)
 
         for folder in folders:
             if folder in self.app.ignored_directories:
-                self.liststore.append([folder, False])
+                liststore.append([os.path.basename(folder), False, folder])
             else:
-                self.liststore.append([folder, True])
+                liststore.append([os.path.basename(folder), True, folder])
 
+        self.columns.append(treeview)
         self.show_all()
 
-    def on_cell_toggled(self, widget, path):
-        self.liststore[path][1] = not self.liststore[path][1]
+    def on_row_activated(self, widget, row, col, liststore):
+        self.hbox.pack_start(self.spinner, True, True, 0)
+        self.spinner.start()
+        self.app.core_client.requestRemoteDirectoryListing(liststore[row][2])
 
-        if self.liststore[path][0] in self.app.ignored_directories:
-            self.app.ignored_directories.remove(self.liststore[path][0])
+    def on_cell_toggled(self, widget, path, liststore):
+        liststore[path][1] = not liststore[path][1]
+
+        if liststore[path][2] in self.app.ignored_directories:
+            self.app.ignored_directories.remove(liststore[path][2])
         else:
-            self.app.ignored_directories.append(self.liststore[path][0])
+            self.app.ignored_directories.append(liststore[path][2])
 
         self.app.core_client.setIgnoredDirectories(
             self.app.ignored_directories)

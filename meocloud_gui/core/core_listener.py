@@ -187,7 +187,7 @@ class CoreListenerHandler(UI.Iface):
     def remoteDirectoryListing(self, statusCode, path, listing):  # i32 statusCode, string path, listing
         log.debug('CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(statusCode, path, listing))
         if self.app.prefs_window:
-            self.app.prefs_window.selective_sync.fill_with_folders(listing)
+            GLib.idle_add(lambda: self.app.prefs_window.selective_sync.add_column(listing, path))
 
     def networkSettings(self):
         log.debug('CoreListener.networkSettings() <<<<')
