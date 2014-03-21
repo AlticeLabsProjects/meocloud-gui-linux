@@ -227,8 +227,8 @@ class Application(Gtk.Application):
         used = utils.convert_size(used)
         total = utils.convert_size(total)
 
-        self.menuitem_storage.set_label(_("{0} used of {1}").format(str(used),
-                                                                    str(total)))
+        self.menuitem_storage.set_label(
+            _("{0} used of {1}").format(str(used), str(total)))
 
     def prefs_window_destroyed(self, w):
         self.prefs_window = None

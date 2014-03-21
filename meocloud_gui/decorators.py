@@ -13,12 +13,13 @@ def retry(max_tries, delay=3, backoff=2, sleep_func=None):
     """
     Based on https://wiki.python.org/moin/PythonDecoratorLibrary#Retry
 
-    Retries a function or method until it fails to raise a RetryFailed exception.
+    Retries a function or method until it fails to raise a RetryFailed
+    exception.
 
-    delay sets the initial delay in seconds, and backoff sets the factor by which
-    the delay should lengthen after each failure. backoff must be greater than 1,
-    or else it isn't really a backoff. max_tries must be at least 0, and delay
-    greater than 0. sleep_func will default to time.sleep.
+    delay sets the initial delay in seconds, and backoff sets the factor by
+    which the delay should lengthen after each failure. backoff must be greater
+    than 1, or else it isn't really a backoff. max_tries must be at least 0,
+    and delay greater than 0. sleep_func will default to time.sleep.
     """
 
     if backoff <= 1:

@@ -51,7 +51,8 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(start_at_login, False, True, 0)
 
         # account
-        login_label = Gtk.Label(_("You are logged in with {0}.").format(prefs.get('Account', 'email', '')))
+        login_label = Gtk.Label(_("You are logged in with {0}.").format(
+            prefs.get('Account', 'email', '')))
         self.logout_button = Gtk.Button(_("Unlink"))
         account_box.pack_start(login_label, False, True, 10)
         account_box.pack_start(self.logout_button, False, True, 10)

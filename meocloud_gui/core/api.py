@@ -82,7 +82,9 @@ def get_network_settings(ui_config):
                 network_settings.proxyAddress = parsed.hostname
                 network_settings.proxyType = 'http'
                 network_settings.proxyPort = parsed.port or 3128
-                network_settings.proxyUser = parsed.user if hasattr(parsed, 'user') else ''
-                network_settings.proxyPassword = parsed.password if hasattr(parsed, 'password') else ''
+                network_settings.proxyUser = \
+                    parsed.user if hasattr(parsed, 'user') else ''
+                network_settings.proxyPassword = \
+                    parsed.password if hasattr(parsed, 'password') else ''
 
     return network_settings
