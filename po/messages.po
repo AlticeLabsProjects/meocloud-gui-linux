@@ -1,0 +1,223 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-21 16:03+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../meocloud_gui/gui/prefswindow.py:18 ../meocloud_gui/application.py:108
+msgid "Preferences"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:39
+msgid "Display notifications"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:45
+msgid "Start MEO Cloud at login"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:54
+msgid "You are logged in with {0}."
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:55
+msgid "Unlink"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:60
+msgid "Proxy"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:64
+msgid "Automatic"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:68
+msgid "Manual"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:76
+msgid "Bandwidth"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:102
+msgid "Upload"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:106
+msgid "Download"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:135
+#: ../meocloud_gui/gui/selectivesyncwindow.py:19
+msgid "Selective Sync"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:143
+#: ../meocloud_gui/gui/prefswindow.py:147
+msgid "General"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:144
+#: ../meocloud_gui/gui/prefswindow.py:149
+msgid "Network"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:145
+#: ../meocloud_gui/gui/selectivesyncwindow.py:55
+msgid "Sync"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:148
+msgid "Account"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:150
+#: ../meocloud_gui/gui/setupwindow.py:26
+msgid "Advanced"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:182
+#: ../meocloud_gui/gui/missingdialog.py:43
+msgid "Please choose a folder"
+msgstr ""
+
+#: ../meocloud_gui/gui/prefswindow.py:186
+#: ../meocloud_gui/gui/missingdialog.py:47
+msgid "Select"
+msgstr ""
+
+#: ../meocloud_gui/gui/progressdialog.py:8
+msgid "Moving"
+msgstr ""
+
+#: ../meocloud_gui/gui/missingdialog.py:12
+msgid "Cloud Home Missing"
+msgstr ""
+
+#: ../meocloud_gui/gui/missingdialog.py:21
+msgid "We were unable to find your cloud home folder."
+msgstr ""
+
+#: ../meocloud_gui/gui/missingdialog.py:24
+msgid "Find Folder"
+msgstr ""
+
+#: ../meocloud_gui/gui/missingdialog.py:28
+msgid "Recreate Folder"
+msgstr ""
+
+#: ../meocloud_gui/gui/missingdialog.py:32 ../meocloud_gui/application.py:109
+msgid "Quit"
+msgstr ""
+
+#: ../meocloud_gui/gui/selectivesyncwindow.py:60
+msgid "Folder"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:13
+msgid "Setup"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:22
+msgid "Welcome to MEO Cloud"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:31
+msgid "Next"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:47
+msgid "Device name: "
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:52
+msgid "Back"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:54 ../meocloud_gui/application.py:107
+#: ../meocloud_gui/application.py:262
+msgid "Authorize"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:74 ../meocloud_gui/gui/setupwindow.py:90
+msgid "Finish"
+msgstr ""
+
+#: ../meocloud_gui/gui/setupwindow.py:87
+msgid "Your computer has been successfuly linked."
+msgstr ""
+
+#: ../meocloud_gui/application.py:96 ../meocloud_gui/application.py:138
+msgid "No Recent Files"
+msgstr ""
+
+#: ../meocloud_gui/application.py:101
+msgid "Open Folder"
+msgstr ""
+
+#: ../meocloud_gui/application.py:102
+msgid "Open Website"
+msgstr ""
+
+#: ../meocloud_gui/application.py:103
+msgid "Recent Files"
+msgstr ""
+
+#: ../meocloud_gui/application.py:105
+msgid "0 GB used of 16 GB"
+msgstr ""
+
+#: ../meocloud_gui/application.py:106 ../meocloud_gui/application.py:261
+msgid "Unauthorized"
+msgstr ""
+
+#: ../meocloud_gui/application.py:163
+msgid "Initializing"
+msgstr ""
+
+#: ../meocloud_gui/application.py:164 ../meocloud_gui/application.py:196
+#: ../meocloud_gui/application.py:202 ../meocloud_gui/application.py:206
+msgid "Resume"
+msgstr ""
+
+#: ../meocloud_gui/application.py:168
+msgid "Syncing"
+msgstr ""
+
+#: ../meocloud_gui/application.py:169 ../meocloud_gui/application.py:174
+msgid "Pause"
+msgstr ""
+
+#: ../meocloud_gui/application.py:173
+msgid "Synced"
+msgstr ""
+
+#: ../meocloud_gui/application.py:195
+msgid "Paused"
+msgstr ""
+
+#: ../meocloud_gui/application.py:201
+msgid "Offline"
+msgstr ""
+
+#: ../meocloud_gui/application.py:205
+msgid "Error"
+msgstr ""
+
+#: ../meocloud_gui/application.py:230
+msgid "{0} used of {1}"
+msgstr ""

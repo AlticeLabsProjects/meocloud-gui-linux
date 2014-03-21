@@ -1,6 +1,25 @@
 #!/usr/bin/python2
 from meocloud_gui.application import Application
+import gettext
+import locale
+import os.path
+
+def init_localization():
+    '''prepare l10n'''
+    locale.setlocale(locale.LC_ALL, '')
+    loc = locale.getlocale()
+    filename = "mo/%s.mo" % locale.getlocale()[0][0:2]
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
+
+    try:
+        trans = gettext.GNUTranslations(open(path, "rb"))
+    except IOError:
+        trans = gettext.NullTranslations()
+
+    trans.install()
+
 
 if __name__ == "__main__":
+    init_localization()
     app = Application()
     app.run(None)

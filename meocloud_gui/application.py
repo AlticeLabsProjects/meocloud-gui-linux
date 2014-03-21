@@ -93,20 +93,20 @@ class Application(Gtk.Application):
                     except:
                         pass
 
-                recentfiles_nothing = Gtk.MenuItem("No Recent Files")
+                recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
                 recentfiles_nothing.show()
                 self.recentfiles_menu = Gtk.Menu()
                 self.recentfiles_menu.add(recentfiles_nothing)
 
-                menuitem_folder = Gtk.MenuItem("Open Folder")
-                menuitem_site = Gtk.MenuItem("Open Website")
-                self.menuitem_recent = Gtk.MenuItem("Recent Files")
+                menuitem_folder = Gtk.MenuItem(_("Open Folder"))
+                menuitem_site = Gtk.MenuItem(_("Open Website"))
+                self.menuitem_recent = Gtk.MenuItem(_("Recent Files"))
                 self.menuitem_recent.set_submenu(self.recentfiles_menu)
-                self.menuitem_storage = Gtk.MenuItem("0 GB used of 16 GB")
-                self.menuitem_status = Gtk.MenuItem("Unauthorized")
-                self.menuitem_changestatus = Gtk.MenuItem("Authorize")
-                self.menuitem_prefs = Gtk.MenuItem("Preferences")
-                menuitem_quit = Gtk.MenuItem("Quit")
+                self.menuitem_storage = Gtk.MenuItem(_("0 GB used of 16 GB"))
+                self.menuitem_status = Gtk.MenuItem(_("Unauthorized"))
+                self.menuitem_changestatus = Gtk.MenuItem(_("Authorize"))
+                self.menuitem_prefs = Gtk.MenuItem(_("Preferences"))
+                menuitem_quit = Gtk.MenuItem(_("Quit"))
 
                 self.trayicon.add_menu_item(menuitem_folder)
                 self.trayicon.add_menu_item(menuitem_site)
@@ -135,7 +135,7 @@ class Application(Gtk.Application):
         for menuitem in self.recentfiles_menu.get_children():
             self.recentfiles_menu.remove(menuitem)
 
-        recentfiles_nothing = Gtk.MenuItem("No Recent Files")
+        recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
         self.recentfiles_menu.add(recentfiles_nothing)
         recentfiles_nothing.show()
 
@@ -160,18 +160,18 @@ class Application(Gtk.Application):
            status.state == codes.CORE_WAITING):
             self.menuitem_prefs.hide()
             self.paused = True
-            self.update_status("Initializing")
-            self.update_menu_action("Resume")
+            self.update_status(_("Initializing"))
+            self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
             self.menuitem_prefs.show()
             self.paused = False
-            self.update_status("Syncing")
-            self.update_menu_action("Pause")
+            self.update_status(_("Syncing"))
+            self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
             self.menuitem_prefs.show()
             self.paused = False
-            self.update_status("Synced")
-            self.update_menu_action("Pause")
+            self.update_status(_("Synced"))
+            self.update_menu_action(_("Pause"))
 
             recently_changed = self.core_client.recentlyChangedFilePaths()
 
@@ -192,18 +192,18 @@ class Application(Gtk.Application):
         elif status.state == codes.CORE_PAUSED:
             self.menuitem_prefs.show()
             self.paused = True
-            self.update_status("Paused")
-            self.update_menu_action("Resume")
+            self.update_status(_("Paused"))
+            self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_OFFLINE:
             self.menuitem_prefs.show()
             self.paused = True
             self.offline = True
-            self.update_status("Offline")
-            self.update_menu_action("Resume")
+            self.update_status(_("Offline"))
+            self.update_menu_action(_("Resume"))
         else:
             self.paused = True
-            self.update_status("Error")
-            self.update_menu_action("Resume")
+            self.update_status(_("Error"))
+            self.update_menu_action(_("Resume"))
 
     def update_status(self, status):
         self.menuitem_status.set_label(status)
@@ -227,9 +227,8 @@ class Application(Gtk.Application):
         used = utils.convert_size(used)
         total = utils.convert_size(total)
 
-        self.menuitem_storage.set_label(str(used) +
-                                        " used of " +
-                                        str(total))
+        self.menuitem_storage.set_label(_("{0} used of {1}").format(str(used),
+                                                                    str(total)))
 
     def prefs_window_destroyed(self, w):
         self.prefs_window = None
@@ -259,8 +258,8 @@ class Application(Gtk.Application):
 
         self.ignored_directories = []
         self.requires_authorization = True
-        self.update_status("Unauthorized")
-        self.update_menu_action("Authorize")
+        self.update_status(_("Unauthorized"))
+        self.update_menu_action(_("Authorize"))
         self.clean_recent_files()
         self.menuitem_prefs.hide()
         self.restart_core()

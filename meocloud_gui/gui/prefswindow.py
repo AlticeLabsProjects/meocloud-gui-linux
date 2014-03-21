@@ -15,7 +15,7 @@ class PrefsWindow(Gtk.Window):
 
     def __init__(self, app, embed=False):
         Gtk.Window.__init__(self)
-        self.set_title("Preferences")
+        self.set_title(_("Preferences"))
 
         prefs = Preferences()
         self.app = app
@@ -36,13 +36,13 @@ class PrefsWindow(Gtk.Window):
 
         # general
         display_notif = prefs.get("General", "Notifications", "True") == "True"
-        display_notifications = Gtk.CheckButton("Display notifications")
+        display_notifications = Gtk.CheckButton(_("Display notifications"))
         display_notifications.set_active(display_notif)
         display_notifications.connect("toggled",
                                       self.toggle_display_notifications)
         general_box.pack_start(display_notifications, False, True, 10)
 
-        start_at_login = Gtk.CheckButton("Start MEO Cloud at login")
+        start_at_login = Gtk.CheckButton(_("Start MEO Cloud at login"))
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
                                            'meocloud.desktop')
@@ -51,22 +51,21 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(start_at_login, False, True, 0)
 
         # account
-        login_label = Gtk.Label("You are logged in with " +
-                                prefs.get('Account', 'email', '') + ".")
-        self.logout_button = Gtk.Button("Unlink")
+        login_label = Gtk.Label(_("You are logged in with {0}.").format(prefs.get('Account', 'email', '')))
+        self.logout_button = Gtk.Button(_("Unlink"))
         account_box.pack_start(login_label, False, True, 10)
         account_box.pack_start(self.logout_button, False, True, 10)
 
         # network
-        proxy_label = Gtk.Label("<b>Proxy</b>")
+        proxy_label = Gtk.Label("<b>" + _("Proxy") + "</b>")
         proxy_label.set_use_markup(True)
         proxy_label.set_alignment(0, 0)
 
-        proxy_automatic = Gtk.RadioButton.new_with_label(None, "Automatic")
+        proxy_automatic = Gtk.RadioButton.new_with_label(None, _("Automatic"))
         proxy_automatic.connect("toggled", lambda w: self.set_proxy(w,
                                 "Automatic"))
         proxy_manual = Gtk.RadioButton.new_with_label_from_widget(
-            proxy_automatic, "Manual")
+            proxy_automatic, _("Manual"))
         proxy_manual.connect("toggled", lambda w: self.set_proxy(w,
                              "Manual"))
         self.proxy_manual_url = Gtk.Entry()
@@ -74,7 +73,7 @@ class PrefsWindow(Gtk.Window):
         self.proxy_manual_url.set_no_show_all(True)
         self.proxy_manual_url.connect("changed", self.proxy_value_changed)
 
-        bandwidth_label = Gtk.Label("<b>Bandwidth</b>")
+        bandwidth_label = Gtk.Label("<b>" + _("Bandwidth") + "</b>")
         bandwidth_label.set_use_markup(True)
         bandwidth_label.set_alignment(0, 0)
 
@@ -100,11 +99,11 @@ class PrefsWindow(Gtk.Window):
                                             "0")) > 0
         download_check_active = int(prefs.get("Network", "ThrottleDownload",
                                               "0")) > 0
-        upload_check = Gtk.CheckButton("Upload")
+        upload_check = Gtk.CheckButton(_("Upload"))
         upload_check.set_active(upload_check_active)
         upload_check.connect("toggled", lambda w:
                              self.toggle_throttle(upload_entry, "Upload"))
-        download_check = Gtk.CheckButton("Download")
+        download_check = Gtk.CheckButton(_("Download"))
         download_check.set_active(download_check_active)
         download_check.connect("toggled", lambda w:
                                self.toggle_throttle(download_entry,
@@ -133,7 +132,7 @@ class PrefsWindow(Gtk.Window):
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
                                    "Choose Folder"))
         folder_button.connect("clicked", self.on_choose_folder)
-        selective_button = Gtk.Button("Selective Sync")
+        selective_button = Gtk.Button(_("Selective Sync"))
         selective_button.connect("clicked", self.on_selective_sync)
         advanced_box.pack_start(folder_button, False, True, 10)
         advanced_box.pack_start(selective_button, False, True, 0)
@@ -141,14 +140,14 @@ class PrefsWindow(Gtk.Window):
         self.notebook = Gtk.Notebook()
 
         if embed:
-            self.notebook.append_page(general_box, Gtk.Label("General"))
-            self.notebook.append_page(network_box, Gtk.Label("Network"))
-            self.notebook.append_page(advanced_box, Gtk.Label("Sync"))
+            self.notebook.append_page(general_box, Gtk.Label(_("General")))
+            self.notebook.append_page(network_box, Gtk.Label(_("Network")))
+            self.notebook.append_page(advanced_box, Gtk.Label(_("Sync")))
         else:
-            self.notebook.append_page(general_box, Gtk.Label("General"))
-            self.notebook.append_page(account_box, Gtk.Label("Account"))
-            self.notebook.append_page(network_box, Gtk.Label("Network"))
-            self.notebook.append_page(advanced_box, Gtk.Label("Advanced"))
+            self.notebook.append_page(general_box, Gtk.Label(_("General")))
+            self.notebook.append_page(account_box, Gtk.Label(_("Account")))
+            self.notebook.append_page(network_box, Gtk.Label(_("Network")))
+            self.notebook.append_page(advanced_box, Gtk.Label(_("Advanced")))
 
         self.add(self.notebook)
 
@@ -180,11 +179,11 @@ class PrefsWindow(Gtk.Window):
         self.selective_sync.show_all()
 
     def on_choose_folder(self, w):
-        dialog = Gtk.FileChooserDialog("Please choose a folder", self,
+        dialog = Gtk.FileChooserDialog(_("Please choose a folder"), self,
                                        Gtk.FileChooserAction.SELECT_FOLDER,
                                        (Gtk.STOCK_CANCEL,
                                         Gtk.ResponseType.CANCEL,
-                                        "Select", Gtk.ResponseType.OK))
+                                        _("Select"), Gtk.ResponseType.OK))
         dialog.set_default_size(800, 400)
         response = dialog.run()
 

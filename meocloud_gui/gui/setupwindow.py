@@ -10,7 +10,7 @@ class SetupWindow(Gtk.Window):
 
     def __init__(self, app):
         Gtk.Window.__init__(self)
-        self.set_title("Setup")
+        self.set_title(_("Setup"))
 
         self.app = app
         self.pages = Pages()
@@ -19,16 +19,16 @@ class SetupWindow(Gtk.Window):
         # First page
 
         first_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        first_page_box.pack_start(Gtk.Label("Welcome to MEO Cloud"), False, True, 10)
+        first_page_box.pack_start(Gtk.Label(_("Welcome to MEO Cloud")), False, True, 10)
         
         self.setup_easy = Gtk.RadioButton.new_with_label(None, "Easy")
         self.setup_advanced = Gtk.RadioButton.new_with_label_from_widget(
-            self.setup_easy, "Advanced")
+            self.setup_easy, _("Advanced"))
         
         first_page_box.pack_start(self.setup_easy, False, True, 10)
         first_page_box.pack_start(self.setup_advanced, False, True, 10)
         
-        first_page_next_button = Gtk.Button("Next")
+        first_page_next_button = Gtk.Button(_("Next"))
         first_page_next_button.connect("clicked", self.on_second_page)
         first_page_box_horizontal = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         first_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)
@@ -44,14 +44,14 @@ class SetupWindow(Gtk.Window):
         device_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.device_entry = Gtk.Entry()
         device_box.pack_start(Gtk.Label(""), True, True, 0)
-        device_box.pack_start(Gtk.Label("Device name: "), False, False, 0)
+        device_box.pack_start(Gtk.Label(_("Device name: ")), False, False, 0)
         device_box.pack_start(self.device_entry, False, False, 0)
         device_box.pack_start(Gtk.Label(""), True, True, 0)
         second_page_box.pack_start(device_box, False, False, 10)
         
-        second_page_back_button = Gtk.Button("Back")
+        second_page_back_button = Gtk.Button(_("Back"))
         second_page_back_button.connect("clicked", self.on_first_page)
-        self.login_button = Gtk.Button("Authorize")
+        self.login_button = Gtk.Button(_("Authorize"))
         second_page_box_horizontal = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         second_page_box_horizontal.pack_start(second_page_back_button, False, False, 0)
         second_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)
@@ -71,7 +71,7 @@ class SetupWindow(Gtk.Window):
         app.prefs_window.remove(app.prefs_window.notebook)
         advanced_page_box.pack_start(app.prefs_window.notebook, False, False, 0)
         
-        advanced_page_finish_button = Gtk.Button("Finish")
+        advanced_page_finish_button = Gtk.Button(_("Finish"))
         advanced_page_finish_button.connect("clicked", self.finish_advanced_setup)
         advanced_page_box_horizontal = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         advanced_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)
@@ -84,10 +84,10 @@ class SetupWindow(Gtk.Window):
 
         success_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         
-        success_label = Gtk.Label("Your computer has been successfuly linked.")
+        success_label = Gtk.Label(_("Your computer has been successfuly linked."))
         success_page_box.pack_start(success_label, False, False, 10)
         
-        success_page_finish_button = Gtk.Button("Finish")
+        success_page_finish_button = Gtk.Button(_("Finish"))
         success_page_finish_button.connect("clicked", lambda w: self.destroy())
         success_page_box_horizontal = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         success_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)

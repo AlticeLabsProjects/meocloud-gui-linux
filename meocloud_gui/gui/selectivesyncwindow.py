@@ -16,7 +16,7 @@ class SelectiveSyncWindow(Gtk.Window):
 
     def __init__(self, app):
         Gtk.Window.__init__(self)
-        self.set_title("Selective Sync")
+        self.set_title(_("Selective Sync"))
 
         self.app = app
         self.first_column = True
@@ -52,12 +52,12 @@ class SelectiveSyncWindow(Gtk.Window):
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", lambda w, p:
                                 self.on_cell_toggled(w, p, liststore))
-        column_toggle = Gtk.TreeViewColumn("Sync", renderer_toggle,
+        column_toggle = Gtk.TreeViewColumn(_("Sync"), renderer_toggle,
                                            active=1)
         treeview.append_column(column_toggle)
 
         renderer_text = Gtk.CellRendererText()
-        column_text = Gtk.TreeViewColumn("Folder", renderer_text, text=0)
+        column_text = Gtk.TreeViewColumn(_("Folder"), renderer_text, text=0)
         treeview.append_column(column_text)
 
         self.hbox.remove(self.spinner)
