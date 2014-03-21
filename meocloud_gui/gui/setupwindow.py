@@ -3,6 +3,7 @@ from gi.repository import Gtk, Gio
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
+from meocloud_gui.gui.spinnerbox import SpinnerBox
 
 
 class SetupWindow(Gtk.Window):
@@ -66,7 +67,7 @@ class SetupWindow(Gtk.Window):
 
         # Spinner page
 
-        self.spinner = Gtk.Spinner()
+        self.spinner = SpinnerBox()
         self.pages.append_page(self.spinner, Gtk.Label())
 
         # Advanced setup page

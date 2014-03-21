@@ -2,6 +2,7 @@ import os.path
 import os
 from gi.repository import Gtk, Gio, GLib
 from meocloud_gui.preferences import Preferences
+from meocloud_gui.gui.spinnerbox import SpinnerBox
 import meocloud_gui.utils
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
@@ -27,7 +28,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         scrolled_win.add_with_viewport(self.hbox)
 
-        self.spinner = Gtk.Spinner()
+        self.spinner = SpinnerBox()
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
 
