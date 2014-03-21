@@ -19,6 +19,7 @@ from meocloud_gui.thrift_utils import ThriftListener
 from meocloud_gui.settings import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
 #from meocloud.client.linux.daemon.communication import DaemonState, Events, AsyncResults
 from meocloud_gui.core import api
+from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
 #from meocloud.client.linux.utils import get_error_code
 #from meocloud.client.linux.messages import DYING_MESSAGES
@@ -178,7 +179,8 @@ class CoreListenerHandler(UI.Iface):
         else:
             lang = 'en'
 
-        if note.type != 0:
+        display_notifications = Preferences().get("General", "Notifications", "True")
+        if note.type != 0 and display_notifications == "True":
             notif_string = NOTIFICATIONS[lang][str(note.code) +
                                                "_description"].format(*note.parameters)
             notification = Notify.Notification.new(NOTIFICATIONS[lang][str(note.code) + "_title"], notif_string, '')

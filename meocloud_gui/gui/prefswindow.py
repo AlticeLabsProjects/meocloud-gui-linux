@@ -35,13 +35,18 @@ class PrefsWindow(Gtk.Window):
         advanced_box.set_margin_right(10)
 
         # general
+        display_notifications = Gtk.CheckButton("Display notifications")
+        display_notifications.set_active(prefs.get("General", "Notifications", "True") == "True")
+        display_notifications.connect("toggled", self.toggle_display_notifications)
+        general_box.pack_start(display_notifications, False, True, 10)
+        
         start_at_login = Gtk.CheckButton("Start MEO Cloud at login")
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
                                            'meocloud.desktop')
         start_at_login.set_active(os.path.isfile(start_at_login_path))
         start_at_login.connect("toggled", self.toggle_start_at_login)
-        general_box.pack_start(start_at_login, False, True, 10)
+        general_box.pack_start(start_at_login, False, True, 0)
 
         # account
         login_label = Gtk.Label("You are logged in with " +
@@ -139,6 +144,15 @@ class PrefsWindow(Gtk.Window):
         self.add(notebook)
 
         self.set_size_request(300, 350)
+
+    def toggle_display_notifications(self, w):
+        prefs = Preferences()
+        old_val = prefs.get("General", "Notifications", "True")
+        
+        if old_val == "True":
+            prefs.put("General", "Notifications", "False")
+        else:
+            prefs.put("General", "Notifications", "True")
 
     def toggle_start_at_login(self, w):
         folder_path = os.path.join(os.path.expanduser('~'),
