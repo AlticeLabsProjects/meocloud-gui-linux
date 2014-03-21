@@ -22,9 +22,17 @@ class PrefsWindow(Gtk.Window):
         self.selective_sync = SelectiveSyncWindow(self.app)
 
         general_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        general_box.set_margin_left(10)
+        general_box.set_margin_right(10)
         account_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        account_box.set_margin_left(10)
+        account_box.set_margin_right(10)
         network_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        network_box.set_margin_left(10)
+        network_box.set_margin_right(10)
         advanced_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        advanced_box.set_margin_left(10)
+        advanced_box.set_margin_right(10)
 
         # general
         start_at_login = Gtk.CheckButton("Start MEO Cloud at login")
@@ -33,17 +41,17 @@ class PrefsWindow(Gtk.Window):
                                            'meocloud.desktop')
         start_at_login.set_active(os.path.isfile(start_at_login_path))
         start_at_login.connect("toggled", self.toggle_start_at_login)
-        general_box.add(start_at_login)
+        general_box.pack_start(start_at_login, False, True, 10)
 
         # account
         login_label = Gtk.Label("You are logged in with " +
                                 prefs.get('Account', 'email', '') + ".")
         self.logout_button = Gtk.Button("Unlink")
-        account_box.add(login_label)
-        account_box.add(self.logout_button)
+        account_box.pack_start(login_label, False, True, 10)
+        account_box.pack_start(self.logout_button, False, True, 10)
 
         # network
-        proxy_label = Gtk.Label(" <b>Proxy</b>")
+        proxy_label = Gtk.Label("<b>Proxy</b>")
         proxy_label.set_use_markup(True)
         proxy_label.set_alignment(0, 0)
 
@@ -59,7 +67,7 @@ class PrefsWindow(Gtk.Window):
         self.proxy_manual_url.set_no_show_all(True)
         self.proxy_manual_url.connect("changed", self.proxy_value_changed)
 
-        bandwidth_label = Gtk.Label(" <b>Bandwidth</b>")
+        bandwidth_label = Gtk.Label("<b>Bandwidth</b>")
         bandwidth_label.set_use_markup(True)
         bandwidth_label.set_alignment(0, 0)
 
@@ -120,8 +128,8 @@ class PrefsWindow(Gtk.Window):
         folder_button.connect("clicked", self.on_choose_folder)
         selective_button = Gtk.Button("Selective Sync")
         selective_button.connect("clicked", self.on_selective_sync)
-        advanced_box.add(folder_button)
-        advanced_box.add(selective_button)
+        advanced_box.pack_start(folder_button, False, True, 10)
+        advanced_box.pack_start(selective_button, False, True, 0)
 
         notebook = Gtk.Notebook()
         notebook.append_page(general_box, Gtk.Label("General"))

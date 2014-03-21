@@ -42,18 +42,6 @@ class SelectiveSyncWindow(Gtk.Window):
             self.hbox.pack_start(separator, False, False, 0)
         else:
             self.first_column = False
-            
-        for i in range(len(path.split('/')) - 1, len(self.columns)):
-            self.hbox.remove(self.columns[len(path.split('/')) - 1])
-            col = self.columns[len(path.split('/')) - 1]
-            col.destroy()
-            self.columns.remove(col)
-            
-        for i in range(len(path.split('/')) - 1, len(self.separators)):
-            self.hbox.remove(self.separators[len(path.split('/')) - 1])
-            sep = self.separators[len(path.split('/')) - 1]
-            sep.destroy()
-            self.separators.remove(sep)
     
         liststore = Gtk.ListStore(str, bool, str)
 
@@ -83,9 +71,23 @@ class SelectiveSyncWindow(Gtk.Window):
         self.show_all()
 
     def on_row_activated(self, widget, row, col, liststore):
+        path = liststore[row][2]
+    
+        for i in range(len(path.split('/')) - 1, len(self.columns)):
+            self.hbox.remove(self.columns[len(path.split('/')) - 1])
+            col = self.columns[len(path.split('/')) - 1]
+            col.destroy()
+            self.columns.remove(col)
+            
+        for i in range(len(path.split('/')) - 1, len(self.separators)):
+            self.hbox.remove(self.separators[len(path.split('/')) - 1])
+            sep = self.separators[len(path.split('/')) - 1]
+            sep.destroy()
+            self.separators.remove(sep)
+    
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
-        self.app.core_client.requestRemoteDirectoryListing(liststore[row][2])
+        self.app.core_client.requestRemoteDirectoryListing(path)
 
     def on_cell_toggled(self, widget, path, liststore):
         liststore[path][1] = not liststore[path][1]
