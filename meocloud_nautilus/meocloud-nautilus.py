@@ -1,7 +1,7 @@
 from gi.repository import Nautilus, GObject
 
 
-class UpdateFileInfoAsync(Nautilus.InfoProvider, GObject.GObject):
+class MEOCloudNautilus(Nautilus.InfoProvider, GObject.GObject):
     def __init__(self):
         pass
 
