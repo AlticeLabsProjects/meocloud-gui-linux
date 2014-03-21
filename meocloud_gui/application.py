@@ -139,7 +139,7 @@ class Application(Gtk.Application):
         self.recentfiles_menu.add(recentfiles_nothing)
         recentfiles_nothing.show()
 
-    def update_menu(self, status=None):
+    def update_menu(self, status=None, ignore_sync=False):
         if self.requires_authorization:
             self.requires_authorization = False
 
@@ -152,7 +152,7 @@ class Application(Gtk.Application):
         cloud_home = Preferences().get('Advanced', 'Folder',
                                        CLOUD_HOME_DEFAULT_PATH)
 
-        if (status.state == codes.CORE_WAITING):
+        if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
 
         if (status.state == codes.CORE_INITIALIZING or
@@ -273,12 +273,13 @@ class Application(Gtk.Application):
     def open_website(self, w):
         subprocess.Popen(["xdg-open", self.core_client.webLoginURL()])
 
-    def restart_core(self):
+    def restart_core(self, ignore_sync=False):
         prefs = Preferences()
 
         self.core_client = CoreClient()
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
-                                          self.core_client, prefs, self)
+                                          self.core_client, prefs, self,
+                                          ignore_sync)
         self.core = Core(self.core_client)
 
         # Make sure core isn't running

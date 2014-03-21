@@ -16,7 +16,7 @@ from meocloud_gui.protocol.ttypes import Account, State
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.settings import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
+from meocloud_gui.constants import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
 from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
@@ -31,19 +31,20 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class CoreListener(ThriftListener):
-    def __init__(self, socket, core_client, ui_config, app):
-        handler = CoreListenerHandler(core_client, ui_config, app)
+    def __init__(self, socket, core_client, ui_config, app, ignore_sync):
+        handler = CoreListenerHandler(core_client, ui_config, app, ignore_sync)
         processor = UI.Processor(handler)
         super(CoreListener, self).__init__('CoreListener', socket, processor)
 
 
 class CoreListenerHandler(UI.Iface):
-    def __init__(self, core_client, ui_config, app):
+    def __init__(self, core_client, ui_config, app, ignore_sync):
         super(CoreListenerHandler, self).__init__()
         self.core_client = core_client
         self.ui_config = ui_config
         self.app = app
         self.setup = None
+        self.ignore_sync = ignore_sync
 
         Notify.init('MEOCloud')
 
@@ -76,12 +77,14 @@ class CoreListenerHandler(UI.Iface):
         GLib.idle_add(self.beginAuthorizationIdle)
 
     def beginAuthorizationIdle(self):
-        self.setup = SetupWindow()
+        self.setup = SetupWindow(self.app)
         self.setup.login_button.connect("clicked",
                                         self.beginAuthorizationBrowser)
         self.setup.show_all()
 
     def beginAuthorizationBrowser(self, w):
+        self.setup.start_waiting()
+
         subprocess.Popen(["xdg-open",
                          self.core_client.authorizeWithDeviceName
                          (self.setup.device_entry.get_text())])
@@ -104,10 +107,18 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
 
-        GLib.idle_add(self.setup.destroy)
-        meocloud_gui.utils.clean_cloud_path()
-        meocloud_gui.utils.create_startup_file()
-        self.app.restart_core()
+        if self.setup.setup_easy.get_active():
+            GLib.idle_add(self.setup.spinner.stop)
+            GLib.idle_add(self.setup.pages.last_page)
+            
+            meocloud_gui.utils.clean_cloud_path()
+            meocloud_gui.utils.create_startup_file()
+            self.app.restart_core()
+        else:
+            GLib.idle_add(self.setup.pages.next_page)
+            meocloud_gui.utils.clean_cloud_path()
+            meocloud_gui.utils.create_startup_file()
+            self.app.restart_core(True)
 
     def endAuthorization(self):
         log.debug('CoreListener.endAuthorization() <<<<')
@@ -115,7 +126,8 @@ class CoreListenerHandler(UI.Iface):
     def notifySystem(self, note):
         log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code,
                                                                     note.parameters))
-        self.app.update_menu()
+        
+        self.app.update_menu(None, self.ignore_sync)
 
         def handleSystemNotification():
             if note.code == codes.STATE_CHANGED:

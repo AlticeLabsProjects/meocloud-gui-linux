@@ -13,7 +13,7 @@ from meocloud_gui.constants import (CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH)
 class PrefsWindow(Gtk.Window):
     __gtype_name__ = 'PrefsWindow'
 
-    def __init__(self, app):
+    def __init__(self, app, embed=False):
         Gtk.Window.__init__(self)
         self.set_title("Preferences")
 
@@ -138,12 +138,19 @@ class PrefsWindow(Gtk.Window):
         advanced_box.pack_start(folder_button, False, True, 10)
         advanced_box.pack_start(selective_button, False, True, 0)
 
-        notebook = Gtk.Notebook()
-        notebook.append_page(general_box, Gtk.Label("General"))
-        notebook.append_page(account_box, Gtk.Label("Account"))
-        notebook.append_page(network_box, Gtk.Label("Network"))
-        notebook.append_page(advanced_box, Gtk.Label("Advanced"))
-        self.add(notebook)
+        self.notebook = Gtk.Notebook()
+
+        if embed:
+            self.notebook.append_page(general_box, Gtk.Label("General"))
+            self.notebook.append_page(network_box, Gtk.Label("Network"))
+            self.notebook.append_page(advanced_box, Gtk.Label("Sync"))
+        else:
+            self.notebook.append_page(general_box, Gtk.Label("General"))
+            self.notebook.append_page(account_box, Gtk.Label("Account"))
+            self.notebook.append_page(network_box, Gtk.Label("Network"))
+            self.notebook.append_page(advanced_box, Gtk.Label("Advanced"))
+
+        self.add(self.notebook)
 
         self.set_size_request(300, 350)
 
