@@ -92,9 +92,16 @@ class Application(Gtk.Application):
                         f.close()
                     except:
                         pass
+                        
+                recentfiles_nothing = Gtk.MenuItem("No Recent Files")
+                recentfiles_nothing.show()
+                self.recentfiles_menu = Gtk.Menu()
+                self.recentfiles_menu.add(recentfiles_nothing)
 
                 menuitem_folder = Gtk.MenuItem("Open Folder")
                 menuitem_site = Gtk.MenuItem("Open Website")
+                self.menuitem_recent = Gtk.MenuItem("Recent Files")
+                self.menuitem_recent.set_submenu(self.recentfiles_menu)
                 self.menuitem_storage = Gtk.MenuItem("0 GB used of 16 GB")
                 self.menuitem_status = Gtk.MenuItem("Unauthorized")
                 self.menuitem_changestatus = Gtk.MenuItem("Authorize")
@@ -103,6 +110,8 @@ class Application(Gtk.Application):
 
                 self.trayicon.add_menu_item(menuitem_folder)
                 self.trayicon.add_menu_item(menuitem_site)
+                self.trayicon.add_menu_item(self.menuitem_recent)
+                self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
                 self.trayicon.add_menu_item(self.menuitem_storage)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
                 self.trayicon.add_menu_item(self.menuitem_status)
@@ -122,6 +131,14 @@ class Application(Gtk.Application):
 
                 self.hold()
 
+    def clean_recent_files(self):
+        for menuitem in self.recentfiles_menu.get_children():
+            self.recentfiles_menu.remove(menuitem)
+    
+        recentfiles_nothing = Gtk.MenuItem("No Recent Files")
+        self.recentfiles_menu.add(recentfiles_nothing)
+        recentfiles_nothing.show()
+
     def update_menu(self, status=None):
         if self.requires_authorization:
             self.requires_authorization = False
@@ -132,9 +149,10 @@ class Application(Gtk.Application):
 
         sync_status = self.core_client.currentSyncStatus()
         
+        cloud_home = Preferences().get('Advanced', 'Folder', 
+                                       CLOUD_HOME_DEFAULT_PATH)
+        
         if (status.state == codes.CORE_WAITING):
-            cloud_home = Preferences().get('Advanced', 'Folder', 
-                                           CLOUD_HOME_DEFAULT_PATH)
             self.core_client.startSync(cloud_home)
 
         if (status.state == codes.CORE_INITIALIZING or
@@ -152,8 +170,25 @@ class Application(Gtk.Application):
         elif status.state == codes.CORE_READY:
             self.menuitem_prefs.show()
             self.paused = False
-            self.update_status("Ready")
+            self.update_status("Synced")
             self.update_menu_action("Pause")
+            
+            recently_changed = self.core_client.recentlyChangedFilePaths()
+            
+            if len(recently_changed) > 0:
+                for menuitem in self.recentfiles_menu.get_children():
+                    self.recentfiles_menu.remove(menuitem)
+            
+                for path in recently_changed:
+                    path = path.replace("+/", "")
+                    
+                    menuitem = Gtk.MenuItem(path)
+                    menuitem.connect("activate", lambda w:
+                                     subprocess.Popen(["xdg-open", 
+                                                      os.path.join(cloud_home,
+                                                                   path)]))
+                    self.recentfiles_menu.add(menuitem)
+                    menuitem.show()
         elif status.state == codes.CORE_PAUSED:
             self.menuitem_prefs.show()
             self.paused = True
@@ -226,6 +261,7 @@ class Application(Gtk.Application):
         self.requires_authorization = True
         self.update_status("Unauthorized")
         self.update_menu_action("Authorize")
+        self.clean_recent_files()
         self.menuitem_prefs.hide()
         self.restart_core()
 
