@@ -9,7 +9,8 @@ from meocloud_gui.preferences import Preferences
 from meocloud_gui.settings import (CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH,
                                    LOGGER_NAME, LOG_PATH, DEBUG_ON_PATH,
                                    DEBUG_OFF_PATH, DEV_MODE, BETA_MODE,
-                                   PURGEMETA_PATH, PURGEALL_PATH)
+                                   PURGEMETA_PATH, PURGEALL_PATH,
+                                   CONFIG_PATH)
 
 
 def init_logging():
@@ -38,13 +39,15 @@ def init_logging():
 
 
 def purge_all():
-    purge_file = open(PURGEALL_PATH, 'w')
-    purge_file.close()
+    if os.path.exists(CONFIG_PATH):
+        purge_file = open(PURGEALL_PATH, 'w')
+        purge_file.close()
 
 
 def purge_meta():
-    purge_file = open(PURGEMETA_PATH, 'w')
-    purge_file.close()
+    if os.path.exists(CONFIG_PATH):
+        purge_file = open(PURGEMETA_PATH, 'w')
+        purge_file.close()
 
 
 def create_required_folders():
