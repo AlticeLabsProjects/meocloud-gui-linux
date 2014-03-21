@@ -1,7 +1,6 @@
 import subprocess
 import os
 import keyring
-import cPickle
 from threading import Thread
 from time import sleep
 from gi.repository import Gtk, Gio
@@ -68,9 +67,9 @@ class Application(Gtk.Application):
                     pass
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                               'ignored_directories.dat')):
+                                               'ignored_directories')):
                     os.remove(os.path.join(UI_CONFIG_PATH,
-                                           'ignored_directories.dat'))
+                                           'ignored_directories'))
             else:
                 run_setup = False
 
@@ -84,11 +83,12 @@ class Application(Gtk.Application):
                 utils.init_logging()
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                               'ignored_directories.dat')):
+                                               'ignored_directories')):
                     try:
                         f = open(os.path.join(UI_CONFIG_PATH,
-                                              'ignored_directories.dat'), "r")
-                        self.ignored_directories = cPickle.load(f)
+                                              'ignored_directories'), "r")
+                        for line in f.readlines():
+                            self.ignored_directories.append(line.rstrip('\n'))
                         f.close()
                     except:
                         pass
@@ -218,11 +218,14 @@ class Application(Gtk.Application):
         if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
             os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
         if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                       'ignored_directories.dat')):
-            os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'))
+                                       'ignored_directories')):
+            os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories'))
         utils.purge_all()
 
         self.ignored_directories = []
+        self.requires_authorization = True
+        self.update_status("Unauthorized")
+        self.update_menu_action("Authorize")
         self.menuitem_prefs.hide()
         self.restart_core()
 

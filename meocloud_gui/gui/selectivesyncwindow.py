@@ -1,6 +1,5 @@
 import os.path
 import os
-import cPickle
 from gi.repository import Gtk, Gio, GLib
 from meocloud_gui.preferences import Preferences
 import meocloud_gui.utils
@@ -21,8 +20,11 @@ class SelectiveSyncWindow(Gtk.Window):
 
         self.app = app
 
+        self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.add(self.hbox)
+
         self.spinner = Gtk.Spinner()
-        self.add(self.spinner)
+        self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
 
         self.liststore = None
@@ -44,8 +46,8 @@ class SelectiveSyncWindow(Gtk.Window):
             column_text = Gtk.TreeViewColumn("Folder", renderer_text, text=0)
             treeview.append_column(column_text)
 
-            self.remove(self.spinner)
-            self.add(treeview)
+            self.hbox.remove(self.spinner)
+            self.hbox.pack_start(treeview, True, True, 0)
 
         for folder in folders:
             if folder in self.app.ignored_directories:
@@ -66,6 +68,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.app.core_client.setIgnoredDirectories(
             self.app.ignored_directories)
 
-        f = open(os.path.join(UI_CONFIG_PATH, 'ignored_directories.dat'), "w")
-        cPickle.dump(self.app.ignored_directories, f)
+        f = open(os.path.join(UI_CONFIG_PATH, 'ignored_directories'), "w")
+        for directory in self.app.ignored_directories:
+            f.write(directory + "\n")
         f.close()
