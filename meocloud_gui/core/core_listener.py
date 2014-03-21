@@ -19,6 +19,7 @@ from meocloud_gui.thrift_utils import ThriftListener
 from meocloud_gui.settings import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
 #from meocloud.client.linux.daemon.communication import DaemonState, Events, AsyncResults
 from meocloud_gui.core import api
+from meocloud_gui.gui.setupwindow import SetupWindow
 #from meocloud.client.linux.utils import get_error_code
 #from meocloud.client.linux.messages import DYING_MESSAGES
 from meocloud_gui.strings import NOTIFICATIONS
@@ -43,6 +44,7 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config = ui_config
         self.notifs_handler = notifs_handler
         self.app = app
+        self.setup = None
 
         Notify.init('MEOCloud')
 
@@ -81,13 +83,14 @@ class CoreListenerHandler(UI.Iface):
         GLib.idle_add(self.beginAuthorizationIdle)
 
     def beginAuthorizationIdle(self):
-        self.app.setup.login_button.connect("clicked", self.beginAuthorizationBrowser)
-        self.app.setup.show_all()
+        self.setup = SetupWindow()
+        self.setup.login_button.connect("clicked", self.beginAuthorizationBrowser)
+        self.setup.show_all()
 
     def beginAuthorizationBrowser(self, w):
         subprocess.Popen(["xdg-open",
                          self.core_client.authorizeWithDeviceName
-                         (self.app.setup.device_entry.get_text())])
+                         (self.setup.device_entry.get_text())])
 
     def authorized(self, account):
         log.debug('CoreListener.authorized({0}) <<<<'.format(account))
@@ -105,7 +108,7 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
 
-        GLib.idle_add(self.app.setup.hide)
+        GLib.idle_add(self.setup.destroy)
         meocloud_gui.utils.clean_cloud_path()
         meocloud_gui.utils.create_startup_file()
         self.app.restart_core()

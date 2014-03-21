@@ -7,7 +7,6 @@ from time import sleep
 from gi.repository import Gtk, Gio
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
-from meocloud_gui.gui.setupwindow import SetupWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.core.core import Core
@@ -43,10 +42,10 @@ class Application(Gtk.Application):
         self.running = False
         self.paused = False
         self.offline = False
+        self.requires_authorization = True
         self.core_client = None
         self.core_listener = None
         self.core = None
-        self.setup = None
         self.ignored_directories = []
 
         self.sync_thread = None
@@ -94,14 +93,12 @@ class Application(Gtk.Application):
                     except:
                         pass
 
-                self.setup = SetupWindow()
-
                 menuitem_folder = Gtk.MenuItem("Open Folder")
                 menuitem_site = Gtk.MenuItem("Open Website")
                 self.menuitem_storage = Gtk.MenuItem("0 GB used of 16 GB")
-                self.menuitem_status = Gtk.MenuItem("Paused")
-                self.menuitem_changestatus = Gtk.MenuItem("Resume")
-                menuitem_prefs = Gtk.MenuItem("Preferences")
+                self.menuitem_status = Gtk.MenuItem("Unauthorized")
+                self.menuitem_changestatus = Gtk.MenuItem("Authorize")
+                self.menuitem_prefs = Gtk.MenuItem("Preferences")
                 menuitem_quit = Gtk.MenuItem("Quit")
 
                 self.trayicon.add_menu_item(menuitem_folder)
@@ -111,81 +108,67 @@ class Application(Gtk.Application):
                 self.trayicon.add_menu_item(self.menuitem_status)
                 self.trayicon.add_menu_item(self.menuitem_changestatus)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
-                self.trayicon.add_menu_item(menuitem_prefs)
+                self.trayicon.add_menu_item(self.menuitem_prefs, True)
                 self.trayicon.add_menu_item(menuitem_quit)
 
                 menuitem_folder.connect("activate", self.open_folder)
                 menuitem_site.connect("activate", self.open_website)
                 self.menuitem_changestatus.connect("activate",
                                                    self.toggle_status)
-                menuitem_prefs.connect("activate", self.show_prefs)
+                self.menuitem_prefs.connect("activate", self.show_prefs)
                 menuitem_quit.connect("activate", lambda w: self.quit())
 
-                self.restart_core(run_setup)
+                self.restart_core()
 
                 self.hold()
 
     def update_menu(self, status=None):
-        if self.watchdog_thread.isAlive:
-            try:
-                if status is None:
-                    status = self.core_client.currentStatus()
-                self.update_storage(status.usedQuota, status.totalQuota)
+        if self.requires_authorization:
+            self.requires_authorization = False
+    
+        if status is None:
+            status = self.core_client.currentStatus()
+        self.update_storage(status.usedQuota, status.totalQuota)
 
-                sync_status = self.core_client.currentSyncStatus()
+        sync_status = self.core_client.currentSyncStatus()
+        
+        if (status.state == codes.CORE_WAITING):
+            cloud_home = Preferences().get('Advanced', 'Folder', 
+                                           CLOUD_HOME_DEFAULT_PATH)
+            self.core_client.startSync(cloud_home)
 
-                if (status.state == codes.CORE_INITIALIZING or
-                   status.state == codes.CORE_AUTHORIZING or
-                   status.state == codes.CORE_WAITING):
-                    self.paused = True
-                    self.update_status("Initializing")
-                    self.update_menu_action("Resume")
-                elif status.state == codes.CORE_SYNCING:
-                    self.paused = False
-                    self.update_status("Syncing")
-                    self.update_menu_action("Pause")
-                elif status.state == codes.CORE_READY:
-                    self.paused = False
-                    self.update_status("Ready")
-                    self.update_menu_action("Pause")
-                elif status.state == codes.CORE_PAUSED:
-                    self.paused = True
-                    self.update_status("Paused")
-                    self.update_menu_action("Resume")
-                elif status.state == codes.CORE_OFFLINE:
-                    self.paused = True
-                    self.offline = True
-                    self.update_status("Offline")
-                    self.update_menu_action("Resume")
-                else:
-                    self.paused = True
-                    self.update_status("Error")
-                    self.update_menu_action("Resume")
-            except:
-                pass
-
-    def start_menu(self):
-        while True:
-            try:
-                status = self.core_client.currentStatus()
-                if status.usedQuota or status.totalQuota:
-                    self.update_menu(status)
-                    break
-                sleep(1)
-            except:
-                sleep(1)
-
-    def start_sync(self, prefs):
-        cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
-
-        while True:
-            try:
-                self.core_client.startSync(cloud_home)
-                if self.sync_thread.isAlive:
-                    self.sync_thread._Thread__stop()
-                break
-            except:
-                sleep(1)
+        if (status.state == codes.CORE_INITIALIZING or
+           status.state == codes.CORE_AUTHORIZING or
+           status.state == codes.CORE_WAITING):
+            self.menuitem_prefs.hide()
+            self.paused = True
+            self.update_status("Initializing")
+            self.update_menu_action("Resume")
+        elif status.state == codes.CORE_SYNCING:
+            self.menuitem_prefs.show()
+            self.paused = False
+            self.update_status("Syncing")
+            self.update_menu_action("Pause")
+        elif status.state == codes.CORE_READY:
+            self.menuitem_prefs.show()
+            self.paused = False
+            self.update_status("Ready")
+            self.update_menu_action("Pause")
+        elif status.state == codes.CORE_PAUSED:
+            self.menuitem_prefs.show()
+            self.paused = True
+            self.update_status("Paused")
+            self.update_menu_action("Resume")
+        elif status.state == codes.CORE_OFFLINE:
+            self.menuitem_prefs.show()
+            self.paused = True
+            self.offline = True
+            self.update_status("Offline")
+            self.update_menu_action("Resume")
+        else:
+            self.paused = True
+            self.update_status("Error")
+            self.update_menu_action("Resume")
 
     def update_status(self, status):
         self.menuitem_status.set_label(status)
@@ -197,6 +180,8 @@ class Application(Gtk.Application):
         if self.offline:
             self.offline = False
             self.paused = False
+            self.restart_core()
+        elif self.requires_authorization:
             self.restart_core()
         elif self.paused:
             self.core_client.unpause()
@@ -238,7 +223,8 @@ class Application(Gtk.Application):
         utils.purge_all()
 
         self.ignored_directories = []
-        self.restart_core(True)
+        self.menuitem_prefs.hide()
+        self.restart_core()
 
     def open_folder(self, w):
         prefs = Preferences()
@@ -248,7 +234,7 @@ class Application(Gtk.Application):
     def open_website(self, w):
         subprocess.Popen(["xdg-open", self.core_client.webLoginURL()])
 
-    def restart_core(self, ignore_sync=False):
+    def restart_core(self):
         prefs = Preferences()
 
         self.core_client = CoreClient()
@@ -263,20 +249,11 @@ class Application(Gtk.Application):
         # Start the core
         self.listener_thread = Thread(target=self.core_listener.start)
         self.watchdog_thread = Thread(target=self.core.watchdog)
-        self.sync_thread = Thread(target=self.start_sync, args=(prefs,))
-        self.menu_thread = Thread(target=self.start_menu)
         self.listener_thread.start()
         self.watchdog_thread.start()
-        if not ignore_sync:
-            self.sync_thread.start()
-            self.menu_thread.start()
 
     def stop_threads(self):
         try:
-            if self.sync_thread.isAlive:
-                self.sync_thread._Thread__stop()
-            if self.menu_thread.isAlive:
-                self.menu_thread._Thread__stop()
             if self.listener_thread.isAlive:
                 self.listener_thread._Thread__stop()
             if self.watchdog_thread.isAlive:

@@ -33,8 +33,12 @@ class TrayIcon (GObject.Object):
                         self.icon.position_menu(self.menu, self.icon),
                         self.icon, 3, time)
 
-    def add_menu_item(self, menuitem):
+    def add_menu_item(self, menuitem, hide=False):
         self.menu.append(menuitem)
+        
+        if hide:
+            menuitem.set_no_show_all(True)
+            menuitem.hide()
 
     def hide(self):
         self.icon.set_visible(False)

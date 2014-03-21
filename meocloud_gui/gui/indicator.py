@@ -28,10 +28,14 @@ class Indicator (GObject.Object):
         self.app.release()
         self.app.quit()
 
-    def add_menu_item(self, menuitem):
+    def add_menu_item(self, menuitem, hide=False):
         self.menu.append(menuitem)
-        menuitem.show()
-        self.ind.set_menu(self.menu)
+        
+        if hide:
+            menuitem.set_no_show_all(True)
+            menuitem.hide()
+        else:
+            menuitem.show()
 
     def hide(self):
         pass
