@@ -21,14 +21,17 @@ class SelectiveSyncWindow(Gtk.Window):
         self.app = app
         self.first_column = True
 
+        scrolled_win = Gtk.ScrolledWindow()
+        self.add(scrolled_win)
+        
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.add(self.hbox)
+        scrolled_win.add_with_viewport(self.hbox)
 
         self.spinner = Gtk.Spinner()
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
 
-        self.set_default_size(200, 200)
+        self.set_default_size(500, 300)
         self.columns = []
         self.separators = []
 
