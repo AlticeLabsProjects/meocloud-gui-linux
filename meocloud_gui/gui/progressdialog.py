@@ -2,6 +2,8 @@ from gi.repository import Gtk
 
 
 class ProgressDialog(Gtk.Dialog):
+    __gtype_name__ = 'ProgressDialog'
+
     def __init__(self):
         Gtk.Dialog.__init__(self, title="Moving")
 

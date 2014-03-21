@@ -9,7 +9,8 @@ log = logging.getLogger(LOGGER_NAME)
 
 class CoreClient(ThriftClient, Core.Iface):
     def __init__(self):
-        super(CoreClient, self).__init__(DAEMON_LISTENER_SOCKET_ADDRESS, Core.Client)
+        super(CoreClient, self).__init__(DAEMON_LISTENER_SOCKET_ADDRESS,
+                                         Core.Client)
 
     # I know you wanted to remove the parenthesis, but believe me, you don't
     @wrap_client_call()

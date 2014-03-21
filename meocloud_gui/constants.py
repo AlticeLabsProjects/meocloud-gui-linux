@@ -36,8 +36,6 @@ DAEMON_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
                                               'meocloud_daemon_listener.socket'
                                               )
 
-UI_CONFIG_DB_FILE = os.path.join(UI_CONFIG_PATH, 'ui_config.yaml')
-
 LOGGER_NAME = 'meocloud_gui'
 LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_gui.log')
 NOTIFICATIONS_LOG_PATH = os.path.join(UI_CONFIG_PATH, 'user_notifications.log')

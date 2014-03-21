@@ -8,14 +8,12 @@ from thrift.transport import TSocket, TTransport
 from thrift.protocol import TBinaryProtocol
 from thrift.server.TServer import TServer
 
-from meocloud_gui.settings import LOGGER_NAME, DEFAULT_TIMEOUT
-#from meocloud.client.linux.timeouts import DEFAULT_TIMEOUT
+from meocloud_gui.constants import LOGGER_NAME, DEFAULT_TIMEOUT
 from meocloud_gui.exceptions import ListenerConnectionFailedException
 from meocloud_gui.decorators import retry, RetryFailed, TooManyRetries
-#from meocloud.client.linux.daemon.communication import Events
 
-#import logging
-#log = logging.getLogger(LOGGER_NAME)
+import logging
+log = logging.getLogger(LOGGER_NAME)
 
 MAX_RETRIES = 3
 SLEEP_TIME = 0.1
@@ -77,17 +75,13 @@ class ThriftListener(object):
         return listener_server
 
     def start(self):
-        #log.info('{0}: Starting to serve...'.format(self.name))
+        log.info('{0}: Starting to serve...'.format(self.name))
         try:
             self.listener_server.serve()
         except ListenerConnectionFailedException:
             pass
-        #except Exception:
-            #log.exception('{0}: An uncatched error occurred!'.format(self.name))
-        #finally:
-            # If we got here then this listener has stopped serving and
-            # so we had better shutdown the whole daemon
-        #    Events.shutdown_required.set()
+        except Exception:
+            log.exception('{0}: An uncatched error occurred!'.format(self.name))
 
 
 class ThriftClient(object):
@@ -121,18 +115,16 @@ def wrap_client_call(timeout=DEFAULT_TIMEOUT, max_retries=MAX_RETRIES,
             args_str_list = ['{0}'.format(arg) for arg in args]
             kwargs_str_list = ['{0}={1}'.format(k, v) for k, v in kwargs.items()]
             all_args_str = ', '.join(args_str_list + kwargs_str_list)
-            #log.debug('{0}.{1}({2}) >>>>'.format(self.__class__.__name__,
-            #           f.__name__, all_args_str))
+            log.debug('{0}.{1}({2}) >>>>'.format(self.__class__.__name__,
+                      f.__name__, all_args_str))
             with self.mutex:
-                # log.debug('{0}.{1}: mutex acquired'.format(self.__class__.__name__, f.__name__))
                 try:
                     self.socket.setTimeout(timeout * 1000)
                     retry_deco = retry(max_retries, sleep_time, backoff, sleep)
                     result = retry_deco(attempt_client_call)(self, f, *args, **kwargs)
                 except TooManyRetries:
-                    #log.warning('{0}.{1}: Too many retries. Gave up trying to connect to daemon.'.format(self.__class__.__name__, f.__name__))
+                    log.warning('{0}.{1}: Too many retries. Gave up trying to connect to daemon.'.format(self.__class__.__name__, f.__name__))
                     raise ListenerConnectionFailedException()
-            # log.debug('{0}.{1}: mutex released'.format(self.__class__.__name__, f.__name__))
             return result
         return wrapper
     return decorator
@@ -142,16 +134,16 @@ def attempt_client_call(self, f, *args, **kwargs):
     try:
         if not self.connected:
             self.reconnect()
-            #log.debug('{0}.{1}: reconnected'.format(self.__class__.__name__, f.__name__))
-        #log.debug('{0}.{1}: will call function'.format(self.__class__.__name__, f.__name__))
+            log.debug('{0}.{1}: reconnected'.format(self.__class__.__name__, f.__name__))
+        log.debug('{0}.{1}: will call function'.format(self.__class__.__name__, f.__name__))
         result = f(self, *args, **kwargs)
-        #log.debug('{0}.{1}: result: {2}'.format(self.__class__.__name__, f.__name__, result))
+        log.debug('{0}.{1}: result: {2}'.format(self.__class__.__name__, f.__name__, result))
         return result
     except socket_module.timeout:
-        #log.debug('{0}.{1}: connection attempt timed out'.format(self.__class__.__name__, f.__name__))
+        log.debug('{0}.{1}: connection attempt timed out'.format(self.__class__.__name__, f.__name__))
         raise
     except (socket_module.error, TTransport.TTransportException) as e:
-        #log.debug('{0}.{1}: an error occurred while trying to connect: {2}'.format(self.__class__.__name__, f.__name__, e))
+        log.debug('{0}.{1}: an error occurred while trying to connect: {2}'.format(self.__class__.__name__, f.__name__, e))
         # Mark client as not connected so it reconnects the next time
         self.connected = False
     raise RetryFailed()

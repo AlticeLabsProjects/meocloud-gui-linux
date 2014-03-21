@@ -17,14 +17,13 @@ from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
 from meocloud_gui.settings import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
-#from meocloud.client.linux.daemon.communication import DaemonState, Events, AsyncResults
 from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
-#from meocloud.client.linux.utils import get_error_code
-#from meocloud.client.linux.messages import DYING_MESSAGES
 from meocloud_gui.strings import NOTIFICATIONS
 import meocloud_gui.utils
+
+from meocloud_gui import codes
 
 # Logging
 import logging
@@ -32,18 +31,17 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class CoreListener(ThriftListener):
-    def __init__(self, socket, core_client, ui_config, notifs_handler, app):
-        handler = CoreListenerHandler(core_client, ui_config, notifs_handler, app)
+    def __init__(self, socket, core_client, ui_config, app):
+        handler = CoreListenerHandler(core_client, ui_config, app)
         processor = UI.Processor(handler)
         super(CoreListener, self).__init__('CoreListener', socket, processor)
 
 
 class CoreListenerHandler(UI.Iface):
-    def __init__(self, core_client, ui_config, notifs_handler, app):
+    def __init__(self, core_client, ui_config, app):
         super(CoreListenerHandler, self).__init__()
         self.core_client = core_client
         self.ui_config = ui_config
-        self.notifs_handler = notifs_handler
         self.app = app
         self.setup = None
 
@@ -52,23 +50,17 @@ class CoreListenerHandler(UI.Iface):
     def start_sync(self):
         self.app.core_client.setIgnoredDirectories(self.app.ignored_directories)
 
-        cloud_home = self.ui_config.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
+        cloud_home = self.ui_config.get('Advanced', 'Folder',
+                                        CLOUD_HOME_DEFAULT_PATH)
         if not cloud_home:
             log.warning('CoreListener.start_sync: no cloud_home in config, will unlink and shutdown')
             api.unlink(self.core_client, self.ui_config)
-            Events.shutdown_required.set()
         else:
             if not os.path.isdir(cloud_home):
                 log.warning('CoreListener.start_sync: cloud_home was found in config '
                             'with value {0} but it is not there'.format(cloud_home))
-                self.update_state(DaemonState.ROOT_FOLDER_MISSING)
             else:
                 self.core_client.startSync(cloud_home)
-                self.update_state(DaemonState.AUTHORIZATION_OK)
-
-    def update_state(self, new_state):
-        DaemonState.current = new_state
-        Events.state_changed.set()
 
     ### THRIFT METHODS ###
 
@@ -85,7 +77,8 @@ class CoreListenerHandler(UI.Iface):
 
     def beginAuthorizationIdle(self):
         self.setup = SetupWindow()
-        self.setup.login_button.connect("clicked", self.beginAuthorizationBrowser)
+        self.setup.login_button.connect("clicked",
+                                        self.beginAuthorizationBrowser)
         self.setup.show_all()
 
     def beginAuthorizationBrowser(self, w):
@@ -103,8 +96,10 @@ class CoreListenerHandler(UI.Iface):
             'deviceName': account.deviceName
         }
 
-        GLib.idle_add(lambda: keyring.set_password("meocloud", "clientID", account_dict['clientID']))
-        GLib.idle_add(lambda: keyring.set_password("meocloud", "authKey", account_dict['authKey']))
+        GLib.idle_add(lambda: keyring.set_password("meocloud", "clientID",
+                                                   account_dict['clientID']))
+        GLib.idle_add(lambda: keyring.set_password("meocloud", "authKey",
+                                                   account_dict['authKey']))
         self.ui_config.put('Account', 'email', account_dict['email'])
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
@@ -118,7 +113,8 @@ class CoreListenerHandler(UI.Iface):
         log.debug('CoreListener.endAuthorization() <<<<')
 
     def notifySystem(self, note):
-        log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code, note.parameters))
+        log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code,
+                                                                    note.parameters))
         self.app.update_menu()
 
         def handleSystemNotification():
@@ -134,27 +130,22 @@ class CoreListenerHandler(UI.Iface):
                 if current_status.state == State.WAITING:
                     self.start_sync()
                 elif current_status.state == State.OFFLINE:
-                    self.update_state(DaemonState.OFFLINE)
+                    pass
                     # TODO handle state change to offline in the middle of sync
                 elif current_status.state == State.ERROR:
-                    error_code = get_error_code(current_status.statusCode)
+                    error_code = meocloud_gui.utils.get_error_code(current_status.statusCode)
                     log.warning('CoreListener: Got error code: {0}'.format(error_code))
                     # TODO Error cases, gotta handle this someday...
                     if error_code == codes.ERROR_AUTH_TIMEOUT:
                         pass
                     elif error_code == codes.ERROR_ROOTFOLDER_GONE:
                         log.warning('CoreListener: Root folder is gone, will now shutdown')
-                        self.update_state(DaemonState.ROOT_FOLDER_MISSING)
-                        self.ui_config.set('dying_message', DYING_MESSAGES['root_folder_gone'])
-                        Events.shutdown_required.set()
                     elif error_code == codes.ERROR_UNKNOWN:
                         pass
                     elif error_code == codes.ERROR_THREAD_CRASH:
                         pass
                     elif error_code == codes.ERROR_CANNOT_WATCH_FS:
                         log.warning('CoreListener: Cannot watch filesystem, will now shutdown')
-                        self.ui_config.set('dying_message', DYING_MESSAGES['cannot_watch_fs'])
-                        Events.shutdown_required.set()
                     else:
                         log.error('CoreListener: Got unknown error code: {0}'.format(error_code))
                         assert False
@@ -168,28 +159,32 @@ class CoreListenerHandler(UI.Iface):
             elif note.code == codes.SHARED_FOLDER_UNSHARED:
                 log.debug('CoreListener: code: SHARED_FOLDER_UNSHARED')
                 # CLI can't handle this, no folder icons to update
-        #gevent.spawn(handleSystemNotification)
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
 
-        loc = locale.getlocale()
-        if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
-            lang = 'pt'
-        else:
-            lang = 'en'
-
         display_notifications = Preferences().get("General", "Notifications", "True")
         if note.type != 0 and display_notifications == "True":
+            loc = locale.getlocale()
+            if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
+                lang = 'pt'
+            else:
+                lang = 'en'
+
+            notif_icon = ''
+            notif_title = NOTIFICATIONS[lang][str(note.code) + "_title"]
             notif_string = NOTIFICATIONS[lang][str(note.code) +
                                                "_description"].format(*note.parameters)
-            notification = Notify.Notification.new(NOTIFICATIONS[lang][str(note.code) + "_title"], notif_string, '')
+            notification = Notify.Notification.new(notif_title, notif_string,
+                                                   notif_icon)
             notification.show()
 
     def remoteDirectoryListing(self, statusCode, path, listing):  # i32 statusCode, string path, listing
         log.debug('CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(statusCode, path, listing))
         if self.app.prefs_window:
-            GLib.idle_add(lambda: self.app.prefs_window.selective_sync.add_column(listing, path))
+            GLib.idle_add(lambda:
+                          self.app.prefs_window.selective_sync.add_column(listing,
+                                                                          path))
 
     def networkSettings(self):
         log.debug('CoreListener.networkSettings() <<<<')

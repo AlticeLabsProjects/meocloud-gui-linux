@@ -13,11 +13,11 @@ from meocloud_gui.core.core_client import CoreClient
 from meocloud_gui.core.core_listener import CoreListener
 import meocloud_gui.core.api
 
-from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS,
-                                   LOGGER_NAME, DAEMON_PID_PATH,
-                                   DAEMON_LOCK_PATH,  DEV_MODE,
-                                   VERSION, DAEMON_VERSION_CHECKER_PERIOD,
-                                   CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
+from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
+                                    LOGGER_NAME, DAEMON_PID_PATH,
+                                    DAEMON_LOCK_PATH,  DEV_MODE,
+                                    VERSION, DAEMON_VERSION_CHECKER_PERIOD,
+                                    CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
 
 from meocloud_gui import codes
 
@@ -92,7 +92,7 @@ class Application(Gtk.Application):
                         f.close()
                     except:
                         pass
-                        
+
                 recentfiles_nothing = Gtk.MenuItem("No Recent Files")
                 recentfiles_nothing.show()
                 self.recentfiles_menu = Gtk.Menu()
@@ -134,7 +134,7 @@ class Application(Gtk.Application):
     def clean_recent_files(self):
         for menuitem in self.recentfiles_menu.get_children():
             self.recentfiles_menu.remove(menuitem)
-    
+
         recentfiles_nothing = Gtk.MenuItem("No Recent Files")
         self.recentfiles_menu.add(recentfiles_nothing)
         recentfiles_nothing.show()
@@ -142,16 +142,16 @@ class Application(Gtk.Application):
     def update_menu(self, status=None):
         if self.requires_authorization:
             self.requires_authorization = False
-    
+
         if status is None:
             status = self.core_client.currentStatus()
         self.update_storage(status.usedQuota, status.totalQuota)
 
         sync_status = self.core_client.currentSyncStatus()
-        
-        cloud_home = Preferences().get('Advanced', 'Folder', 
+
+        cloud_home = Preferences().get('Advanced', 'Folder',
                                        CLOUD_HOME_DEFAULT_PATH)
-        
+
         if (status.state == codes.CORE_WAITING):
             self.core_client.startSync(cloud_home)
 
@@ -172,19 +172,19 @@ class Application(Gtk.Application):
             self.paused = False
             self.update_status("Synced")
             self.update_menu_action("Pause")
-            
+
             recently_changed = self.core_client.recentlyChangedFilePaths()
-            
+
             if len(recently_changed) > 0:
                 for menuitem in self.recentfiles_menu.get_children():
                     self.recentfiles_menu.remove(menuitem)
-            
+
                 for path in recently_changed:
                     path = path.replace("+/", "")
-                    
+
                     menuitem = Gtk.MenuItem(path)
                     menuitem.connect("activate", lambda w:
-                                     subprocess.Popen(["xdg-open", 
+                                     subprocess.Popen(["xdg-open",
                                                       os.path.join(cloud_home,
                                                                    path)]))
                     self.recentfiles_menu.add(menuitem)
@@ -278,8 +278,7 @@ class Application(Gtk.Application):
 
         self.core_client = CoreClient()
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
-                                          self.core_client, prefs,
-                                          None, self)
+                                          self.core_client, prefs, self)
         self.core = Core(self.core_client)
 
         # Make sure core isn't running

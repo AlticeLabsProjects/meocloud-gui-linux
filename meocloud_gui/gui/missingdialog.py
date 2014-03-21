@@ -6,6 +6,8 @@ import meocloud_gui.utils
 
 
 class MissingDialog(Gtk.Dialog):
+    __gtype_name__ = 'MissingDialog'
+
     def __init__(self, app):
         Gtk.Dialog.__init__(self, title="Cloud Home Missing")
 

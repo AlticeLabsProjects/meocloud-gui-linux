@@ -22,7 +22,8 @@ class Core(object):
         self.process = None
         # assumes core binary is in same dir as daemon
         core_binary_dir = os.path.join(get_own_dir(__file__), "core")
-        self.core_binary_path = os.path.join(core_binary_dir, CORE_BINARY_FILENAME)
+        self.core_binary_path = os.path.join(core_binary_dir,
+                                             CORE_BINARY_FILENAME)
         self.core_env = os.environ.copy()
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS

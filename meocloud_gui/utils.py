@@ -6,11 +6,11 @@ import logging.handlers
 import shutil
 from threading import Thread
 from meocloud_gui.preferences import Preferences
-from meocloud_gui.settings import (CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH,
-                                   LOGGER_NAME, LOG_PATH, DEBUG_ON_PATH,
-                                   DEBUG_OFF_PATH, DEV_MODE, BETA_MODE,
-                                   PURGEMETA_PATH, PURGEALL_PATH,
-                                   CONFIG_PATH)
+from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH,
+                                    LOGGER_NAME, LOG_PATH, DEBUG_ON_PATH,
+                                    DEBUG_OFF_PATH, DEV_MODE, BETA_MODE,
+                                    PURGEMETA_PATH, PURGEALL_PATH,
+                                    CONFIG_PATH)
 
 
 def init_logging():
@@ -154,3 +154,8 @@ def move_folder_async(src, dst, callback=None):
             callback(cloud_home)
 
     Thread(target=move_folder_thread, args=(src, dst, callback)).start()
+
+
+def get_error_code(status_code):
+    # most significant byte
+    return status_code >> 24

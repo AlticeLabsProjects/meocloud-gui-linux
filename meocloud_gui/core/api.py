@@ -6,8 +6,6 @@ import keyring
 from gi.repository import GLib, Gdk
 
 from meocloud_gui.protocol.ttypes import NetworkSettings, Account
-#from meocloud_gui.settings import RC4_KEY
-#from meocloud.client.linux.daemon import rc4
 from meocloud_gui.utils import get_proxy, get_ratelimits
 
 
@@ -23,11 +21,17 @@ def get_account_dict(ui_config):
         def __call__(self):
             Gdk.threads_enter()
             try:
-                account_dict['clientID'] = keyring.get_password('meocloud', 'clientID')
-                account_dict['authKey'] = keyring.get_password('meocloud', 'authKey')
-                account_dict['email'] = self.ui_config.get('Account', 'email', None)
-                account_dict['name'] = self.ui_config.get('Account', 'name', None)
-                account_dict['deviceName'] = self.ui_config.get('Account', 'deviceName', None)
+                account_dict['clientID'] = keyring.get_password('meocloud',
+                                                                'clientID')
+                account_dict['authKey'] = keyring.get_password('meocloud',
+                                                               'authKey')
+                account_dict['email'] = self.ui_config.get('Account', 'email',
+                                                           None)
+                account_dict['name'] = self.ui_config.get('Account', 'name',
+                                                          None)
+                account_dict['deviceName'] = self.ui_config.get('Account',
+                                                                'deviceName',
+                                                                None)
             finally:
                 Gdk.flush()
                 Gdk.threads_leave()

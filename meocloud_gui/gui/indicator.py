@@ -30,7 +30,7 @@ class Indicator (GObject.Object):
 
     def add_menu_item(self, menuitem, hide=False):
         self.menu.append(menuitem)
-        
+
         if hide:
             menuitem.set_no_show_all(True)
             menuitem.hide()

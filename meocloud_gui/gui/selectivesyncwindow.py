@@ -4,11 +4,11 @@ from gi.repository import Gtk, Gio, GLib
 from meocloud_gui.preferences import Preferences
 import meocloud_gui.utils
 
-from meocloud_gui.settings import (CORE_LISTENER_SOCKET_ADDRESS,
-                                   LOGGER_NAME, DAEMON_PID_PATH,
-                                   DAEMON_LOCK_PATH,  DEV_MODE,
-                                   VERSION, DAEMON_VERSION_CHECKER_PERIOD,
-                                   CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
+from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
+                                    LOGGER_NAME, DAEMON_PID_PATH,
+                                    DAEMON_LOCK_PATH,  DEV_MODE,
+                                    VERSION, DAEMON_VERSION_CHECKER_PERIOD,
+                                    CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
 
 
 class SelectiveSyncWindow(Gtk.Window):
@@ -23,7 +23,7 @@ class SelectiveSyncWindow(Gtk.Window):
 
         scrolled_win = Gtk.ScrolledWindow()
         self.add(scrolled_win)
-        
+
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         scrolled_win.add_with_viewport(self.hbox)
 
@@ -42,14 +42,16 @@ class SelectiveSyncWindow(Gtk.Window):
             self.hbox.pack_start(separator, False, False, 0)
         else:
             self.first_column = False
-    
+
         liststore = Gtk.ListStore(str, bool, str)
 
         treeview = Gtk.TreeView(model=liststore)
-        treeview.connect("row-activated", lambda w, r, c: self.on_row_activated(w, r, c, liststore))
+        treeview.connect("row-activated", lambda w, r, c:
+                         self.on_row_activated(w, r, c, liststore))
 
         renderer_toggle = Gtk.CellRendererToggle()
-        renderer_toggle.connect("toggled", lambda w, p: self.on_cell_toggled(w, p, liststore))
+        renderer_toggle.connect("toggled", lambda w, p:
+                                self.on_cell_toggled(w, p, liststore))
         column_toggle = Gtk.TreeViewColumn("Sync", renderer_toggle,
                                            active=1)
         treeview.append_column(column_toggle)
@@ -72,19 +74,19 @@ class SelectiveSyncWindow(Gtk.Window):
 
     def on_row_activated(self, widget, row, col, liststore):
         path = liststore[row][2]
-    
+
         for i in range(len(path.split('/')) - 1, len(self.columns)):
             self.hbox.remove(self.columns[len(path.split('/')) - 1])
             col = self.columns[len(path.split('/')) - 1]
             col.destroy()
             self.columns.remove(col)
-            
+
         for i in range(len(path.split('/')) - 1, len(self.separators)):
             self.hbox.remove(self.separators[len(path.split('/')) - 1])
             sep = self.separators[len(path.split('/')) - 1]
             sep.destroy()
             self.separators.remove(sep)
-    
+
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
         self.app.core_client.requestRemoteDirectoryListing(path)

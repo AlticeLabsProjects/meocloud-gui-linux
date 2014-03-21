@@ -7,7 +7,7 @@ from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
-from meocloud_gui.settings import (CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH)
+from meocloud_gui.constants import (CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH)
 
 
 class PrefsWindow(Gtk.Window):
@@ -35,11 +35,13 @@ class PrefsWindow(Gtk.Window):
         advanced_box.set_margin_right(10)
 
         # general
+        display_notif = prefs.get("General", "Notifications", "True") == "True"
         display_notifications = Gtk.CheckButton("Display notifications")
-        display_notifications.set_active(prefs.get("General", "Notifications", "True") == "True")
-        display_notifications.connect("toggled", self.toggle_display_notifications)
+        display_notifications.set_active(display_notif)
+        display_notifications.connect("toggled",
+                                      self.toggle_display_notifications)
         general_box.pack_start(display_notifications, False, True, 10)
-        
+
         start_at_login = Gtk.CheckButton("Start MEO Cloud at login")
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
@@ -148,7 +150,7 @@ class PrefsWindow(Gtk.Window):
     def toggle_display_notifications(self, w):
         prefs = Preferences()
         old_val = prefs.get("General", "Notifications", "True")
-        
+
         if old_val == "True":
             prefs.put("General", "Notifications", "False")
         else:
