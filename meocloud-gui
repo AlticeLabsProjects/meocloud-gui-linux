@@ -2,7 +2,9 @@
 from meocloud_gui.application import Application
 import gettext
 import locale
+import os
 import os.path
+import shutil
 
 def init_localization():
     '''prepare l10n'''
@@ -20,6 +22,17 @@ def init_localization():
 
 
 if __name__ == "__main__":
+    nautilus_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               "meocloud_nautilus/meocloud-nautilus.py")
+    nautilus_dir = os.path.join(os.path.expanduser('~'),
+                                '.local/share/nautilus-python/extensions')
+    nautilus_dst = os.path.join(nautilus_dir, "meocloud-nautilus.py")
+    
+    if not os.path.exists(nautilus_dir):
+        os.makedirs(nautilus_dir)
+
+    shutil.copyfile(nautilus_py, nautilus_dst)
+
     init_localization()
     app = Application()
     app.run(None)
