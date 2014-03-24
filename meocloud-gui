@@ -4,7 +4,7 @@ import gettext
 import locale
 import os
 import os.path
-import shutil
+import filecmp
 
 def init_localization():
     '''prepare l10n'''
@@ -27,11 +27,16 @@ if __name__ == "__main__":
     nautilus_dir = os.path.join(os.path.expanduser('~'),
                                 '.local/share/nautilus-python/extensions')
     nautilus_dst = os.path.join(nautilus_dir, "meocloud-nautilus.py")
-    
+
     if not os.path.exists(nautilus_dir):
         os.makedirs(nautilus_dir)
 
-    shutil.copyfile(nautilus_py, nautilus_dst)
+    if os.path.isfile(nautilus_dst):
+        if not filecmp.cmp(nautilus_py, nautilus_dst):
+            os.remove(nautilus_dst)
+            os.symlink(nautilus_py, nautilus_dst)
+    else:
+        os.symlink(nautilus_py, nautilus_dst)
 
     init_localization()
     app = Application()
