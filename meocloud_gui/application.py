@@ -3,6 +3,7 @@ import os
 import keyring
 from threading import Thread
 from time import sleep
+from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
@@ -11,6 +12,7 @@ from meocloud_gui.preferences import Preferences
 from meocloud_gui.core.core import Core
 from meocloud_gui.core.core_client import CoreClient
 from meocloud_gui.core.core_listener import CoreListener
+from meocloud_gui.core.dbusservice import DBusService
 import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
@@ -51,6 +53,10 @@ class Application(Gtk.Application):
         self.menu_thread = None
         self.listener_thread = None
         self.watchdog_thread = None
+
+        # initialize dbus
+        DBusGMainLoop(set_as_default=True)
+        self.dbus_service = DBusService(codes.CORE_INITIALIZING)
 
     def on_activate(self, data=None):
         if not self.running:
@@ -151,6 +157,8 @@ class Application(Gtk.Application):
 
         cloud_home = Preferences().get('Advanced', 'Folder',
                                        CLOUD_HOME_DEFAULT_PATH)
+
+        self.dbus_service.status = status.state
 
         if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
