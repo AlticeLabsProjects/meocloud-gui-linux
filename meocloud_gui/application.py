@@ -151,18 +151,17 @@ class Application(Gtk.Application):
                 self.recentfiles_menu.remove(menuitem)
 
             for path in recently_changed:
-                path = path.replace("+/", "")
-                
-                # TODO
-                # + adicionar
-                # * modificado
-                # - apagado
+                display_path = path[2:]
 
-                menuitem = Gtk.MenuItem(path)
+                menuitem = Gtk.MenuItem(display_path)
                 menuitem.connect("activate", lambda w:
                                  subprocess.Popen(["xdg-open",
                                                   os.path.join(cloud_home,
                                                                path)]))
+
+                if path.startswith("-/"):
+                    menuitem.set_sensitive(False)
+
                 self.recentfiles_menu.add(menuitem)
                 menuitem.show()
 
