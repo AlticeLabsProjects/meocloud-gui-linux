@@ -4,7 +4,7 @@ import keyring
 from threading import Thread
 from time import sleep
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
@@ -214,10 +214,10 @@ class Application(Gtk.Application):
             self.update_menu_action(_("Resume"))
 
     def update_status(self, status):
-        self.menuitem_status.set_label(status)
+        GLib.idle_add(lambda: self.menuitem_status.set_label(status))
 
     def update_menu_action(self, action):
-        self.menuitem_changestatus.set_label(action)
+        GLib.idle_add(lambda: self.menuitem_changestatus.set_label(action))
 
     def toggle_status(self, w):
         if self.offline:
