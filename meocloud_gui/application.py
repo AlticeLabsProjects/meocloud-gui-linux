@@ -144,6 +144,27 @@ class Application(Gtk.Application):
         recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
         self.recentfiles_menu.add(recentfiles_nothing)
         recentfiles_nothing.show()
+        
+    def update_recent_files(self, recently_changed):
+        if len(recently_changed) > 0:
+            for menuitem in self.recentfiles_menu.get_children():
+                self.recentfiles_menu.remove(menuitem)
+
+            for path in recently_changed:
+                path = path.replace("+/", "")
+                
+                # TODO
+                # + adicionar
+                # * modificado
+                # - apagado
+
+                menuitem = Gtk.MenuItem(path)
+                menuitem.connect("activate", lambda w:
+                                 subprocess.Popen(["xdg-open",
+                                                  os.path.join(cloud_home,
+                                                               path)]))
+                self.recentfiles_menu.add(menuitem)
+                menuitem.show()
 
     def update_menu(self, status=None, ignore_sync=False):
         if self.requires_authorization:
@@ -166,44 +187,30 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
-            self.menuitem_prefs.hide()
+            GLib.idle_add(lambda: self.menuitem_prefs.hide())
             self.paused = True
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
-            self.menuitem_prefs.show()
+            GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = False
             self.update_status(_("Syncing"))
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
-            self.menuitem_prefs.show()
+            GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = False
             self.update_status(_("Synced"))
             self.update_menu_action(_("Pause"))
 
             recently_changed = self.core_client.recentlyChangedFilePaths()
-
-            if len(recently_changed) > 0:
-                for menuitem in self.recentfiles_menu.get_children():
-                    self.recentfiles_menu.remove(menuitem)
-
-                for path in recently_changed:
-                    path = path.replace("+/", "")
-
-                    menuitem = Gtk.MenuItem(path)
-                    menuitem.connect("activate", lambda w:
-                                     subprocess.Popen(["xdg-open",
-                                                      os.path.join(cloud_home,
-                                                                   path)]))
-                    self.recentfiles_menu.add(menuitem)
-                    menuitem.show()
+            GLib.idle_add(lambda: self.update_recent_files(recently_changed))
         elif status.state == codes.CORE_PAUSED:
-            self.menuitem_prefs.show()
+            GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = True
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_OFFLINE:
-            self.menuitem_prefs.show()
+            GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = True
             self.offline = True
             self.update_status(_("Offline"))
@@ -270,8 +277,8 @@ class Application(Gtk.Application):
         self.requires_authorization = True
         self.update_status(_("Unauthorized"))
         self.update_menu_action(_("Authorize"))
-        self.clean_recent_files()
-        self.menuitem_prefs.hide()
+        GLib.idle_add(lambda: self.clean_recent_files())
+        GLib.idle_add(lambda: self.menuitem_prefs.hide())
         self.restart_core()
 
     def open_folder(self, w):
