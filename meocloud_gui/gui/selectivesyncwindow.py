@@ -49,6 +49,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.set_default_size(500, 300)
         self.columns = []
         self.separators = []
+        self.cell_toggled = False
 
         self.ignored_directories = self.app.ignored_directories[:]
 
@@ -96,25 +97,30 @@ class SelectiveSyncWindow(Gtk.Window):
         self.show_all()
 
     def on_row_activated(self, widget, row, col, liststore):
-        path = liststore[row][2]
+        if not self.cell_toggled:
+            path = liststore[row][2]
 
-        for i in range(len(path.split('/')) - 1, len(self.columns)):
-            self.hbox.remove(self.columns[len(path.split('/')) - 1])
-            col = self.columns[len(path.split('/')) - 1]
-            col.destroy()
-            self.columns.remove(col)
+            for i in range(len(path.split('/')) - 1, len(self.columns)):
+                self.hbox.remove(self.columns[len(path.split('/')) - 1])
+                col = self.columns[len(path.split('/')) - 1]
+                col.destroy()
+                self.columns.remove(col)
 
-        for i in range(len(path.split('/')) - 2, len(self.separators)):
-            self.hbox.remove(self.separators[len(path.split('/')) - 2])
-            sep = self.separators[len(path.split('/')) - 2]
-            sep.destroy()
-            self.separators.remove(sep)
+            for i in range(len(path.split('/')) - 2, len(self.separators)):
+                self.hbox.remove(self.separators[len(path.split('/')) - 2])
+                sep = self.separators[len(path.split('/')) - 2]
+                sep.destroy()
+                self.separators.remove(sep)
 
-        self.hbox.pack_start(self.spinner, True, True, 0)
-        self.spinner.start()
-        self.app.core_client.requestRemoteDirectoryListing(path)
+            self.hbox.pack_start(self.spinner, True, True, 0)
+            self.spinner.start()
+            self.app.core_client.requestRemoteDirectoryListing(path)
+        else:
+            self.cell_toggled = False
 
     def on_cell_toggled(self, widget, path, liststore):
+        self.cell_toggled = True
+
         liststore[path][1] = not liststore[path][1]
 
         if liststore[path][2] in self.ignored_directories:

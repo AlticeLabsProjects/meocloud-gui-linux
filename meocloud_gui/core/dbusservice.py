@@ -19,7 +19,7 @@ class DBusService(dbus.service.Object):
     def file_in_cloud(self, path):
         cloud_home = Preferences().get('Advanced', 'Folder',
                                        CLOUD_HOME_DEFAULT_PATH)
-    
+
         if os.path.samefile(path, cloud_home):
             return False
         else:
