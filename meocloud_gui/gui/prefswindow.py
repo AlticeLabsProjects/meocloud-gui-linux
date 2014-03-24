@@ -114,7 +114,7 @@ class PrefsWindow(Gtk.Window):
 
         download_box.pack_start(download_entry, False, False, 5)
         upload_box.pack_start(upload_entry, False, False, 5)
-        
+
         download_box.pack_start(Gtk.Label("KB"), False, False, 5)
         upload_box.pack_start(Gtk.Label("KB"), False, False, 5)
 
@@ -222,9 +222,8 @@ class PrefsWindow(Gtk.Window):
 
     def toggle_throttle(self, w, throttle):
         prefs = Preferences()
-        old_val = prefs.get("Network", "Throttle" + throttle, "0")
 
-        if int(old_val) > 0:
+        if w.get_sensitive():
             prefs.put("Network", "Throttle" + throttle, "0")
             w.set_sensitive(False)
         else:
