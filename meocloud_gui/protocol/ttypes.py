@@ -81,7 +81,7 @@ class UserNotification(object):
    - parameters
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'code',
     'type',
     'level',
@@ -198,7 +198,7 @@ class SystemNotification(object):
    - parameters
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'code',
     'parameters',
    ]
@@ -296,7 +296,7 @@ class SyncStatus(object):
    - pendingIndexes
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'uploadRate',
     'downloadRate',
     'pendingUploads',
@@ -443,7 +443,7 @@ class Status(object):
    - totalQuota
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'state',
     'statusCode',
     'usedQuota',
@@ -557,7 +557,7 @@ class NetworkSettings(object):
    - downloadBandwidth
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'proxyAddress',
     'proxyType',
     'proxyPort',
@@ -703,7 +703,7 @@ class DesktopSettings(object):
    - blackIcons
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'autostart',
     'notifications',
     'blackIcons',
@@ -801,7 +801,7 @@ class UserSettings(object):
    - rootFolder
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'network',
     'desktop',
     'rootFolder',
@@ -903,7 +903,7 @@ class Account(object):
    - deviceName
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'clientID',
     'authKey',
     'email',

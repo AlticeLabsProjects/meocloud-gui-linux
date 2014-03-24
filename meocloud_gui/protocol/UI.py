@@ -402,7 +402,7 @@ class Processor(Iface, TProcessor):
 
 class networkSettings_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -459,7 +459,7 @@ class networkSettings_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -527,7 +527,7 @@ class networkSettings_result(object):
 
 class beginAuthorization_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -580,7 +580,7 @@ class beginAuthorization_args(object):
 
 class beginAuthorization_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -637,7 +637,7 @@ class authorized_args(object):
    - account
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'account',
    ]
 
@@ -706,7 +706,7 @@ class authorized_args(object):
 
 class authorized_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -759,7 +759,7 @@ class authorized_result(object):
 
 class endAuthorization_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -812,7 +812,7 @@ class endAuthorization_args(object):
 
 class endAuthorization_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -865,7 +865,7 @@ class endAuthorization_result(object):
 
 class account_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -922,7 +922,7 @@ class account_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -994,7 +994,7 @@ class notifySystem_args(object):
    - note
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'note',
    ]
 
@@ -1063,7 +1063,7 @@ class notifySystem_args(object):
 
 class notifySystem_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1120,7 +1120,7 @@ class notifyUser_args(object):
    - note
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'note',
    ]
 
@@ -1189,7 +1189,7 @@ class notifyUser_args(object):
 
 class notifyUser_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1248,7 +1248,7 @@ class remoteDirectoryListing_args(object):
    - listing
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'statusCode',
     'path',
     'listing',
@@ -1348,7 +1348,7 @@ class remoteDirectoryListing_args(object):
 
 class remoteDirectoryListing_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (

@@ -18,13 +18,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                        GObject.GObject):
     def __init__(self):
         bus = dbus.SessionBus()
-
-        try:
-            self.service = bus.get_object('pt.meocloud.dbus',
-                                          '/pt/meocloud/dbus')
-        except:
-            self.service = None
-
+        self.service = None
         self.get_dbus()
 
     def get_dbus(self):

@@ -817,7 +817,7 @@ class Processor(Iface, TProcessor):
 
 class currentStatus_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -874,7 +874,7 @@ class currentStatus_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -942,7 +942,7 @@ class currentStatus_result(object):
 
 class currentSyncStatus_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -999,7 +999,7 @@ class currentSyncStatus_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -1067,7 +1067,7 @@ class currentSyncStatus_result(object):
 
 class recentlyChangedFilePaths_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1124,7 +1124,7 @@ class recentlyChangedFilePaths_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -1199,7 +1199,7 @@ class recentlyChangedFilePaths_result(object):
 
 class migratedSettings_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1256,7 +1256,7 @@ class migratedSettings_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -1324,7 +1324,7 @@ class migratedSettings_result(object):
 
 class pause_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1377,7 +1377,7 @@ class pause_args(object):
 
 class pause_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1430,7 +1430,7 @@ class pause_result(object):
 
 class unpause_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1483,7 +1483,7 @@ class unpause_args(object):
 
 class unpause_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1536,7 +1536,7 @@ class unpause_result(object):
 
 class shutdown_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1589,7 +1589,7 @@ class shutdown_args(object):
 
 class shutdown_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1646,7 +1646,7 @@ class authorizeWithDeviceName_args(object):
    - deviceName
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'deviceName',
    ]
 
@@ -1718,7 +1718,7 @@ class authorizeWithDeviceName_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -1789,7 +1789,7 @@ class startSync_args(object):
    - rootFolder
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'rootFolder',
    ]
 
@@ -1857,7 +1857,7 @@ class startSync_args(object):
 
 class startSync_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -1914,7 +1914,7 @@ class unlink_args(object):
    - account
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'account',
    ]
 
@@ -1983,7 +1983,7 @@ class unlink_args(object):
 
 class unlink_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2040,7 +2040,7 @@ class notify_args(object):
    - note
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'note',
    ]
 
@@ -2109,7 +2109,7 @@ class notify_args(object):
 
 class notify_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2166,7 +2166,7 @@ class networkSettingsChanged_args(object):
    - settings
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'settings',
    ]
 
@@ -2235,7 +2235,7 @@ class networkSettingsChanged_args(object):
 
 class networkSettingsChanged_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2292,7 +2292,7 @@ class requestRemoteDirectoryListing_args(object):
    - path
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'path',
    ]
 
@@ -2360,7 +2360,7 @@ class requestRemoteDirectoryListing_args(object):
 
 class requestRemoteDirectoryListing_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2413,7 +2413,7 @@ class requestRemoteDirectoryListing_result(object):
 
 class ignoredDirectories_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2470,7 +2470,7 @@ class ignoredDirectories_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -2549,7 +2549,7 @@ class setIgnoredDirectories_args(object):
    - paths
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'paths',
    ]
 
@@ -2625,7 +2625,7 @@ class setIgnoredDirectories_args(object):
 
 class setIgnoredDirectories_result(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2678,7 +2678,7 @@ class setIgnoredDirectories_result(object):
 
 class webLoginURL_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2735,7 +2735,7 @@ class webLoginURL_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -2802,7 +2802,7 @@ class webLoginURL_result(object):
 
 class ping_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2859,7 +2859,7 @@ class ping_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
@@ -2926,7 +2926,7 @@ class ping_result(object):
 
 class version_args(object):
 
-  __slots__ = [ 
+  __slots__ = [
    ]
 
   thrift_spec = (
@@ -2983,7 +2983,7 @@ class version_result(object):
    - success
   """
 
-  __slots__ = [ 
+  __slots__ = [
     'success',
    ]
 
