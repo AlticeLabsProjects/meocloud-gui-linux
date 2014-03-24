@@ -144,7 +144,7 @@ class Application(Gtk.Application):
         recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
         self.recentfiles_menu.add(recentfiles_nothing)
         recentfiles_nothing.show()
-        
+
     def update_recent_files(self, recently_changed, cloud_home):
         if len(recently_changed) > 0:
             for menuitem in self.recentfiles_menu.get_children():
@@ -219,7 +219,7 @@ class Application(Gtk.Application):
             self.paused = True
             self.update_status(_("Error"))
             self.update_menu_action(_("Resume"))
-            
+
         utils.touch(cloud_home)
 
     def update_status(self, status):

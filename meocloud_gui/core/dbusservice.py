@@ -4,9 +4,11 @@ import dbus.service
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH
 
+
 class DBusService(dbus.service.Object):
     def __init__(self, status):
-        bus_name = dbus.service.BusName('pt.meocloud.dbus', bus=dbus.SessionBus())
+        bus_name = dbus.service.BusName('pt.meocloud.dbus',
+                                        bus=dbus.SessionBus())
         dbus.service.Object.__init__(self, bus_name, '/pt/meocloud/dbus')
         self.status = status
         self.prefs = Preferences()
@@ -28,4 +30,4 @@ class DBusService(dbus.service.Object):
     @dbus.service.method('pt.meocloud.dbus')
     def get_cloud_home(self):
         return self.prefs.get('Advanced', 'Folder',
-                                 CLOUD_HOME_DEFAULT_PATH)
+                              CLOUD_HOME_DEFAULT_PATH)

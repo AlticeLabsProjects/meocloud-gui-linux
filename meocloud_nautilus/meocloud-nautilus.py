@@ -14,6 +14,7 @@ import dbus
     CORE_OFFLINE
 ) = xrange(0, 10)
 
+
 class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                        GObject.GObject):
     def __init__(self):
@@ -42,8 +43,10 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         return path.replace("file://", "")
 
     def valid_uri(self, uri):
-        if not uri.startswith("file://"): return False
-        return True
+        if not uri.startswith("file://"):
+            return False
+        else:
+            return True
 
     def update_file_info(self, item):
         self.get_dbus()
@@ -55,10 +58,10 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             try:
                 if uri == self.get_cloud_home():
                     status = self.status()
-                    
+
                     if (status == CORE_INITIALIZING or
-                        status == CORE_AUTHORIZING or
-                        status == CORE_WAITING):
+                            status == CORE_AUTHORIZING or
+                            status == CORE_WAITING):
                         item.add_emblem("emblem-synchronizing-symbolic")
                     elif status == CORE_SYNCING:
                         item.add_emblem("emblem-synchronizing-symbolic")
@@ -77,7 +80,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
             if self.valid_uri(uri):
                 uri = self.get_local_path(uri)
-                
+
                 try:
                     if not self.file_in_cloud(uri):
                         return None,
@@ -87,12 +90,14 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             else:
                 return None,
 
-        top_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud', 'MEO Cloud', '', '')
+        top_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
+                                             'MEO Cloud', '', '')
 
         submenu = Nautilus.Menu()
         top_menuitem.set_submenu(submenu)
 
-        sub_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Share', 'Share', '', '')
+        sub_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Share',
+                                             'Share', '', '')
         submenu.append_item(sub_menuitem)
 
         return top_menuitem,
@@ -103,7 +108,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         if self.valid_uri(uri):
             uri = self.get_local_path(uri)
-            
+
             try:
                 if not self.file_in_cloud(uri):
                     return None,
@@ -114,9 +119,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             return None,
 
         submenu = Nautilus.Menu()
-        submenu.append_item(Nautilus.MenuItem.new('MEOCloudMenuProvider::Share', 'Share', '', ''))
+        submenu.append_item(Nautilus.MenuItem.new(
+                            'MEOCloudMenuProvider::Share', 'Share',
+                            '', ''))
 
-        menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud', 'MEO Cloud', '', '')
+        menuitem = Nautilus.MenuItem.new(
+            'MEOCloudMenuProvider::MEOCloud', 'MEO Cloud', '', '')
         menuitem.set_submenu(submenu)
 
         return menuitem,
