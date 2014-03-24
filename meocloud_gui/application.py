@@ -212,6 +212,8 @@ class Application(Gtk.Application):
             self.paused = True
             self.update_status(_("Error"))
             self.update_menu_action(_("Resume"))
+            
+        utils.touch(cloud_home)
 
     def update_status(self, status):
         GLib.idle_add(lambda: self.menuitem_status.set_label(status))

@@ -29,10 +29,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 self.service = bus.get_object('pt.meocloud.dbus',
                                               '/pt/meocloud/dbus')
 
-                self.status = self.service.get_dbus_method('status',
-                                                      'pt.meocloud.dbus')
-                self.file_in_cloud = self.service.get_dbus_method('file_in_cloud',
-                                                             'pt.meocloud.dbus')
+                self.status = self.service.get_dbus_method(
+                    'status', 'pt.meocloud.dbus')
+                self.file_in_cloud = self.service.get_dbus_method(
+                    'file_in_cloud', 'pt.meocloud.dbus')
+                self.get_cloud_home = self.service.get_dbus_method(
+                    'get_cloud_home', 'pt.meocloud.dbus')
             except:
                 pass
 
@@ -49,9 +51,9 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         if self.valid_uri(uri):
             uri = self.get_local_path(uri)
-            
-            if uri == "/home/ivo/MEOCloud":
-                try:
+
+            try:
+                if uri == self.get_cloud_home():
                     status = self.status()
                     
                     if (status == CORE_INITIALIZING or
@@ -62,9 +64,9 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                         item.add_emblem("emblem-synchronizing-symbolic")
                     elif status == CORE_READY:
                         item.add_emblem("emblem-ok-symbolic")
-                except:
-                    self.service = None
-                    pass
+            except:
+                self.service = None
+                pass
 
         return Nautilus.OperationResult.COMPLETE
 

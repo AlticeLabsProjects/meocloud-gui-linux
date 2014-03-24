@@ -50,6 +50,13 @@ def purge_meta():
         purge_file.close()
 
 
+def touch(fname, times=None):
+    if os.path.exists(fname):
+        os.utime(fname, times)
+    else:
+        open(fname, 'a').close()
+
+
 def create_required_folders():
     prefs = Preferences()
 

@@ -24,3 +24,8 @@ class DBusService(dbus.service.Object):
             return False
         else:
             return path.startswith(cloud_home)
+
+    @dbus.service.method('pt.meocloud.dbus')
+    def get_cloud_home(self):
+        return self.prefs.get('Advanced', 'Folder',
+                                 CLOUD_HOME_DEFAULT_PATH)
