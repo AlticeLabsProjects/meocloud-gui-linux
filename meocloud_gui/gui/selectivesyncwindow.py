@@ -22,19 +22,35 @@ class SelectiveSyncWindow(Gtk.Window):
         self.app = app
         self.first_column = True
 
-        scrolled_win = Gtk.ScrolledWindow()
-        self.add(scrolled_win)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.add(vbox)
 
+        scrolled_win = Gtk.ScrolledWindow()
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         scrolled_win.add_with_viewport(self.hbox)
+        vbox.pack_start(scrolled_win, True, True, 0)
 
         self.spinner = SpinnerBox()
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
+        
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        vbox.pack_start(button_box, False, False, 5)
+        
+        cancel_button = Gtk.Button(_("Cancel"))
+        cancel_button.connect("clicked", lambda w: self.destroy())
+        save_button = Gtk.Button(_("Save"))
+        save_button.connect("clicked", self.save_ignored_directories)
+        
+        button_box.pack_start(Gtk.Label(), True, True, 0)
+        button_box.pack_start(cancel_button, False, False, 0)
+        button_box.pack_start(save_button, False, False, 5)
 
         self.set_default_size(500, 300)
         self.columns = []
         self.separators = []
+        
+        self.ignored_directories = self.app.ignored_directories[:]
 
     def add_column(self, folders, path='/'):
         if not self.first_column:
@@ -65,7 +81,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.hbox.pack_start(treeview, True, True, 0)
 
         for folder in folders:
-            if folder in self.app.ignored_directories:
+            if folder in self.ignored_directories:
                 liststore.append([os.path.basename(folder), False, folder])
             else:
                 liststore.append([os.path.basename(folder), True, folder])
@@ -95,10 +111,13 @@ class SelectiveSyncWindow(Gtk.Window):
     def on_cell_toggled(self, widget, path, liststore):
         liststore[path][1] = not liststore[path][1]
 
-        if liststore[path][2] in self.app.ignored_directories:
-            self.app.ignored_directories.remove(liststore[path][2])
+        if liststore[path][2] in self.ignored_directories:
+            self.ignored_directories.remove(liststore[path][2])
         else:
-            self.app.ignored_directories.append(liststore[path][2])
+            self.ignored_directories.append(liststore[path][2])
+
+    def save_ignored_directories(self, w):
+        self.app.ignored_directories = self.ignored_directories
 
         self.app.core_client.setIgnoredDirectories(
             self.app.ignored_directories)
@@ -107,3 +126,5 @@ class SelectiveSyncWindow(Gtk.Window):
         for directory in self.app.ignored_directories:
             f.write(directory + "\n")
         f.close()
+        
+        self.destroy()
