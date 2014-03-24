@@ -33,15 +33,15 @@ class SelectiveSyncWindow(Gtk.Window):
         self.spinner = SpinnerBox()
         self.hbox.pack_start(self.spinner, True, True, 0)
         self.spinner.start()
-        
+
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         vbox.pack_start(button_box, False, False, 5)
-        
+
         cancel_button = Gtk.Button(_("Cancel"))
         cancel_button.connect("clicked", lambda w: self.destroy())
         save_button = Gtk.Button(_("Save"))
         save_button.connect("clicked", self.save_ignored_directories)
-        
+
         button_box.pack_start(Gtk.Label(), True, True, 0)
         button_box.pack_start(cancel_button, False, False, 0)
         button_box.pack_start(save_button, False, False, 5)
@@ -49,7 +49,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.set_default_size(500, 300)
         self.columns = []
         self.separators = []
-        
+
         self.ignored_directories = self.app.ignored_directories[:]
 
     def add_column(self, folders, path='/'):
@@ -65,6 +65,12 @@ class SelectiveSyncWindow(Gtk.Window):
         treeview = Gtk.TreeView(model=liststore)
         treeview.connect("row-activated", lambda w, r, c:
                          self.on_row_activated(w, r, c, liststore))
+
+        # only works with Gtk >= 3.8
+        try:
+            treeview.set_activate_on_single_click(True)
+        except:
+            pass
 
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", lambda w, p:
@@ -126,5 +132,5 @@ class SelectiveSyncWindow(Gtk.Window):
         for directory in self.app.ignored_directories:
             f.write(directory + "\n")
         f.close()
-        
+
         self.destroy()
