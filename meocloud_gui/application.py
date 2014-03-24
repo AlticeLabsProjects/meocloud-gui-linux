@@ -145,7 +145,7 @@ class Application(Gtk.Application):
         self.recentfiles_menu.add(recentfiles_nothing)
         recentfiles_nothing.show()
         
-    def update_recent_files(self, recently_changed):
+    def update_recent_files(self, recently_changed, cloud_home):
         if len(recently_changed) > 0:
             for menuitem in self.recentfiles_menu.get_children():
                 self.recentfiles_menu.remove(menuitem)
@@ -157,7 +157,7 @@ class Application(Gtk.Application):
                 menuitem.connect("activate", lambda w:
                                  subprocess.Popen(["xdg-open",
                                                   os.path.join(cloud_home,
-                                                               path)]))
+                                                               display_path)]))
 
                 if path.startswith("-/"):
                     menuitem.set_sensitive(False)
@@ -202,7 +202,8 @@ class Application(Gtk.Application):
             self.update_menu_action(_("Pause"))
 
             recently_changed = self.core_client.recentlyChangedFilePaths()
-            GLib.idle_add(lambda: self.update_recent_files(recently_changed))
+            GLib.idle_add(lambda: self.update_recent_files(recently_changed,
+                                                           cloud_home))
         elif status.state == codes.CORE_PAUSED:
             GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = True
