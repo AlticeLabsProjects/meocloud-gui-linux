@@ -131,13 +131,18 @@ def create_bookmark():
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    with open(file_path, 'r') as f:
-        if cloud_home in f:
-            return
+    if os.path.isfile(file_path):
+        with open(file_path, 'r') as f:
+            if cloud_home in f.read():
+                return
 
-    f = open(file_path, 'a')
-    f.write("\n" + cloud_home + " MEOCloud\n")
-    f.close()
+        f = open(file_path, 'a')
+        f.write("\n" + cloud_home + " MEOCloud\n")
+        f.close()
+    else:
+        f = open(file_path, 'w')
+        f.write(cloud_home + " MEOCloud\n")
+        f.close()
 
 
 def test_already_running(pid_path, proc_name):
