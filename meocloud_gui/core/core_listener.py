@@ -129,11 +129,11 @@ class CoreListenerHandler(UI.Iface):
     def notifySystem(self, note):
         log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code,
                   note.parameters))
-        
+
         if note.code == codes.SHARE_LINK:
             clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
             GLib.idle_add(lambda: clipboard.set_text(note.parameters[2], -1))
-            
+
             notification = Notify.Notification.new("MEO Cloud",
                                                    _("Link copied to "
                                                      "clipboard."),

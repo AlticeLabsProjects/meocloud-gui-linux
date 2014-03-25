@@ -13,7 +13,7 @@ class DBusService(dbus.service.Object):
         self.status = status
         self.shell = None
         self.update_prefs()
-        
+
     def update_prefs(self):
         prefs = Preferences()
         self.cloud_home = prefs.get('Advanced', 'Folder',
@@ -42,13 +42,13 @@ class DBusService(dbus.service.Object):
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
         self.shell.share_folder(path)
-        
+
     @dbus.service.method('pt.meocloud.dbus')
     def share_link(self, path):
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
         self.shell.share_link(path)
-        
+
     @dbus.service.method('pt.meocloud.dbus')
     def open_in_browser(self, path):
         if path.startswith(self.cloud_home):

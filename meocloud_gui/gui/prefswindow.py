@@ -181,7 +181,7 @@ class PrefsWindow(Gtk.Window):
         self.selective_sync = SelectiveSyncWindow(self.app)
         self.app.core_client.requestRemoteDirectoryListing('/')
         self.selective_sync.show_all()
-        
+
     def on_choose_folder(self, w):
         dialog = Gtk.FileChooserDialog(_("Please choose a folder"), self,
                                        Gtk.FileChooserAction.SELECT_FOLDER,
@@ -207,7 +207,8 @@ class PrefsWindow(Gtk.Window):
                     GLib.idle_add(prog.destroy)
 
                     error_dialog = Gtk.Dialog("MEO Cloud", self, 0,
-                        (Gtk.STOCK_OK, Gtk.ResponseType.OK))
+                                              (Gtk.STOCK_OK,
+                                               Gtk.ResponseType.OK))
 
                     error_dialog.set_default_size(150, 100)
 
