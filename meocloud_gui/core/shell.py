@@ -43,7 +43,11 @@ class Shell(object):
 
     def _listener(self):
         while True:
-            msg = thrift_utils.deserialize(Message(), self.s.recvfrom(2048)[0])
+            try:
+                msg = self.s.recvfrom(2048)[0]
+            except EOFError:
+                msg = None
+            msg = thrift_utils.deserialize(Message(), msg)
 
             if len(msg) > 0:
                 msg = msg[0]
