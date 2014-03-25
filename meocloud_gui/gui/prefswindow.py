@@ -221,9 +221,11 @@ class PrefsWindow(Gtk.Window):
                     error_dialog.run()
                     error_dialog.destroy()
                 else:
+                    meocloud_gui.utils.clean_bookmark()
                     self.app.restart_core()
                     w.set_label(new_path)
                     prefs.put("Advanced", "Folder", new_path)
+                    meocloud_gui.utils.create_bookmark()
                     GLib.source_remove(timeout)
                     prog.destroy()
 

@@ -1,6 +1,8 @@
 import sys
 import os
 import math
+import urlparse
+import urllib
 import logging
 import logging.handlers
 import shutil
@@ -94,6 +96,48 @@ def create_startup_file():
     desktop_file.write("Exec=" + os.path.join(os.getcwd(),
                        "meocloud-gui") + "\n")
     desktop_file.close()
+
+
+def clean_bookmark():
+    cloud_home = Preferences().get('Advanced', 'Folder',
+                                   CLOUD_HOME_DEFAULT_PATH)
+    cloud_home = urlparse.urljoin('file:', urllib.pathname2url(cloud_home))
+
+    folder_path = os.path.join(os.path.expanduser('~'),
+                               '.config/gtk-3.0')
+    file_path = os.path.join(folder_path, 'bookmarks')
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    f = open(file_path, 'r')
+    text = f.read()
+    f.close()
+
+    f = open(file_path, 'w')
+    f.write(text.replace("" + cloud_home + " MEOCloud", ""))
+    f.close()
+
+
+def create_bookmark():
+    cloud_home = Preferences().get('Advanced', 'Folder',
+                                   CLOUD_HOME_DEFAULT_PATH)
+    cloud_home = urlparse.urljoin('file:', urllib.pathname2url(cloud_home))
+
+    folder_path = os.path.join(os.path.expanduser('~'),
+                               '.config/gtk-3.0')
+    file_path = os.path.join(folder_path, 'bookmarks')
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    with open(file_path, 'r') as f:
+        if cloud_home in f:
+            return
+
+    f = open(file_path, 'a')
+    f.write("\n" + cloud_home + " MEOCloud\n")
+    f.close()
 
 
 def test_already_running(pid_path, proc_name):
