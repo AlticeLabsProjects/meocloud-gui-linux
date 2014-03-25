@@ -48,7 +48,6 @@ class Shell(object):
                 msg = msg[0]
 
             if msg.fileStatus.status.path != "/":
-                print msg.fileStatus.status.path
                 if msg.fileStatus.status.state == FileState.SYNCING:
                     self.syncing.append(msg.fileStatus.status.path)
                 elif msg.fileStatus.status.path in self.syncing:
