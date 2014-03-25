@@ -10,6 +10,7 @@ from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.core.core import Core
+from meocloud_gui.core.shell import Shell
 from meocloud_gui.core.core_client import CoreClient
 from meocloud_gui.core.core_listener import CoreListener
 from meocloud_gui.core.dbusservice import DBusService
@@ -46,6 +47,7 @@ class Application(Gtk.Application):
         self.requires_authorization = True
         self.core_client = None
         self.core_listener = None
+        self.shell = None
         self.core = None
         self.ignored_directories = []
 
@@ -191,6 +193,11 @@ class Application(Gtk.Application):
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
+            if self.shell is None:
+                self.shell = Shell.start()
+                self.shell.subscribe_path('/')
+                self.dbus_service.shell = self.shell
+
             GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = False
             self.update_status(_("Syncing"))
@@ -314,6 +321,9 @@ class Application(Gtk.Application):
                 self.listener_thread._Thread__stop()
             if self.watchdog_thread.isAlive:
                 self.watchdog_thread._Thread__stop()
+            if self.shell._thread.isAlive:
+                self.shell._thread._Thread__stop()
+            self.shell = None
         except:
             pass
 

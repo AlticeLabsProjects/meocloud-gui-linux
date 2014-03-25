@@ -5,7 +5,7 @@ import keyring
 # GLib and Gdk
 from gi.repository import GLib, Gdk
 
-from meocloud_gui.protocol.ttypes import NetworkSettings, Account
+from meocloud_gui.protocol.daemon_core.ttypes import NetworkSettings, Account
 from meocloud_gui.utils import get_proxy, get_ratelimits
 
 

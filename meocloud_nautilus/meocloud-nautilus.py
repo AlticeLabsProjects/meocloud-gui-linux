@@ -67,6 +67,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                         item.add_emblem("emblem-synchronizing-symbolic")
                     elif status == CORE_READY:
                         item.add_emblem("emblem-ok-symbolic")
+                else:
+                    in_cloud, syncing = self.file_in_cloud(uri)
+                    if in_cloud and syncing:
+                        item.add_emblem("emblem-synchronizing-symbolic")
+                    elif in_cloud:
+                        item.add_emblem("emblem-ok-symbolic")
             except:
                 self.service = None
                 pass
@@ -82,7 +88,8 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 uri = self.get_local_path(uri)
 
                 try:
-                    if not self.file_in_cloud(uri):
+                    in_cloud, syncing = self.file_in_cloud(uri)
+                    if not in_cloud:
                         return None,
                 except:
                     self.service = None
@@ -110,7 +117,8 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             uri = self.get_local_path(uri)
 
             try:
-                if not self.file_in_cloud(uri):
+                in_cloud, syncing = self.file_in_cloud(uri)
+                if not in_cloud:
                     return None,
             except:
                 self.service = None

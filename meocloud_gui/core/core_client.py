@@ -1,6 +1,6 @@
 from meocloud_gui.constants import DAEMON_LISTENER_SOCKET_ADDRESS, LOGGER_NAME
 from meocloud_gui.constants import CONNECTION_REQUIRED_TIMEOUT
-from meocloud_gui.protocol import Core
+from meocloud_gui.protocol.daemon_core import Core
 from meocloud_gui.thrift_utils import ThriftClient, wrap_client_call
 
 import logging

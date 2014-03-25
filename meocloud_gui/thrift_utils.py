@@ -20,6 +20,64 @@ SLEEP_TIME = 0.1
 BACKOFF = 2
 
 
+def serialize(msg):
+    msg.validate()
+    transport = TTransport.TMemoryBuffer()
+    protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
+    msg.write(protocol)
+
+    data = transport.getvalue()
+    transport.close()
+    return data
+
+
+def deserialize(msg, data):
+    transport = TTransport.TMemoryBuffer(data)
+    protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
+    msg.read(protocol)
+    msg.validate()
+    remaining = data[transport.cstringio_buf.tell():]
+    transport.close()
+
+    return msg, remaining
+
+
+def deserialize_thrift_msg(data, client):
+    '''
+    Try to deserialize data (or buf + data) into a valid
+    "Message", as defined in the thrift ShellHelper specification
+    '''
+    if client.buffer:
+        data = ''.join((client.buffer, data))
+        client.buffer = None
+    try:
+        msg, remaining = deserialize(Message(), data)
+    except (TProtocolException, EOFError) as dex:
+        log.error('Could not deserialize message: {0}'.format(dex))
+        if len(data) <= MAX_BUFFER_SIZE:
+            client.buffer = data
+            msg = None
+            remaining = None
+        else:
+            raise OverflowError('Message does not fit buffer.')
+
+    return msg, remaining
+
+
+def serialize_thrift_msg(msg):
+    '''
+    Try to serialize a "Message" (msg) into a byte stream
+    "Message" is defined in the thrift ShellHelper specification
+    '''
+    try:
+        data = serialize(msg)
+    except TProtocolException as tpe:
+        log.debug('Could not deserialize message: {0}'.format(tpe))
+        raise
+
+    return data
+
+
 class TSimpleServer(TServer):
     """Simple single-threaded server that just pumps around one transport."""
 

@@ -4,15 +4,15 @@ import subprocess
 import keyring
 import locale
 
-# GLib
-from gi.repository import GLib
+# GLib, Gdk and Gtk
+from gi.repository import GLib, Gdk, Gtk
 
 # Notifications
 from gi.repository import Notify
 
 # Thrift related imports
-from meocloud_gui.protocol import UI
-from meocloud_gui.protocol.ttypes import Account, State
+from meocloud_gui.protocol.daemon_core import UI
+from meocloud_gui.protocol.daemon_core.ttypes import Account, State
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
@@ -129,6 +129,20 @@ class CoreListenerHandler(UI.Iface):
     def notifySystem(self, note):
         log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code,
                   note.parameters))
+        
+        if note.code == codes.SHARE_LINK:
+            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+            GLib.idle_add(lambda: clipboard.set_text(note.parameters[2], -1))
+            
+            notification = Notify.Notification.new("MEO Cloud",
+                                                   _("Link copied to "
+                                                     "clipboard."),
+                                                   "")
+            notification.show()
+        elif (note.code == codes.SHARE_FOLDER or
+                note.code == codes.OPEN_IN_BROWSER):
+            subprocess.Popen(["xdg-open",
+                             note.parameters[2]])
 
         self.app.update_menu(None, self.ignore_sync)
 
