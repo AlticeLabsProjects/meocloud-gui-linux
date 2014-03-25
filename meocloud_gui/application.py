@@ -157,15 +157,16 @@ class Application(Gtk.Application):
 
                 menuitem = Gtk.MenuItem(display_path)
                 menuitem.connect("activate", lambda w:
-                                 subprocess.Popen(["xdg-open",
-                                                  os.path.join(cloud_home,
-                                                               display_path)]))
+                                 self.open_recent_file(w, cloud_home))
 
                 if path.startswith("-/"):
                     menuitem.set_sensitive(False)
 
                 self.recentfiles_menu.add(menuitem)
                 menuitem.show()
+
+    def open_recent_file(self, w, cloud_home):
+        subprocess.Popen(["xdg-open", os.path.join(cloud_home, w.get_label())])
 
     def update_menu(self, status=None, ignore_sync=False):
         if self.requires_authorization:
