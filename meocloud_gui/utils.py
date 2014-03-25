@@ -154,12 +154,13 @@ def move_folder_async(src, dst, callback=None):
             cloud_home = dst
         else:
             cloud_home = os.path.join(dst, "MEOCloud")
+            dst = cloud_home
 
         try:
             shutil.move(src, dst)
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, False))
-        except (OSError, IOError):
+        except (OSError, IOError, Error):
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, True))
 
