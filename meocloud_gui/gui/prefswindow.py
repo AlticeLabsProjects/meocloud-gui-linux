@@ -113,6 +113,9 @@ class PrefsWindow(Gtk.Window):
         download_box.pack_start(download_check, False, False, 0)
         upload_box.pack_start(upload_check, False, False, 0)
 
+        download_box.pack_start(Gtk.Label(), True, True, 0)
+        upload_box.pack_start(Gtk.Label(), True, True, 0)
+
         download_box.pack_start(download_entry, False, False, 5)
         upload_box.pack_start(upload_entry, False, False, 5)
 
