@@ -1,6 +1,7 @@
 from gi.repository import Nautilus, GObject
 import dbus
 import urllib
+import os
 
 (
     CORE_INITIALIZING,
@@ -37,6 +38,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                     'file_in_cloud', 'pt.meocloud.dbus')
                 self.get_cloud_home = self.service.get_dbus_method(
                     'get_cloud_home', 'pt.meocloud.dbus')
+                self.share_link = self.service.get_dbus_method(
+                    'share_link', 'pt.meocloud.dbus')
+                self.share_folder = self.service.get_dbus_method(
+                    'share_folder', 'pt.meocloud.dbus')
+                self.open_in_browser = self.service.get_dbus_method(
+                    'open_in_browser', 'pt.meocloud.dbus')
             except:
                 pass
 
@@ -81,22 +88,25 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         return Nautilus.OperationResult.COMPLETE
 
     def get_file_items(self, window, files):
+        if len(files) != 1:
+            return None,
+
         self.get_dbus()
-        for item in files:
-            uri = item.get_uri()
+        item = files[0]
+        uri = item.get_uri()
 
-            if self.valid_uri(uri):
-                uri = self.get_local_path(uri)
+        if self.valid_uri(uri):
+            uri = self.get_local_path(uri)
 
-                try:
-                    in_cloud, syncing = self.file_in_cloud(uri)
-                    if not in_cloud:
-                        return None,
-                except:
-                    self.service = None
+            try:
+                in_cloud, syncing = self.file_in_cloud(uri)
+                if not in_cloud:
                     return None,
-            else:
+            except:
+                self.service = None
                 return None,
+        else:
+            return None,
 
         top_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
                                              'MEO Cloud', '', '')
@@ -104,9 +114,21 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         submenu = Nautilus.Menu()
         top_menuitem.set_submenu(submenu)
 
-        sub_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Share',
-                                             'Share', '', '')
-        submenu.append_item(sub_menuitem)
+        if os.path.isfile(uri):
+            link_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Copy',
+                                                 'Copy Link', '', '')
+            link_menuitem.connect("activate", lambda w: self.share_link(uri))
+            submenu.append_item(link_menuitem)
+        else:
+            share_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Share',
+                                                 'Share Folder', '', '')
+            share_menuitem.connect("activate", lambda w: self.share_folder(uri))
+            submenu.append_item(share_menuitem)
+            
+        browser_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Browser',
+                                                 'Open in Browser', '', '')
+        browser_menuitem.connect("activate", lambda w: self.open_in_browser(uri))
+        submenu.append_item(browser_menuitem)
 
         return top_menuitem,
 

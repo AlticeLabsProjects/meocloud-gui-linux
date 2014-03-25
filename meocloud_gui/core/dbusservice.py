@@ -38,5 +38,23 @@ class DBusService(dbus.service.Object):
             return path.startswith(cloud_home), is_syncing
 
     @dbus.service.method('pt.meocloud.dbus')
+    def share_folder(self, path):
+        if path.startswith(self.cloud_home):
+            path = path.replace(self.cloud_home, '')
+        self.shell.share_folder(path)
+        
+    @dbus.service.method('pt.meocloud.dbus')
+    def share_link(self, path):
+        if path.startswith(self.cloud_home):
+            path = path.replace(self.cloud_home, '')
+        self.shell.share_link(path)
+        
+    @dbus.service.method('pt.meocloud.dbus')
+    def open_in_browser(self, path):
+        if path.startswith(self.cloud_home):
+            path = path.replace(self.cloud_home, '')
+        self.shell.open_in_browser(path)
+
+    @dbus.service.method('pt.meocloud.dbus')
     def get_cloud_home(self):
         return self.cloud_home
