@@ -314,6 +314,9 @@ class Application(Gtk.Application):
         self.watchdog_thread = Thread(target=self.core.watchdog)
         self.listener_thread.start()
         self.watchdog_thread.start()
+        
+        # Restart DBus
+        self.dbus_service.update_prefs()
 
     def stop_threads(self):
         try:

@@ -12,7 +12,12 @@ class DBusService(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, '/pt/meocloud/dbus')
         self.status = status
         self.shell = None
-        self.prefs = Preferences()
+        self.update_prefs()
+        
+    def update_prefs(self):
+        prefs = Preferences()
+        self.cloud_home = prefs.get('Advanced', 'Folder',
+                                    CLOUD_HOME_DEFAULT_PATH)
 
     @dbus.service.method('pt.meocloud.dbus')
     def status(self):
@@ -20,8 +25,7 @@ class DBusService(dbus.service.Object):
 
     @dbus.service.method('pt.meocloud.dbus')
     def file_in_cloud(self, path):
-        cloud_home = self.prefs.get('Advanced', 'Folder',
-                                    CLOUD_HOME_DEFAULT_PATH)
+        cloud_home = self.cloud_home
 
         if os.path.samefile(path, cloud_home):
             return False, False
@@ -35,5 +39,4 @@ class DBusService(dbus.service.Object):
 
     @dbus.service.method('pt.meocloud.dbus')
     def get_cloud_home(self):
-        return self.prefs.get('Advanced', 'Folder',
-                              CLOUD_HOME_DEFAULT_PATH)
+        return self.cloud_home
