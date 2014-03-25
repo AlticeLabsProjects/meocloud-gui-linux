@@ -6,6 +6,7 @@ from subprocess import Popen
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     DAEMON_LISTENER_SOCKET_ADDRESS,
+                                    SHELL_LISTENER_SOCKET_ADDRESS,
                                     LOGGER_NAME, CORE_BINARY_FILENAME,
                                     CORE_PID_PATH, CORE_WATCHDOG_PERIOD)
 from meocloud_gui.utils import test_already_running, get_own_dir
@@ -27,6 +28,7 @@ class Core(object):
         self.core_env = os.environ.copy()
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS
+        self.core_env['CLD_SHELL_SOCKET_PATH'] = SHELL_LISTENER_SOCKET_ADDRESS
         if sys.getfilesystemencoding().lower() != 'utf-8':
             self.core_env['LC_ALL'] = 'C.UTF-8'
 
