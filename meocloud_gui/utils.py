@@ -52,10 +52,10 @@ def purge_meta():
 
 
 def touch(fname, times=None):
-    if os.path.exists(fname):
+    try:
         os.utime(fname, times)
-    else:
-        open(fname, 'a').close()
+    except:
+        pass
 
 
 def create_required_folders():

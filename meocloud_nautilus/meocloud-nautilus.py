@@ -1,5 +1,6 @@
 from gi.repository import Nautilus, GObject
 import dbus
+import urllib
 
 (
     CORE_INITIALIZING,
@@ -40,7 +41,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 pass
 
     def get_local_path(self, path):
-        return path.replace("file://", "")
+        return urllib.unquote(path)[7:]
 
     def valid_uri(self, uri):
         if not uri.startswith("file://"):

@@ -3,7 +3,8 @@ import os
 from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
-from meocloud_gui.constants import UI_CONFIG_PATH
+from meocloud_gui.preferences import Preferences
+from meocloud_gui.constants import UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH
 from meocloud_gui.protocol.shell.ttypes import (
     Message,
     MessageType,
@@ -26,6 +27,10 @@ class Shell(object):
                                     'meocloud_shell_listener.socket'))
         
         self.syncing = []
+        
+        prefs = Preferences()
+        self.cloud_home = prefs.get('Advanced', 'Folder',
+                                    CLOUD_HOME_DEFAULT_PATH)
 
         self._thread = Thread(target=self._listener)
         self._thread.setDaemon(isDaemon)
@@ -43,10 +48,13 @@ class Shell(object):
                 msg = msg[0]
 
             if msg.fileStatus.status.path != "/":
+                print msg.fileStatus.status.path
                 if msg.fileStatus.status.state == FileState.SYNCING:
                     self.syncing.append(msg.fileStatus.status.path)
                 elif msg.fileStatus.status.path in self.syncing:
                     self.syncing.remove(msg.fileStatus.status.path)
+                utils.touch(os.path.join(self.cloud_home,
+                                         msg.fileStatus.status.path[1:]))
 
     def _send(self, data):
         self.s.sendall(data)
