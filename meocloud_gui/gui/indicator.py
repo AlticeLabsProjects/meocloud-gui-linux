@@ -12,10 +12,10 @@ class Indicator (GObject.Object):
 
         self.ind = appindicator.Indicator.new(
             "meocloud",
-            "indicator-messages",
+            "weather-overcast-symbolic",
             appindicator.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
-        self.ind.set_attention_icon("indicator-messages-new")
+        self.ind.set_attention_icon("weather-severe-alert-symbolic")
 
         self.menu = Gtk.Menu()
 

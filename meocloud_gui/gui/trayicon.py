@@ -10,7 +10,7 @@ class TrayIcon (GObject.Object):
         self.app = app
 
         self.icon = Gtk.StatusIcon()
-        self.icon.set_from_stock(Gtk.STOCK_ABOUT)
+        self.icon.set_from_icon_name("weather-overcast-symbolic")
         self.icon.connect("activate", self.tray_popup)
         self.icon.connect("popup_menu", self.tray_popup)
 
