@@ -134,7 +134,7 @@ class PrefsWindow(Gtk.Window):
 
         # advanced
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
-                                   "Choose Folder"))
+                                   _("Choose Folder")))
         folder_button.connect("clicked", self.on_choose_folder)
         selective_button = Gtk.Button(_("Selective Sync"))
         selective_button.connect("clicked", self.on_selective_sync)
