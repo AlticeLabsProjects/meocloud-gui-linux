@@ -2,6 +2,9 @@ from gi.repository import Nautilus, GObject
 import dbus
 import urllib
 import os
+import gettext
+import locale
+
 
 (
     CORE_INITIALIZING,
@@ -17,9 +20,25 @@ import os
 ) = xrange(0, 10)
 
 
+def init_localization():
+    '''prepare l10n'''
+    locale.setlocale(locale.LC_ALL, '')
+    loc = locale.getlocale()
+    filename = "meocloud_mo/%s.mo" % locale.getlocale()[0][0:2]
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
+
+    try:
+        trans = gettext.GNUTranslations(open(path, "rb"))
+    except IOError:
+        trans = gettext.NullTranslations()
+
+    trans.install()
+
+
 class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                        GObject.GObject):
     def __init__(self):
+        init_localization()
         bus = dbus.SessionBus()
         self.service = None
         self.get_dbus()
@@ -116,46 +135,21 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         if os.path.isfile(uri):
             link_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                                 'Copy Link', '', '')
+                                                 _('Copy Link'), '', '')
             link_menuitem.connect("activate", lambda w: self.share_link(uri))
             submenu.append_item(link_menuitem)
         else:
             share_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Share',
-                                                 'Share Folder', '', '')
+                                                 _('Share Folder'), '', '')
             share_menuitem.connect("activate", lambda w: self.share_folder(uri))
             submenu.append_item(share_menuitem)
             
         browser_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Browser',
-                                                 'Open in Browser', '', '')
+                                                 _('Open in Browser'), '', '')
         browser_menuitem.connect("activate", lambda w: self.open_in_browser(uri))
         submenu.append_item(browser_menuitem)
 
         return top_menuitem,
 
     def get_background_items(self, window, item):
-        self.get_dbus()
-        uri = item.get_uri()
-
-        if self.valid_uri(uri):
-            uri = self.get_local_path(uri)
-
-            try:
-                in_cloud, syncing = self.file_in_cloud(uri)
-                if not in_cloud:
-                    return None,
-            except:
-                self.service = None
-                return None,
-        else:
-            return None,
-
-        submenu = Nautilus.Menu()
-        submenu.append_item(Nautilus.MenuItem.new(
-                            'MEOCloudMenuProvider::Share', 'Share',
-                            '', ''))
-
-        menuitem = Nautilus.MenuItem.new(
-            'MEOCloudMenuProvider::MEOCloud', 'MEO Cloud', '', '')
-        menuitem.set_submenu(submenu)
-
-        return menuitem,
+        return None,

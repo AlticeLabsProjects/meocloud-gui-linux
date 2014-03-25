@@ -52,10 +52,8 @@ def purge_meta():
 
 
 def touch(fname, times=None):
-    try:
+    if os.path.isfile(fname) or os.path.isdir(fname):
         os.utime(fname, times)
-    except:
-        pass
 
 
 def create_required_folders():
@@ -161,7 +159,7 @@ def move_folder_async(src, dst, callback=None):
             shutil.move(src, dst)
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, False))
-        except:
+        except (OSError, IOError):
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, True))
 
