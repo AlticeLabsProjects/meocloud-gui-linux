@@ -181,7 +181,7 @@ class PrefsWindow(Gtk.Window):
         self.selective_sync = SelectiveSyncWindow(self.app)
         self.app.core_client.requestRemoteDirectoryListing('/')
         self.selective_sync.show_all()
-
+        
     def on_choose_folder(self, w):
         dialog = Gtk.FileChooserDialog(_("Please choose a folder"), self,
                                        Gtk.FileChooserAction.SELECT_FOLDER,
@@ -201,12 +201,30 @@ class PrefsWindow(Gtk.Window):
             prog = ProgressDialog()
             prog.show_all()
 
-            def end(prog, timeout, new_path):
-                self.app.restart_core()
-                w.set_label(new_path)
-                prefs.put("Advanced", "Folder", new_path)
-                GLib.source_remove(timeout)
-                GLib.idle_add(prog.destroy)
+            def end(prog, timeout, new_path, error=False):
+                if error:
+                    GLib.source_remove(timeout)
+                    GLib.idle_add(prog.destroy)
+
+                    error_dialog = Gtk.Dialog("MEO Cloud", self, 0,
+                        (Gtk.STOCK_OK, Gtk.ResponseType.OK))
+
+                    error_dialog.set_default_size(150, 100)
+
+                    label = Gtk.Label(_("An error occurred while moving your "
+                                        "MEO Cloud folder."))
+
+                    box = error_dialog.get_content_area()
+                    box.add(label)
+                    error_dialog.show_all()
+                    error_dialog.run()
+                    error_dialog.destroy()
+                else:
+                    self.app.restart_core()
+                    w.set_label(new_path)
+                    prefs.put("Advanced", "Folder", new_path)
+                    GLib.source_remove(timeout)
+                    prog.destroy()
 
             def pulse():
                 prog.progress.pulse()
@@ -215,8 +233,8 @@ class PrefsWindow(Gtk.Window):
 
             old_path = prefs.get("Advanced", "Folder", CLOUD_HOME_DEFAULT_PATH)
             meocloud_gui.utils.move_folder_async(old_path, new_path,
-                                                 lambda p:
-                                                 end(prog, timeout, p))
+                                                 lambda p, e:
+                                                 end(prog, timeout, p, e))
         else:
             dialog.destroy()
 

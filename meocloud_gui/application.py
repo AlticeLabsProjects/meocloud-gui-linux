@@ -216,6 +216,7 @@ class Application(Gtk.Application):
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
         else:
+            GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.paused = True
             self.update_status(_("Error"))
             self.update_menu_action(_("Resume"))

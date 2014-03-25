@@ -5,6 +5,7 @@ import logging
 import logging.handlers
 import shutil
 from threading import Thread
+from gi.repository import GLib
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH,
                                     LOGGER_NAME, LOG_PATH, DEBUG_ON_PATH,
@@ -156,9 +157,13 @@ def move_folder_async(src, dst, callback=None):
         else:
             cloud_home = os.path.join(dst, "MEOCloud")
 
-        shutil.move(src, dst)
-        if callback is not None:
-            callback(cloud_home)
+        try:
+            shutil.move(src, dst)
+            if callback is not None:
+                GLib.idle_add(lambda: callback(cloud_home, False))
+        except:
+            if callback is not None:
+                GLib.idle_add(lambda: callback(cloud_home, True))
 
     Thread(target=move_folder_thread, args=(src, dst, callback)).start()
 
