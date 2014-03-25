@@ -70,6 +70,7 @@ class PrefsWindow(Gtk.Window):
         proxy_manual.connect("toggled", lambda w: self.set_proxy(w,
                              "Manual"))
         self.proxy_manual_url = Gtk.Entry()
+        self.proxy_manual_url.set_placeholder_text("http://www.example.com")
         self.proxy_manual_url.set_text(prefs.get("Network", "ProxyURL", ""))
         self.proxy_manual_url.set_no_show_all(True)
         self.proxy_manual_url.connect("changed", self.proxy_value_changed)
