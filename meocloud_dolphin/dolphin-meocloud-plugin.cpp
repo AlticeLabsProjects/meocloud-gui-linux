@@ -25,21 +25,33 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject* parent, const QVariantList
 {
     Q_UNUSED(args);
 
+    QString lang = QLocale::system().uiLanguages().first().replace("-", "_");
+
+    QString SHARE_STRING = "Share Folder";
+    QString BROWSER_STRING = "Open in Browser";
+    QString LINK_STRING = "Copy Link";
+
+    if (lang == "pt" || lang == "pt_PT" || lang == "pt_BR") {
+        SHARE_STRING = "Partilhar Pasta";
+        BROWSER_STRING = "Abrir no navegador web";
+        LINK_STRING = "Copiar hiperligação";
+    }
+
     m_shareFolderAction = new KAction(this);
     m_shareFolderAction->setIcon(KIcon("internet-web-browser"));
-    m_shareFolderAction->setText(i18nc("@item:inmenu", "Share Folder"));
+    m_shareFolderAction->setText(SHARE_STRING);
     connect(m_shareFolderAction, SIGNAL(triggered()),
             this, SLOT(shareFolderAction()));
 
     m_openInBrowserAction = new KAction(this);
     m_openInBrowserAction->setIcon(KIcon("internet-web-browser"));
-    m_openInBrowserAction->setText(i18nc("@item:inmenu", "Open in Browser"));
+    m_openInBrowserAction->setText(BROWSER_STRING);
     connect(m_openInBrowserAction, SIGNAL(triggered()),
             this, SLOT(openInBrowserAction()));
 
     m_shareFileLinkAction = new KAction(this);
     m_shareFileLinkAction->setIcon(KIcon("internet-web-browser"));
-    m_shareFileLinkAction->setText(i18nc("@item:inmenu", "Copy Link"));
+    m_shareFileLinkAction->setText(LINK_STRING);
     connect(m_shareFileLinkAction, SIGNAL(triggered()),
             this, SLOT(shareFileLinkAction()));
 }
