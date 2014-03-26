@@ -31,11 +31,12 @@ except:
 
 
 class Application(Gtk.Application):
-    def __init__(self):
+    def __init__(self, app_path):
         Gtk.Application.__init__(self, application_id="pt.meocloud",
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.connect("activate", self.on_activate)
 
+        self.app_path = app_path
         self.prefs_window = None
         self.trayicon = TrayIcon(self)
         self.trayicon.show()
@@ -64,6 +65,13 @@ class Application(Gtk.Application):
         if not self.running:
             self.running = True
             prefs = Preferences()
+            self.dark_icons = prefs.get(
+                "General", "DarkIcons", "False") == "True"
+
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-ok-black")
+            else:
+                self.trayicon.set_icon("meocloud-ok")
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 try:
@@ -184,6 +192,10 @@ class Application(Gtk.Application):
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
             GLib.idle_add(lambda: self.menuitem_prefs.hide())
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-ok-black")
+            else:
+                self.trayicon.set_icon("meocloud-ok")
             self.paused = True
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
@@ -194,11 +206,19 @@ class Application(Gtk.Application):
                 self.dbus_service.shell = self.shell
 
             GLib.idle_add(lambda: self.menuitem_prefs.show())
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-sync-black")
+            else:
+                self.trayicon.set_icon("meocloud-sync")
             self.paused = False
             self.update_status(_("Syncing"))
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
             GLib.idle_add(lambda: self.menuitem_prefs.show())
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-ok-black")
+            else:
+                self.trayicon.set_icon("meocloud-ok")
             self.paused = False
             self.update_status(_("Synced"))
             self.update_menu_action(_("Pause"))
@@ -208,17 +228,29 @@ class Application(Gtk.Application):
                                                            cloud_home))
         elif status.state == codes.CORE_PAUSED:
             GLib.idle_add(lambda: self.menuitem_prefs.show())
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-pause-black")
+            else:
+                self.trayicon.set_icon("meocloud-pause")
             self.paused = True
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_OFFLINE:
             GLib.idle_add(lambda: self.menuitem_prefs.show())
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-error-black")
+            else:
+                self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.offline = True
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
         else:
             GLib.idle_add(lambda: self.menuitem_prefs.show())
+            if self.dark_icons:
+                self.trayicon.set_icon("meocloud-error-black")
+            else:
+                self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.update_status(_("Error"))
             self.update_menu_action(_("Resume"))

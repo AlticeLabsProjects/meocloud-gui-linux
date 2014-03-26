@@ -1,6 +1,6 @@
 import subprocess
 import os
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, GLib
 from gi.repository import AppIndicator3 as appindicator
 
 
@@ -12,14 +12,17 @@ class Indicator (GObject.Object):
 
         self.ind = appindicator.Indicator.new(
             "meocloud",
-            "weather-overcast-symbolic",
+            "meocloud-ok",
             appindicator.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
-        self.ind.set_attention_icon("weather-severe-alert-symbolic")
+        self.set_icon("meocloud-ok")
 
         self.menu = Gtk.Menu()
 
         self.ind.set_menu(self.menu)
+
+    def set_icon(self, name):
+        GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path, "icons/" + name + ".svg")))
 
     def show(self):
         self.menu.show_all()

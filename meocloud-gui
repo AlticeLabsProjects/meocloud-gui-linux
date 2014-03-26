@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(nautilus_dir):
         os.makedirs(nautilus_dir)
-        
+
     if os.path.exists(trans_src) and not os.path.exists(trans_dst):
         os.symlink(trans_src, trans_dst)
 
@@ -47,5 +47,5 @@ if __name__ == "__main__":
         os.symlink(nautilus_py, nautilus_dst)
 
     init_localization()
-    app = Application()
+    app = Application(os.path.dirname(os.path.realpath(__file__)))
     app.run(None)

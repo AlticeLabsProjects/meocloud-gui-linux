@@ -1,6 +1,6 @@
 import subprocess
 import os
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, GLib
 
 
 class TrayIcon (GObject.Object):
@@ -10,11 +10,16 @@ class TrayIcon (GObject.Object):
         self.app = app
 
         self.icon = Gtk.StatusIcon()
-        self.icon.set_from_icon_name("weather-overcast-symbolic")
+        self.set_icon("meocloud-ok")
         self.icon.connect("activate", self.tray_popup)
         self.icon.connect("popup_menu", self.tray_popup)
 
         self.menu = Gtk.Menu()
+
+    def set_icon(self, name):
+        icon_file = os.path.join(self.app.app_path, "icons/" + name + ".svg")
+        print icon_file
+        GLib.idle_add(lambda: self.icon.set_from_file(icon_file))
 
     def show(self):
         self.icon.set_visible(True)
