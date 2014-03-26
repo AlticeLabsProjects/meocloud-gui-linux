@@ -28,12 +28,16 @@ class SetupWindow(Gtk.Window):
         self.setup_advanced = Gtk.RadioButton.new_with_label_from_widget(
             self.setup_easy, _("Advanced"))
 
-        first_page_mode_vertical = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        first_page_mode_vertical = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL)
         first_page_mode_vertical.pack_start(self.setup_easy, False, True, 10)
-        first_page_mode_vertical.pack_start(self.setup_advanced, False, True, 10)
-        first_page_mode_horizontal = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        first_page_mode_vertical.pack_start(self.setup_advanced,
+                                            False, True, 10)
+        first_page_mode_horizontal = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL)
         first_page_mode_horizontal.pack_start(Gtk.Label(), True, True, 0)
-        first_page_mode_horizontal.pack_start(first_page_mode_vertical, False, False, 0)
+        first_page_mode_horizontal.pack_start(first_page_mode_vertical,
+                                              False, False, 0)
         first_page_mode_horizontal.pack_start(Gtk.Label(), True, True, 0)
         first_page_box.pack_start(first_page_mode_horizontal, False, False, 0)
 

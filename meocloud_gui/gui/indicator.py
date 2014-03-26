@@ -22,7 +22,9 @@ class Indicator (GObject.Object):
         self.ind.set_menu(self.menu)
 
     def set_icon(self, name):
-        GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path, "icons/" + name + ".svg")))
+        GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path,
+                                                             "icons/" + name +
+                                                             ".svg")))
 
     def show(self):
         self.menu.show_all()
