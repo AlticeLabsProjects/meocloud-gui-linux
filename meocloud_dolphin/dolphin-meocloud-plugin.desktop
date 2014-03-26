@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Service
 Name=MEO Cloud
-X-KDE-ServiceTypes=KFileItemAction/Plugin
-MimeType=application/octet-stream;inode/directory;
+X-KDE-ServiceTypes=FileViewVersionControlPlugin
+MimeType=application/octet-stream;inode/directory;text/plain;
 X-KDE-Library=dolphin-meocloud-plugin
