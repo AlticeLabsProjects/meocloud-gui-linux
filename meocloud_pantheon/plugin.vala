@@ -83,9 +83,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
     public override void directory_loaded (void* user_data) {
         current_directory = ((Object[]) user_data)[2] as GOF.File;
-
-        //if (current_directory.uri == "file:///home/ivo/MEOCloud")
-        //   current_directory.emblems.append("teste");
+        //var window = ((Object[]) user_data)[0] as Gtk.Window;
     }
 
     private void add_menuitem (Gtk.Menu menu, Gtk.MenuItem menu_item) {
