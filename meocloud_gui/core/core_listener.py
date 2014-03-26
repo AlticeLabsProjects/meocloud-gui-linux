@@ -139,7 +139,10 @@ class CoreListenerHandler(UI.Iface):
             notification = Notify.Notification.new("MEO Cloud",
                                                    _("Link copied to "
                                                      "clipboard."),
-                                                   "")
+                                                   os.path.join(
+                                                        self.app.app_path,
+                                                        "icons/"
+                                                        "meocloud-ok.svg"))
             notification.show()
         elif (note.code == codes.SHARE_FOLDER or
                 note.code == codes.OPEN_IN_BROWSER):
@@ -211,7 +214,8 @@ class CoreListenerHandler(UI.Iface):
             else:
                 lang = 'en'
 
-            notif_icon = ''
+            notif_icon = os.path.join(
+                self.app.app_path, "icons/meocloud-ok.svg")
             notif_title = NOTIFICATIONS[lang][str(note.code) + "_title"]
             notif_string = NOTIFICATIONS[lang][str(note.code) +
                                                "_description"].format(

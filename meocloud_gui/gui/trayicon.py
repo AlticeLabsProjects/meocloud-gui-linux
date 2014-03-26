@@ -18,7 +18,6 @@ class TrayIcon (GObject.Object):
 
     def set_icon(self, name):
         icon_file = os.path.join(self.app.app_path, "icons/" + name + ".svg")
-        print icon_file
         GLib.idle_add(lambda: self.icon.set_from_file(icon_file))
 
     def show(self):
