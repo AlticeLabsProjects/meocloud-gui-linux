@@ -66,8 +66,6 @@ class Application(Gtk.Application):
             prefs = Preferences()
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
-                run_setup = True
-
                 try:
                     keyring.delete_password('meocloud', 'clientID')
                     keyring.delete_password('meocloud', 'authKey')
@@ -79,8 +77,6 @@ class Application(Gtk.Application):
                     os.remove(os.path.join(UI_CONFIG_PATH,
                                            'ignored_directories'))
             else:
-                run_setup = False
-
                 if not os.path.exists(prefs.get("Advanced", "Folder",
                                                 CLOUD_HOME_DEFAULT_PATH)):
                     missing = MissingDialog(self)
@@ -175,8 +171,6 @@ class Application(Gtk.Application):
         if status is None:
             status = self.core_client.currentStatus()
         self.update_storage(status.usedQuota, status.totalQuota)
-
-        sync_status = self.core_client.currentSyncStatus()
 
         cloud_home = Preferences().get('Advanced', 'Folder',
                                        CLOUD_HOME_DEFAULT_PATH)

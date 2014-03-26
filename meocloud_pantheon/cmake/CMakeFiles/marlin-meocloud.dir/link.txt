@@ -1,0 +1,1 @@
+/usr/bin/cc  -fPIC    -shared -Wl,-soname,libmarlin-meocloud.so -o libmarlin-meocloud.so CMakeFiles/marlin-meocloud.dir/plugin.c.o -lmarlincore -lmarlinwidgets 

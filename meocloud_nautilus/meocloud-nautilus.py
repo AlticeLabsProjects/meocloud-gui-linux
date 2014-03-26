@@ -52,17 +52,17 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                                               '/pt/meocloud/dbus')
 
                 self.status = self.service.get_dbus_method(
-                    'status', 'pt.meocloud.dbus')
+                    'Status', 'pt.meocloud.dbus')
                 self.file_in_cloud = self.service.get_dbus_method(
-                    'file_in_cloud', 'pt.meocloud.dbus')
+                    'FileInCloud', 'pt.meocloud.dbus')
                 self.get_cloud_home = self.service.get_dbus_method(
-                    'get_cloud_home', 'pt.meocloud.dbus')
+                    'GetCloudHome', 'pt.meocloud.dbus')
                 self.share_link = self.service.get_dbus_method(
-                    'share_link', 'pt.meocloud.dbus')
+                    'ShareLink', 'pt.meocloud.dbus')
                 self.share_folder = self.service.get_dbus_method(
-                    'share_folder', 'pt.meocloud.dbus')
+                    'ShareFolder', 'pt.meocloud.dbus')
                 self.open_in_browser = self.service.get_dbus_method(
-                    'open_in_browser', 'pt.meocloud.dbus')
+                    'OpenInBrowser', 'pt.meocloud.dbus')
             except:
                 pass
 
