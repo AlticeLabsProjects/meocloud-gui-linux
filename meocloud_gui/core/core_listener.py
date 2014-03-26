@@ -140,9 +140,9 @@ class CoreListenerHandler(UI.Iface):
                                                    _("Link copied to "
                                                      "clipboard."),
                                                    os.path.join(
-                                                        self.app.app_path,
-                                                        "icons/"
-                                                        "meocloud-ok.svg"))
+                                                       self.app.app_path,
+                                                       "icons/"
+                                                       "meocloud-ok.svg"))
             notification.show()
         elif (note.code == codes.SHARE_FOLDER or
                 note.code == codes.OPEN_IN_BROWSER):
