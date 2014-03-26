@@ -20,15 +20,22 @@ class SetupWindow(Gtk.Window):
         # First page
 
         first_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        first_page_box.pack_start(Gtk.Label(_("Welcome to MEO Cloud")), False,
+        first_page_box.pack_start(self.new_welcome_label(), False,
                                   True, 10)
+        first_page_box.pack_start(Gtk.Label(), True, True, 0)
 
         self.setup_easy = Gtk.RadioButton.new_with_label(None, "Easy")
         self.setup_advanced = Gtk.RadioButton.new_with_label_from_widget(
             self.setup_easy, _("Advanced"))
 
-        first_page_box.pack_start(self.setup_easy, False, True, 10)
-        first_page_box.pack_start(self.setup_advanced, False, True, 10)
+        first_page_mode_vertical = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        first_page_mode_vertical.pack_start(self.setup_easy, False, True, 10)
+        first_page_mode_vertical.pack_start(self.setup_advanced, False, True, 10)
+        first_page_mode_horizontal = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        first_page_mode_horizontal.pack_start(Gtk.Label(), True, True, 0)
+        first_page_mode_horizontal.pack_start(first_page_mode_vertical, False, False, 0)
+        first_page_mode_horizontal.pack_start(Gtk.Label(), True, True, 0)
+        first_page_box.pack_start(first_page_mode_horizontal, False, False, 0)
 
         first_page_next_button = Gtk.Button(_("Next"))
         first_page_next_button.connect("clicked", self.on_second_page)
@@ -37,6 +44,7 @@ class SetupWindow(Gtk.Window):
         first_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)
         first_page_box_horizontal.pack_start(first_page_next_button, False,
                                              False, 0)
+        first_page_box.pack_start(Gtk.Label(), True, True, 0)
         first_page_box.pack_end(first_page_box_horizontal, False, False, 10)
 
         self.pages.append_page(first_page_box, Gtk.Label())
@@ -44,6 +52,9 @@ class SetupWindow(Gtk.Window):
         # Second page (device info)
 
         second_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        second_page_box.pack_start(self.new_welcome_label(), False,
+                                   True, 10)
+        second_page_box.pack_start(Gtk.Label(), True, True, 0)
         self.pages.append_page(second_page_box, Gtk.Label())
         device_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.device_entry = Gtk.Entry()
@@ -63,6 +74,7 @@ class SetupWindow(Gtk.Window):
         second_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)
         second_page_box_horizontal.pack_start(self.login_button, False,
                                               False, 0)
+        second_page_box.pack_start(Gtk.Label(), True, True, 0)
         second_page_box.pack_end(second_page_box_horizontal, False, False, 10)
 
         # Spinner page
@@ -73,6 +85,8 @@ class SetupWindow(Gtk.Window):
         # Advanced setup page
 
         advanced_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        advanced_page_box.pack_start(self.new_welcome_label(), False,
+                                     True, 10)
 
         app.prefs_window = PrefsWindow(app, True)
         app.prefs_window.remove(app.prefs_window.notebook)
@@ -95,6 +109,9 @@ class SetupWindow(Gtk.Window):
         # Success page
 
         success_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        success_page_box.pack_start(self.new_welcome_label(), False,
+                                    True, 10)
+        success_page_box.pack_start(Gtk.Label(), True, True, 0)
 
         success_label = Gtk.Label(
             _("Your computer has been successfuly linked."))
@@ -107,12 +124,18 @@ class SetupWindow(Gtk.Window):
         success_page_box_horizontal.pack_start(Gtk.Label(""), True, True, 0)
         success_page_box_horizontal.pack_start(success_page_finish_button,
                                                False, False, 0)
+        success_page_box.pack_start(Gtk.Label(), True, True, 0)
         success_page_box.pack_end(success_page_box_horizontal, False,
                                   False, 10)
 
         self.pages.append_page(success_page_box, Gtk.Label())
 
         self.set_size_request(400, 300)
+
+    def new_welcome_label(self):
+        label = Gtk.Label("<b>" + _("Welcome to MEO Cloud") + "</b>")
+        label.set_use_markup(True)
+        return label
 
     def on_first_page(self, widget):
         self.pages.first_page()
