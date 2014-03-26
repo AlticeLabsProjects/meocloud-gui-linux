@@ -63,16 +63,15 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
                                                     "GetCloudHome");
     QDBusMessage response = QDBusConnection::sessionBus().call(m);
 
+    QString cloud_home;
+
     if (response.type() == QDBusMessage::ReplyMessage) {
-        QString cloud_home = response.arguments().at(0).value<QString>();
-        if (!directory.startsWith(cloud_home))
-            return true;
+        cloud_home = response.arguments().at(0).value<QString>();
     } else {
         return true;
     }
 
-    m_versionInfoHash.clear();
-
+    bool cloud_is_here = false;
     QDir dir(directory);
     QStringList files = dir.entryList();
 
@@ -80,8 +79,51 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
     {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
 
-        KVersionControlPlugin::VersionState versionstate = KVersionControlPlugin::UnversionedVersion;
+        if (filename == cloud_home) {
+            cloud_is_here = true;
+            break;
+        }
+    }
 
+    if (!directory.startsWith(cloud_home) && !cloud_is_here)
+        return true;
+
+    m_versionInfoHash.clear();
+
+    for(int i=2;i<files.size();++i)
+    {
+        QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
+        KVersionControlPlugin::VersionState versionstate;
+
+        if (filename == cloud_home) {
+            QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
+                                                            "/pt/meocloud/dbus",
+                                                            "",
+                                                            "Status");
+            QDBusMessage response = QDBusConnection::sessionBus().call(m);
+
+            if (response.type() == QDBusMessage::ReplyMessage) {
+                int status = response.arguments().at(0).value<int>();
+
+                switch(status) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        versionstate = KVersionControlPlugin::UpdateRequiredVersion;
+                        break;
+                    default:
+                        versionstate = KVersionControlPlugin::NormalVersion;
+                        break;
+                }
+
+                m_versionInfoHash.insert(filename, versionstate);
+            }
+
+            return true;
+        } else {
+            versionstate = KVersionControlPlugin::UnversionedVersion;
+        }
 
         QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                         "/pt/meocloud/dbus",
