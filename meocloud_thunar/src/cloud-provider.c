@@ -232,9 +232,6 @@ static GList * cloud_provider_get_file_actions(
     DBusGConnection *connection;
     GError *error;
     DBusGProxy *proxy;
-    //char **name_list;
-    //int status;
-    //char **name_list_ptr;
     gboolean in_cloud;
     gboolean syncing;
 
