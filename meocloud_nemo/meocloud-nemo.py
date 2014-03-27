@@ -89,17 +89,17 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                     if (status == CORE_INITIALIZING or
                             status == CORE_AUTHORIZING or
                             status == CORE_WAITING):
-                        item.add_emblem("emblem-synchronizing-symbolic")
+                        item.add_emblem("emblem-synchronizing")
                     elif status == CORE_SYNCING:
-                        item.add_emblem("emblem-synchronizing-symbolic")
+                        item.add_emblem("emblem-synchronizing")
                     elif status == CORE_READY:
-                        item.add_emblem("emblem-ok-symbolic")
+                        item.add_emblem("emblem-default")
                 else:
                     in_cloud, syncing = self.file_in_cloud(uri)
                     if in_cloud and syncing:
-                        item.add_emblem("emblem-synchronizing-symbolic")
+                        item.add_emblem("emblem-synchronizing")
                     elif in_cloud:
-                        item.add_emblem("emblem-ok-symbolic")
+                        item.add_emblem("emblem-default")
             except:
                 self.service = None
                 pass
