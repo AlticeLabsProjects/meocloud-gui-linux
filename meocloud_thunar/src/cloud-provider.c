@@ -76,6 +76,24 @@ static void cloud_closure_destroy_notify(gpointer data, GClosure * closure)
     g_list_free(actioninfo);
 }
 
+static void cloud_copy_link(GtkAction *action,
+                            GtkWidget *window)
+{
+    g_print ("copy link\n");
+}
+
+static void cloud_share_folder(GtkAction *action,
+                               GtkWidget *window)
+{
+    g_print ("share folder\n");
+}
+
+static void cloud_open_in_browser(GtkAction *action,
+                                  GtkWidget *window)
+{
+    g_print ("open in browser\n");
+}
+
 static GList * cloud_provider_get_file_actions(
     ThunarxMenuProvider * menu_provider,
     GtkWidget * window,
@@ -84,6 +102,7 @@ static GList * cloud_provider_get_file_actions(
     GFile * file;
     GList * actions = NULL;
     GtkAction *action;
+    GClosure *closure;
     CloudProvider *cloud_provider = CLOUD_PROVIDER (menu_provider);
     gchar * path;
 
@@ -155,19 +174,51 @@ static GList * cloud_provider_get_file_actions(
         return NULL;
 
     action = g_object_new (GTK_TYPE_ACTION,
-                         "name", "MEOCloud::open-in-browser",
-                         "label", "Open in Browser",
-                         "tooltip", "Open the selected file in a web browser",
-                         NULL);
+                           "name", "MEOCloud::open-in-browser",
+                           "label", "Open in Browser",
+                           "tooltip", "Open the selected file in a web browser",
+                           NULL);
     g_object_set_qdata_full (G_OBJECT (action), "", // what is a quark?! "" seems to work
-                           thunarx_file_info_list_copy (files),
-                           (GDestroyNotify) thunarx_file_info_list_free);
+                             thunarx_file_info_list_copy (files),
+                             (GDestroyNotify) thunarx_file_info_list_free);
     g_object_set_qdata_full (G_OBJECT (action), "",
-                           g_object_ref (G_OBJECT (cloud_provider)),
-                           (GDestroyNotify) g_object_unref);
-    //closure = g_cclosure_new_object (G_CALLBACK (tap_extract_here), G_OBJECT (window));
-    //g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
+                             g_object_ref (G_OBJECT (cloud_provider)),
+                             (GDestroyNotify) g_object_unref);
+    closure = g_cclosure_new_object (G_CALLBACK (cloud_open_in_browser), G_OBJECT (window));
+    g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
     actions = g_list_append (actions, action);
+
+    if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
+        action = g_object_new (GTK_TYPE_ACTION,
+                               "name", "MEOCloud::share-folder",
+                               "label", "Share Folder",
+                               "tooltip", "Share the selected folder",
+                               NULL);
+        g_object_set_qdata_full (G_OBJECT (action), "", // what is a quark?! "" seems to work
+                                 thunarx_file_info_list_copy (files),
+                                 (GDestroyNotify) thunarx_file_info_list_free);
+        g_object_set_qdata_full (G_OBJECT (action), "",
+                                 g_object_ref (G_OBJECT (cloud_provider)),
+                                 (GDestroyNotify) g_object_unref);
+        closure = g_cclosure_new_object (G_CALLBACK (cloud_share_folder), G_OBJECT (window));
+        g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
+        actions = g_list_append (actions, action);
+    } else {
+        action = g_object_new (GTK_TYPE_ACTION,
+                               "name", "MEOCloud::copy-link",
+                               "label", "Copy Link",
+                               "tooltip", "Copy a link to the selected file to your clipboard",
+                               NULL);
+        g_object_set_qdata_full (G_OBJECT (action), "", // what is a quark?! "" seems to work
+                                 thunarx_file_info_list_copy (files),
+                                 (GDestroyNotify) thunarx_file_info_list_free);
+        g_object_set_qdata_full (G_OBJECT (action), "",
+                                 g_object_ref (G_OBJECT (cloud_provider)),
+                                 (GDestroyNotify) g_object_unref);
+        closure = g_cclosure_new_object (G_CALLBACK (cloud_copy_link), G_OBJECT (window));
+        g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
+        actions = g_list_append (actions, action);
+    }
 
     return actions;
 }
