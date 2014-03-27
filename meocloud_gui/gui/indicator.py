@@ -10,6 +10,7 @@ class Indicator (GObject.Object):
     def __init__(self, app):
         self.app = app
         self.syncing = 0
+        self.timeout = None
 
         self.ind = appindicator.Indicator.new(
             "meocloud",
@@ -27,7 +28,9 @@ class Indicator (GObject.Object):
             self.syncing = 0
         elif self.syncing < 1 and "sync" in name:
             self.syncing = 2
-            GLib.timeout_add(1000, self.cycle_sync_icon)
+            if self.timeout is not None:
+                GLib.source_remove(self.timeout)
+            self.timeout = GLib.timeout_add(1000, self.cycle_sync_icon)
 
         GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path,
                                                              "icons/" + name +
