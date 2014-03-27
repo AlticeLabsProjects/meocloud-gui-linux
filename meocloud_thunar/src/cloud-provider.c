@@ -85,7 +85,6 @@ static GList * cloud_provider_get_file_actions(
     GList * actions = NULL;
     GtkAction *action;
     CloudProvider *cloud_provider = CLOUD_PROVIDER (menu_provider);
-    GList * lp;
     gchar * path;
 
     GList * filelist = NULL;
@@ -93,11 +92,8 @@ static GList * cloud_provider_get_file_actions(
     if (g_list_length(files) != 1)
         return NULL;
 
-    for(lp = files; lp != NULL; lp = lp->next)
-	{
-		file = thunarx_file_info_get_location(lp->data);
-		path = g_file_get_path(file);
-	}
+	file = thunarx_file_info_get_location(files->data);
+	path = g_file_get_path(file);
 
     /*
      * D-Bus
