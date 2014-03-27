@@ -84,11 +84,20 @@ static GList * cloud_provider_get_file_actions(
     GFile * file;
     GList * actions = NULL;
     GtkAction *action;
-    CloudProvider        *cloud_provider = CLOUD_PROVIDER (menu_provider);
+    CloudProvider *cloud_provider = CLOUD_PROVIDER (menu_provider);
     GList * lp;
     gchar * path;
 
     GList * filelist = NULL;
+
+    if (g_list_length(files) != 1)
+        return NULL;
+
+    for(lp = files; lp != NULL; lp = lp->next)
+	{
+		file = thunarx_file_info_get_location(lp->data);
+		path = g_file_get_path(file);
+	}
 
     /*
      * D-Bus
@@ -97,8 +106,11 @@ static GList * cloud_provider_get_file_actions(
     DBusGConnection *connection;
     GError *error;
     DBusGProxy *proxy;
-    char **name_list;
-    char **name_list_ptr;
+    //char **name_list;
+    //int status;
+    //char **name_list_ptr;
+    gboolean in_cloud;
+    gboolean syncing;
 
     error = NULL;
     connection = dbus_g_bus_get (DBUS_BUS_SESSION,
@@ -114,22 +126,37 @@ static GList * cloud_provider_get_file_actions(
                                        "/pt/meocloud/dbus",
                                        "pt.meocloud.dbus");
 
-    error = NULL;
+    /*error = NULL;
     if (!dbus_g_proxy_call (proxy, "Status", &error, G_TYPE_INVALID,
-                      G_TYPE_STRV, &name_list, G_TYPE_INVALID))
+                      G_TYPE_INT, &status, G_TYPE_INVALID))
+    {
+        g_error_free (error);
+        return NULL;
+    }*/
+
+    error = NULL;
+    if (!dbus_g_proxy_call (proxy, "FileInCloud", &error, G_TYPE_STRING,
+                            path, G_TYPE_INVALID, G_TYPE_BOOLEAN,
+                            &in_cloud, G_TYPE_BOOLEAN,
+                            &syncing, G_TYPE_INVALID))
     {
         g_error_free (error);
         return NULL;
     }
 
-    for (name_list_ptr = name_list; *name_list_ptr; name_list_ptr++)
+    /*for (name_list_ptr = name_list; *name_list_ptr; name_list_ptr++)
     {
         g_print ("  %s\n", *name_list_ptr);
-    }
+    }*/
+
+    //g_file_get_path ()
 
     // dbus cleanup
-    g_strfreev (name_list);
+    //g_strfreev (name_list);
     g_object_unref (proxy);
+
+    if (!in_cloud)
+        return NULL;
 
     action = g_object_new (GTK_TYPE_ACTION,
                          "name", "MEOCloud::open-in-browser",
