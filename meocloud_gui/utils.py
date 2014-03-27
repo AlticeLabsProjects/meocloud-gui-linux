@@ -54,22 +54,25 @@ def purge_meta():
 
 
 def touch(fname, times=None):
-    destination = 'pt.meocloud.shell'
-    path = '/pt/meocloud/shell'
-    interface = 'pt.meocloud.shell'
-    method = 'UpdateFile'
-    args = GLib.Variant('(s)',
-           (fname,))
-    answer_fmt = GLib.VariantType.new ('()')
-    proxy_prpty = Gio.DBusCallFlags.NONE
-    timeout = -1
-    cancellable = None
+    try:
+        destination = 'pt.meocloud.shell'
+        path = '/pt/meocloud/shell'
+        interface = 'pt.meocloud.shell'
+        method = 'UpdateFile'
+        args = GLib.Variant('(s)',
+               (fname,))
+        answer_fmt = GLib.VariantType.new ('()')
+        proxy_prpty = Gio.DBusCallFlags.NONE
+        timeout = -1
+        cancellable = None
 
-    # Connect to DBus, send the DBus message, and receive the reply
-    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-    reply = bus.call_sync(destination, path, interface,
-                          method, args, answer_fmt,
-                          proxy_prpty, timeout, cancellable)
+        # Connect to DBus, send the DBus message, and receive the reply
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        reply = bus.call_sync(destination, path, interface,
+                              method, args, answer_fmt,
+                              proxy_prpty, timeout, cancellable)
+    except:
+        pass
 
 
 def create_required_folders():
