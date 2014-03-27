@@ -14,9 +14,24 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private GOF.File current_directory = null;
     private Core? core = null;
 
+    private string OPEN_BROWSER;
+    private string SHARE_FOLDER;
+    private string COPY_LINK;
+
     public MEOCloud () {
+        OPEN_BROWSER = "Open in Browser";
+        SHARE_FOLDER = "Share Folder";
+        COPY_LINK = "Copy Link";
+
+        string[] langs = GLib.Intl.get_language_names();
+
+        if ("pt" in langs[0]) {
+            OPEN_BROWSER = "Abrir no navegador web";
+            SHARE_FOLDER = "Partilhar pasta";
+            COPY_LINK = "Copiar hiperligação";
+        }
+
         this.get_dbus();
-        stdout.printf("MEO Cloud\n");
     }
 
     public void get_dbus() {
@@ -52,18 +67,18 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
         Gtk.Menu submenu = new Gtk.Menu();
 
-        Gtk.MenuItem open_in_browser = new Gtk.MenuItem.with_label ("Open in Browser");
+        Gtk.MenuItem open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
         open_in_browser.activate.connect((w) => { this.core.open_in_browser(path); });
         submenu.add(open_in_browser);
 
         GLib.File f = File.new_for_path (path);
 
         if (f.query_file_type (0) == FileType.DIRECTORY) {
-            Gtk.MenuItem share_folder = new Gtk.MenuItem.with_label ("Share Folder");
+            Gtk.MenuItem share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
             share_folder.activate.connect((w) => { this.core.share_folder(path); });
             submenu.add(share_folder);
         } else {
-            Gtk.MenuItem copy_link = new Gtk.MenuItem.with_label ("Copy Link");
+            Gtk.MenuItem copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
             copy_link.activate.connect((w) => { this.core.share_link(path); });
             submenu.add(copy_link);
         }
