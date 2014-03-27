@@ -18,12 +18,13 @@ def configure(conf):
 	conf.check_tool('compiler_cc')
 	conf.check_cfg(package='thunarx-2', uselib_store='THUNARX', mandatory=True, args='--cflags --libs')
 	conf.check_cfg(package='gio-2.0', uselib_store='GIO', mandatory=True, args='--cflags --libs')
+	conf.check_cfg(package='dbus-1', uselib_store='DBUS', mandatory=True, args='--cflags --libs')
 
 def build(bld):
 	prog = bld.new_task_gen('cc', 'cshlib')
 	prog.target = 'thunar-meocloud'
 	prog.install_path = None
-	prog.uselib = 'THUNARX THUNARVFS'
+	prog.uselib = 'THUNARX THUNARVFS DBUS'
 	prog.includes = 'src'
 	prog.find_sources_in_dirs('src')
 	bld.install_as('${PREFIX}/lib/thunarx-2/thunar-meocloud.so', 'libthunar-meocloud.so')

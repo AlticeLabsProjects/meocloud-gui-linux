@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include <gio/gio.h>
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib.h>
 
 #include "cloud-provider.h"
 
@@ -87,6 +89,47 @@ static GList * cloud_provider_get_file_actions(
     gchar * path;
 
     GList * filelist = NULL;
+
+    /*
+     * D-Bus
+     */
+
+    DBusGConnection *connection;
+    GError *error;
+    DBusGProxy *proxy;
+    char **name_list;
+    char **name_list_ptr;
+
+    error = NULL;
+    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
+                                 &error);
+    if (connection == NULL)
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    proxy = dbus_g_proxy_new_for_name (connection,
+                                       "pt.meocloud.dbus",
+                                       "/pt/meocloud/dbus",
+                                       "pt.meocloud.dbus");
+
+    error = NULL;
+    if (!dbus_g_proxy_call (proxy, "Status", &error, G_TYPE_INVALID,
+                      G_TYPE_STRV, &name_list, G_TYPE_INVALID))
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    for (name_list_ptr = name_list; *name_list_ptr; name_list_ptr++)
+    {
+        g_print ("  %s\n", *name_list_ptr);
+    }
+
+    // dbus cleanup
+    g_strfreev (name_list);
+    g_object_unref (proxy);
 
     action = g_object_new (GTK_TYPE_ACTION,
                          "name", "MEOCloud::open-in-browser",
