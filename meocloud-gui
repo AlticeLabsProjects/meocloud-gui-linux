@@ -27,14 +27,24 @@ if __name__ == "__main__":
     trans_dst = os.path.join(os.path.expanduser('~'),
                                 '.local/share/nautilus-python/extensions/'
                                 'meocloud_mo')
+
     nautilus_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                "meocloud_nautilus/meocloud-nautilus.py")
     nautilus_dir = os.path.join(os.path.expanduser('~'),
                                 '.local/share/nautilus-python/extensions')
     nautilus_dst = os.path.join(nautilus_dir, "meocloud-nautilus.py")
 
+    nemo_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               "meocloud_nemo/meocloud-nemo.py")
+    nemo_dir = os.path.join(os.path.expanduser('~'),
+                                '.local/share/nemo-python/extensions')
+    nemo_dst = os.path.join(nemo_dir, "meocloud-nemo.py")
+
     if not os.path.exists(nautilus_dir):
         os.makedirs(nautilus_dir)
+
+    if not os.path.exists(nemo_dir):
+        os.makedirs(nemo_dir)
 
     if os.path.exists(trans_src) and not os.path.exists(trans_dst):
         os.symlink(trans_src, trans_dst)
@@ -45,6 +55,13 @@ if __name__ == "__main__":
             os.symlink(nautilus_py, nautilus_dst)
     else:
         os.symlink(nautilus_py, nautilus_dst)
+
+    if os.path.isfile(nemo_dst):
+        if not filecmp.cmp(nemo_py, nemo_dst):
+            os.remove(nemo_dst)
+            os.symlink(nemo_py, nemo_dst)
+    else:
+        os.symlink(nemo_py, nemo_dst)
 
     init_localization()
     app = Application(os.path.dirname(os.path.realpath(__file__)))
