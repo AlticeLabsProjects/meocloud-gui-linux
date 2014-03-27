@@ -207,9 +207,9 @@ class Application(Gtk.Application):
 
             GLib.idle_add(lambda: self.menuitem_prefs.show())
             if self.dark_icons:
-                self.trayicon.set_icon("meocloud-sync-black")
+                self.trayicon.set_icon("meocloud-sync-1-black")
             else:
-                self.trayicon.set_icon("meocloud-sync")
+                self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
             self.update_status(_("Syncing"))
             self.update_menu_action(_("Pause"))
