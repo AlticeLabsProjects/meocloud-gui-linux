@@ -60,8 +60,8 @@ def touch(fname, times=None):
         interface = 'pt.meocloud.shell'
         method = 'UpdateFile'
         args = GLib.Variant('(s)',
-               (fname,))
-        answer_fmt = GLib.VariantType.new ('()')
+                            (fname,))
+        answer_fmt = GLib.VariantType.new('()')
         proxy_prpty = Gio.DBusCallFlags.NONE
         timeout = -1
         cancellable = None
