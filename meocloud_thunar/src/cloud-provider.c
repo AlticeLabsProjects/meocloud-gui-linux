@@ -79,19 +79,130 @@ static void cloud_closure_destroy_notify(gpointer data, GClosure * closure)
 static void cloud_copy_link(GtkAction *action,
                             GtkWidget *window)
 {
-    g_print ("copy link\n");
+    GList *files;
+    GFile *file;
+    gchar *path;
+
+    files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
+    if (G_UNLIKELY (files == NULL))
+        return;
+
+    file = thunarx_file_info_get_location(files->data);
+	path = g_file_get_path(file);
+
+    DBusGConnection *connection;
+    GError *error;
+    DBusGProxy *proxy;
+
+    error = NULL;
+    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
+                                 &error);
+    if (connection == NULL)
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    proxy = dbus_g_proxy_new_for_name (connection,
+                                       "pt.meocloud.dbus",
+                                       "/pt/meocloud/dbus",
+                                       "pt.meocloud.dbus");
+
+    error = NULL;
+    if (!dbus_g_proxy_call (proxy, "ShareLink", &error, G_TYPE_STRING,
+                            path, G_TYPE_INVALID, G_TYPE_INVALID))
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    g_object_unref (proxy);
 }
 
 static void cloud_share_folder(GtkAction *action,
                                GtkWidget *window)
 {
-    g_print ("share folder\n");
+    GList *files;
+    GFile *file;
+    gchar *path;
+
+    files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
+    if (G_UNLIKELY (files == NULL))
+        return;
+
+    file = thunarx_file_info_get_location(files->data);
+	path = g_file_get_path(file);
+
+    DBusGConnection *connection;
+    GError *error;
+    DBusGProxy *proxy;
+
+    error = NULL;
+    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
+                                 &error);
+    if (connection == NULL)
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    proxy = dbus_g_proxy_new_for_name (connection,
+                                       "pt.meocloud.dbus",
+                                       "/pt/meocloud/dbus",
+                                       "pt.meocloud.dbus");
+
+    error = NULL;
+    if (!dbus_g_proxy_call (proxy, "ShareFolder", &error, G_TYPE_STRING,
+                            path, G_TYPE_INVALID, G_TYPE_INVALID))
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    g_object_unref (proxy);
 }
 
 static void cloud_open_in_browser(GtkAction *action,
                                   GtkWidget *window)
 {
-    g_print ("open in browser\n");
+    GList *files;
+    GFile *file;
+    gchar *path;
+
+    files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
+    if (G_UNLIKELY (files == NULL))
+        return;
+
+    file = thunarx_file_info_get_location(files->data);
+	path = g_file_get_path(file);
+
+    DBusGConnection *connection;
+    GError *error;
+    DBusGProxy *proxy;
+
+    error = NULL;
+    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
+                                 &error);
+    if (connection == NULL)
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    proxy = dbus_g_proxy_new_for_name (connection,
+                                       "pt.meocloud.dbus",
+                                       "/pt/meocloud/dbus",
+                                       "pt.meocloud.dbus");
+
+    error = NULL;
+    if (!dbus_g_proxy_call (proxy, "OpenInBrowser", &error, G_TYPE_STRING,
+                            path, G_TYPE_INVALID, G_TYPE_INVALID))
+    {
+        g_error_free (error);
+        return NULL;
+    }
+
+    g_object_unref (proxy);
 }
 
 static GList * cloud_provider_get_file_actions(
@@ -141,14 +252,6 @@ static GList * cloud_provider_get_file_actions(
                                        "/pt/meocloud/dbus",
                                        "pt.meocloud.dbus");
 
-    /*error = NULL;
-    if (!dbus_g_proxy_call (proxy, "Status", &error, G_TYPE_INVALID,
-                      G_TYPE_INT, &status, G_TYPE_INVALID))
-    {
-        g_error_free (error);
-        return NULL;
-    }*/
-
     error = NULL;
     if (!dbus_g_proxy_call (proxy, "FileInCloud", &error, G_TYPE_STRING,
                             path, G_TYPE_INVALID, G_TYPE_BOOLEAN,
@@ -159,15 +262,6 @@ static GList * cloud_provider_get_file_actions(
         return NULL;
     }
 
-    /*for (name_list_ptr = name_list; *name_list_ptr; name_list_ptr++)
-    {
-        g_print ("  %s\n", *name_list_ptr);
-    }*/
-
-    //g_file_get_path ()
-
-    // dbus cleanup
-    //g_strfreev (name_list);
     g_object_unref (proxy);
 
     if (!in_cloud)
