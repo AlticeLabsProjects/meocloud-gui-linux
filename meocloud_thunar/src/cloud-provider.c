@@ -267,10 +267,22 @@ static GList * cloud_provider_get_file_actions(
     if (!in_cloud)
         return NULL;
 
+    const gchar * const *names = g_get_language_names ();
+    gchar *lang = names[0];
+
+    gchar * OPEN_BROWSER = "Open in Browser";
+    gchar * SHARE_FOLDER = "Share Folder";
+    gchar * COPY_LINK = "Copy Link";
+
+    if (strstr(lang, "pt") != NULL) {
+        OPEN_BROWSER = "Abrir no navegador web";
+        SHARE_FOLDER = "Partilhar pasta";
+        COPY_LINK = "Copiar hiperligação";
+    }
+
     action = g_object_new (GTK_TYPE_ACTION,
                            "name", "MEOCloud::open-in-browser",
-                           "label", "Open in Browser",
-                           "tooltip", "Open the selected file in a web browser",
+                           "label", OPEN_BROWSER,
                            NULL);
     g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
                              thunarx_file_info_list_copy (files),
@@ -285,8 +297,7 @@ static GList * cloud_provider_get_file_actions(
     if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
         action = g_object_new (GTK_TYPE_ACTION,
                                "name", "MEOCloud::share-folder",
-                               "label", "Share Folder",
-                               "tooltip", "Share the selected folder",
+                               "label", SHARE_FOLDER,
                                NULL);
         g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
                                  thunarx_file_info_list_copy (files),
@@ -300,8 +311,7 @@ static GList * cloud_provider_get_file_actions(
     } else {
         action = g_object_new (GTK_TYPE_ACTION,
                                "name", "MEOCloud::copy-link",
-                               "label", "Copy Link",
-                               "tooltip", "Copy a link to the selected file to your clipboard",
+                               "label", COPY_LINK,
                                NULL);
         g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
                                  thunarx_file_info_list_copy (files),
