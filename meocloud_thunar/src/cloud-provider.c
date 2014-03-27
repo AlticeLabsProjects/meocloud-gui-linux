@@ -178,10 +178,10 @@ static GList * cloud_provider_get_file_actions(
                            "label", "Open in Browser",
                            "tooltip", "Open the selected file in a web browser",
                            NULL);
-    g_object_set_qdata_full (G_OBJECT (action), "", // what is a quark?! "" seems to work
+    g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
                              thunarx_file_info_list_copy (files),
                              (GDestroyNotify) thunarx_file_info_list_free);
-    g_object_set_qdata_full (G_OBJECT (action), "",
+    g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
                              g_object_ref (G_OBJECT (cloud_provider)),
                              (GDestroyNotify) g_object_unref);
     closure = g_cclosure_new_object (G_CALLBACK (cloud_open_in_browser), G_OBJECT (window));
@@ -194,10 +194,10 @@ static GList * cloud_provider_get_file_actions(
                                "label", "Share Folder",
                                "tooltip", "Share the selected folder",
                                NULL);
-        g_object_set_qdata_full (G_OBJECT (action), "", // what is a quark?! "" seems to work
+        g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
                                  thunarx_file_info_list_copy (files),
                                  (GDestroyNotify) thunarx_file_info_list_free);
-        g_object_set_qdata_full (G_OBJECT (action), "",
+        g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
                                  g_object_ref (G_OBJECT (cloud_provider)),
                                  (GDestroyNotify) g_object_unref);
         closure = g_cclosure_new_object (G_CALLBACK (cloud_share_folder), G_OBJECT (window));
@@ -209,10 +209,10 @@ static GList * cloud_provider_get_file_actions(
                                "label", "Copy Link",
                                "tooltip", "Copy a link to the selected file to your clipboard",
                                NULL);
-        g_object_set_qdata_full (G_OBJECT (action), "", // what is a quark?! "" seems to work
+        g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
                                  thunarx_file_info_list_copy (files),
                                  (GDestroyNotify) thunarx_file_info_list_free);
-        g_object_set_qdata_full (G_OBJECT (action), "",
+        g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
                                  g_object_ref (G_OBJECT (cloud_provider)),
                                  (GDestroyNotify) g_object_unref);
         closure = g_cclosure_new_object (G_CALLBACK (cloud_copy_link), G_OBJECT (window));

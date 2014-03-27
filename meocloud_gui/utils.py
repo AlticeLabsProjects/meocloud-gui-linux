@@ -7,7 +7,7 @@ import logging
 import logging.handlers
 import shutil
 from threading import Thread
-from gi.repository import GLib
+from gi.repository import GLib, Gio
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH,
                                     LOGGER_NAME, LOG_PATH, DEBUG_ON_PATH,
@@ -54,8 +54,22 @@ def purge_meta():
 
 
 def touch(fname, times=None):
-    if os.path.isfile(fname) or os.path.isdir(fname):
-        os.utime(fname, times)
+    destination = 'pt.meocloud.shell'
+    path = '/pt/meocloud/shell'
+    interface = 'pt.meocloud.shell'
+    method = 'UpdateFile'
+    args = GLib.Variant('(s)',
+           (fname,))
+    answer_fmt = GLib.VariantType.new ('()')
+    proxy_prpty = Gio.DBusCallFlags.NONE
+    timeout = -1
+    cancellable = None
+
+    # Connect to DBus, send the DBus message, and receive the reply
+    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    reply = bus.call_sync(destination, path, interface,
+                          method, args, answer_fmt,
+                          proxy_prpty, timeout, cancellable)
 
 
 def create_required_folders():

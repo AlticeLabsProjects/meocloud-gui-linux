@@ -1,9 +1,11 @@
 from gi.repository import Nautilus, GObject
 import dbus
+import dbus.service
 import urllib
 import os
 import gettext
 import locale
+from dbus.mainloop.glib import DBusGMainLoop
 
 
 (
@@ -35,12 +37,32 @@ def init_localization():
     trans.install()
 
 
+class DBusService(dbus.service.Object):
+    def __init__(self, files):
+        bus_name = dbus.service.BusName('pt.meocloud.shell',
+                                        bus=dbus.SessionBus())
+        dbus.service.Object.__init__(self, bus_name, '/pt/meocloud/shell')
+        self.files = files
+
+    @dbus.service.method('pt.meocloud.shell')
+    def UpdateFile(self, path):
+        if path in self.files:
+            item = self.files[path]
+            self.files.pop(path, None)
+            item.invalidate_extension_info()
+            del item
+
+
 class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                        GObject.GObject):
     def __init__(self):
         init_localization()
-        bus = dbus.SessionBus()
         self.service = None
+        self.files = dict()
+
+        DBusGMainLoop(set_as_default=True)
+        self.dbus_service = DBusService(self.files)
+
         self.get_dbus()
 
     def get_dbus(self):
@@ -75,12 +97,19 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         else:
             return True
 
+    def changed_cb(self, i):
+        del i
+
     def update_file_info(self, item):
         self.get_dbus()
         uri = item.get_uri()
 
         if self.valid_uri(uri):
             uri = self.get_local_path(uri)
+            if uri in self.files:
+                self.files.pop(uri, None)
+            self.files[uri] = item
+            item.connect("changed", self.changed_cb)
 
             try:
                 if uri == self.get_cloud_home():
