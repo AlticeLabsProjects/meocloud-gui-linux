@@ -2,7 +2,11 @@ import os.path
 import dbus
 import dbus.service
 from meocloud_gui.preferences import Preferences
-from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH
+from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH, LOGGER_NAME
+
+# Logging
+import logging
+log = logging.getLogger(LOGGER_NAME)
 
 
 class DBusService(dbus.service.Object):
@@ -13,6 +17,7 @@ class DBusService(dbus.service.Object):
         self.status = status
         self.shell = None
         self.update_prefs()
+        log.info('DBusService: initialized')
 
     def update_prefs(self):
         prefs = Preferences()

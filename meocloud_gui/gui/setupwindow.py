@@ -4,6 +4,11 @@ from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.spinnerbox import SpinnerBox
+from meocloud_gui.constants import LOGGER_NAME
+
+# Logging
+import logging
+log = logging.getLogger(LOGGER_NAME)
 
 
 class SetupWindow(Gtk.Window):
@@ -12,6 +17,8 @@ class SetupWindow(Gtk.Window):
     def __init__(self, app):
         Gtk.Window.__init__(self)
         self.set_title(_("Setup"))
+
+        log.info('SetupWindow: initializing setup')
 
         self.app = app
         self.pages = Pages()
@@ -142,20 +149,25 @@ class SetupWindow(Gtk.Window):
         return label
 
     def on_first_page(self, widget):
+        log.info('SetupWindow.on_first_page: changing to first page')
         self.pages.first_page()
 
     def on_second_page(self, widget):
+        log.info('SetupWindow.on_second_page: changing to second page')
         self.pages.next_page()
 
     def start_waiting(self):
+        log.info('SetupWindow.start_waiting: waiting for core')
         self.pages.next_page()
         self.spinner.start()
 
     def stop_waiting(self):
+        log.info('SetupWindow.stop_waiting: no longer waiting')
         self.pages.next_page()
         self.spinner.stop()
 
     def finish_advanced_setup(self, widget):
+        log.info('SetupWindow.finish_advanced_setup: completing setup')
         self.app.restart_core()
         self.destroy()
 

@@ -21,7 +21,6 @@ class TrayIcon (GObject.Object):
         self.menu = Gtk.Menu()
 
     def size_changed(self, icon, size):
-        print "change"
         if self.last_icon is not None:
             self.set_icon(self.last_icon)
         return True

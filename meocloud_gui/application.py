@@ -24,10 +24,16 @@ from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
 
 from meocloud_gui import codes
 
+# Logging
+import logging
+log = logging.getLogger(LOGGER_NAME)
+
 try:
     from meocloud_gui.gui.indicator import Indicator as TrayIcon
+    log.info('Application: using Indicator')
 except:
     from meocloud_gui.gui.trayicon import TrayIcon
+    log.info('Application: using TrayIcon')
 
 
 class Application(Gtk.Application):
@@ -74,6 +80,8 @@ class Application(Gtk.Application):
                 self.trayicon.set_icon("meocloud-ok")
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
+                log.info('Application.on_activate: prefs.ini missing')
+
                 try:
                     keyring.delete_password('meocloud', 'clientID')
                     keyring.delete_password('meocloud', 'authKey')
@@ -87,6 +95,7 @@ class Application(Gtk.Application):
             else:
                 if not os.path.exists(prefs.get("Advanced", "Folder",
                                                 CLOUD_HOME_DEFAULT_PATH)):
+                    log.info('Application.on_activate: cloud_home missing')
                     missing = MissingDialog(self)
                     missing.run()
 
@@ -294,6 +303,7 @@ class Application(Gtk.Application):
         self.prefs_window.present()
 
     def on_logout(self, w):
+        log.info('Application.on_logout: initiating logout')
         self.prefs_window.destroy()
         Thread(target=self.on_logout_thread).start()
 
@@ -313,6 +323,7 @@ class Application(Gtk.Application):
         self.update_menu_action(_("Authorize"))
         GLib.idle_add(lambda: self.clean_recent_files())
         GLib.idle_add(lambda: self.menuitem_prefs.hide())
+        log.info('Application.on_logout_thread: completing logout')
         self.restart_core()
 
     def open_folder(self, w):
@@ -324,6 +335,7 @@ class Application(Gtk.Application):
         subprocess.Popen(["xdg-open", self.core_client.webLoginURL()])
 
     def restart_core(self, ignore_sync=False):
+        log.info('Application.restart_core: initiating core restart')
         prefs = Preferences()
 
         self.core_client = CoreClient()
@@ -343,6 +355,7 @@ class Application(Gtk.Application):
 
         # Restart DBus
         self.dbus_service.update_prefs()
+        log.info('Application.restart_core: core restart completed')
 
     def stop_threads(self):
         try:
@@ -354,7 +367,7 @@ class Application(Gtk.Application):
                 self.shell._thread._Thread__stop()
             self.shell = None
         except:
-            pass
+            log.warning('Application.stop_threads: error while stopping threads')
 
         if self.core:
             self.core.stop()
