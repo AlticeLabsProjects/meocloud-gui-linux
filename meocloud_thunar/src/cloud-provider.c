@@ -83,8 +83,8 @@ static void cloud_copy_link(GtkAction *action,
     GFile *file;
     gchar *path;
 
-    files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
-    if (G_UNLIKELY (files == NULL))
+    files = g_object_get_qdata(G_OBJECT(action), "meocloud-selected-files");
+    if (G_UNLIKELY(files == NULL))
         return;
 
     file = thunarx_file_info_get_location(files->data);
@@ -95,28 +95,28 @@ static void cloud_copy_link(GtkAction *action,
     DBusGProxy *proxy;
 
     error = NULL;
-    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
+    connection = dbus_g_bus_get(DBUS_BUS_SESSION,
                                  &error);
-    if (connection == NULL)
+    if(connection == NULL)
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    proxy = dbus_g_proxy_new_for_name (connection,
-                                       "pt.meocloud.dbus",
-                                       "/pt/meocloud/dbus",
-                                       "pt.meocloud.dbus");
+    proxy = dbus_g_proxy_new_for_name(connection,
+                                      "pt.meocloud.dbus",
+                                      "/pt/meocloud/dbus",
+                                      "pt.meocloud.dbus");
 
     error = NULL;
-    if (!dbus_g_proxy_call (proxy, "ShareLink", &error, G_TYPE_STRING,
-                            path, G_TYPE_INVALID, G_TYPE_INVALID))
+    if (!dbus_g_proxy_call(proxy, "ShareLink", &error, G_TYPE_STRING,
+                           path, G_TYPE_INVALID, G_TYPE_INVALID))
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    g_object_unref (proxy);
+    g_object_unref(proxy);
 }
 
 static void cloud_share_folder(GtkAction *action,
@@ -126,8 +126,8 @@ static void cloud_share_folder(GtkAction *action,
     GFile *file;
     gchar *path;
 
-    files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
-    if (G_UNLIKELY (files == NULL))
+    files = g_object_get_qdata(G_OBJECT(action), "meocloud-selected-files");
+    if (G_UNLIKELY(files == NULL))
         return;
 
     file = thunarx_file_info_get_location(files->data);
@@ -138,28 +138,28 @@ static void cloud_share_folder(GtkAction *action,
     DBusGProxy *proxy;
 
     error = NULL;
-    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
-                                 &error);
-    if (connection == NULL)
+    connection = dbus_g_bus_get(DBUS_BUS_SESSION,
+                                &error);
+    if(connection == NULL)
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    proxy = dbus_g_proxy_new_for_name (connection,
-                                       "pt.meocloud.dbus",
-                                       "/pt/meocloud/dbus",
-                                       "pt.meocloud.dbus");
+    proxy = dbus_g_proxy_new_for_name(connection,
+                                      "pt.meocloud.dbus",
+                                      "/pt/meocloud/dbus",
+                                      "pt.meocloud.dbus");
 
     error = NULL;
-    if (!dbus_g_proxy_call (proxy, "ShareFolder", &error, G_TYPE_STRING,
-                            path, G_TYPE_INVALID, G_TYPE_INVALID))
+    if(!dbus_g_proxy_call(proxy, "ShareFolder", &error, G_TYPE_STRING,
+                          path, G_TYPE_INVALID, G_TYPE_INVALID))
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    g_object_unref (proxy);
+    g_object_unref(proxy);
 }
 
 static void cloud_open_in_browser(GtkAction *action,
@@ -169,8 +169,8 @@ static void cloud_open_in_browser(GtkAction *action,
     GFile *file;
     gchar *path;
 
-    files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
-    if (G_UNLIKELY (files == NULL))
+    files = g_object_get_qdata(G_OBJECT(action), "meocloud-selected-files");
+    if (G_UNLIKELY(files == NULL))
         return;
 
     file = thunarx_file_info_get_location(files->data);
@@ -181,28 +181,28 @@ static void cloud_open_in_browser(GtkAction *action,
     DBusGProxy *proxy;
 
     error = NULL;
-    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
-                                 &error);
-    if (connection == NULL)
+    connection = dbus_g_bus_get(DBUS_BUS_SESSION,
+                                &error);
+    if(connection == NULL)
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    proxy = dbus_g_proxy_new_for_name (connection,
-                                       "pt.meocloud.dbus",
-                                       "/pt/meocloud/dbus",
-                                       "pt.meocloud.dbus");
+    proxy = dbus_g_proxy_new_for_name(connection,
+                                      "pt.meocloud.dbus",
+                                      "/pt/meocloud/dbus",
+                                      "pt.meocloud.dbus");
 
     error = NULL;
-    if (!dbus_g_proxy_call (proxy, "OpenInBrowser", &error, G_TYPE_STRING,
-                            path, G_TYPE_INVALID, G_TYPE_INVALID))
+    if(!dbus_g_proxy_call(proxy, "OpenInBrowser", &error, G_TYPE_STRING,
+                          path, G_TYPE_INVALID, G_TYPE_INVALID))
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    g_object_unref (proxy);
+    g_object_unref(proxy);
 }
 
 static GList * cloud_provider_get_file_actions(
@@ -214,12 +214,12 @@ static GList * cloud_provider_get_file_actions(
     GList * actions = NULL;
     GtkAction *action;
     GClosure *closure;
-    CloudProvider *cloud_provider = CLOUD_PROVIDER (menu_provider);
+    CloudProvider *cloud_provider = CLOUD_PROVIDER(menu_provider);
     gchar * path;
 
     GList * filelist = NULL;
 
-    if (g_list_length(files) != 1)
+    if(g_list_length(files) != 1)
         return NULL;
 
 	file = thunarx_file_info_get_location(files->data);
@@ -236,89 +236,93 @@ static GList * cloud_provider_get_file_actions(
     gboolean syncing;
 
     error = NULL;
-    connection = dbus_g_bus_get (DBUS_BUS_SESSION,
-                                 &error);
-    if (connection == NULL)
+    connection = dbus_g_bus_get(DBUS_BUS_SESSION,
+                                &error);
+    if(connection == NULL)
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    proxy = dbus_g_proxy_new_for_name (connection,
-                                       "pt.meocloud.dbus",
-                                       "/pt/meocloud/dbus",
-                                       "pt.meocloud.dbus");
+    proxy = dbus_g_proxy_new_for_name(connection,
+                                      "pt.meocloud.dbus",
+                                      "/pt/meocloud/dbus",
+                                      "pt.meocloud.dbus");
 
     error = NULL;
-    if (!dbus_g_proxy_call (proxy, "FileInCloud", &error, G_TYPE_STRING,
-                            path, G_TYPE_INVALID, G_TYPE_BOOLEAN,
-                            &in_cloud, G_TYPE_BOOLEAN,
-                            &syncing, G_TYPE_INVALID))
+    if(!dbus_g_proxy_call(proxy, "FileInCloud", &error, G_TYPE_STRING,
+                          path, G_TYPE_INVALID, G_TYPE_BOOLEAN,
+                          &in_cloud, G_TYPE_BOOLEAN,
+                          &syncing, G_TYPE_INVALID))
     {
-        g_error_free (error);
+        g_error_free(error);
         return NULL;
     }
 
-    g_object_unref (proxy);
+    g_object_unref(proxy);
 
     if (!in_cloud)
         return NULL;
 
-    const gchar * const *names = g_get_language_names ();
+    const gchar * const *names = g_get_language_names();
     gchar *lang = names[0];
 
     gchar * OPEN_BROWSER = "Open in Browser";
     gchar * SHARE_FOLDER = "Share Folder";
     gchar * COPY_LINK = "Copy Link";
 
-    if (strstr(lang, "pt") != NULL) {
+    if(strstr(lang, "pt") != NULL)
+    {
         OPEN_BROWSER = "Abrir no navegador web";
         SHARE_FOLDER = "Partilhar pasta";
         COPY_LINK = "Copiar hiperligação";
     }
 
-    action = g_object_new (GTK_TYPE_ACTION,
-                           "name", "MEOCloud::open-in-browser",
-                           "label", OPEN_BROWSER,
-                           NULL);
-    g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
-                             thunarx_file_info_list_copy (files),
-                             (GDestroyNotify) thunarx_file_info_list_free);
-    g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
-                             g_object_ref (G_OBJECT (cloud_provider)),
-                             (GDestroyNotify) g_object_unref);
-    closure = g_cclosure_new_object (G_CALLBACK (cloud_open_in_browser), G_OBJECT (window));
-    g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
-    actions = g_list_append (actions, action);
+    action = g_object_new(GTK_TYPE_ACTION,
+                          "name", "MEOCloud::open-in-browser",
+                          "label", OPEN_BROWSER,
+                          NULL);
+    g_object_set_qdata_full(G_OBJECT(action), "meocloud-selected-files",
+                            thunarx_file_info_list_copy(files),
+                            (GDestroyNotify) thunarx_file_info_list_free);
+    g_object_set_qdata_full(G_OBJECT(action), "meocloud-provider",
+                            g_object_ref(G_OBJECT(cloud_provider)),
+                            (GDestroyNotify) g_object_unref);
+    closure = g_cclosure_new_object(G_CALLBACK(cloud_open_in_browser), G_OBJECT(window));
+    g_signal_connect_closure(G_OBJECT(action), "activate", closure, TRUE);
+    actions = g_list_append(actions, action);
 
-    if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
-        action = g_object_new (GTK_TYPE_ACTION,
-                               "name", "MEOCloud::share-folder",
-                               "label", SHARE_FOLDER,
-                               NULL);
-        g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
-                                 thunarx_file_info_list_copy (files),
-                                 (GDestroyNotify) thunarx_file_info_list_free);
-        g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
-                                 g_object_ref (G_OBJECT (cloud_provider)),
-                                 (GDestroyNotify) g_object_unref);
-        closure = g_cclosure_new_object (G_CALLBACK (cloud_share_folder), G_OBJECT (window));
-        g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
-        actions = g_list_append (actions, action);
-    } else {
-        action = g_object_new (GTK_TYPE_ACTION,
-                               "name", "MEOCloud::copy-link",
-                               "label", COPY_LINK,
-                               NULL);
-        g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
-                                 thunarx_file_info_list_copy (files),
-                                 (GDestroyNotify) thunarx_file_info_list_free);
-        g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
-                                 g_object_ref (G_OBJECT (cloud_provider)),
-                                 (GDestroyNotify) g_object_unref);
-        closure = g_cclosure_new_object (G_CALLBACK (cloud_copy_link), G_OBJECT (window));
-        g_signal_connect_closure (G_OBJECT (action), "activate", closure, TRUE);
-        actions = g_list_append (actions, action);
+    if(g_file_test(path, G_FILE_TEST_IS_DIR))
+    {
+        action = g_object_new(GTK_TYPE_ACTION,
+                              "name", "MEOCloud::share-folder",
+                              "label", SHARE_FOLDER,
+                              NULL);
+        g_object_set_qdata_full(G_OBJECT(action), "meocloud-selected-files",
+                                thunarx_file_info_list_copy(files),
+                                (GDestroyNotify) thunarx_file_info_list_free);
+        g_object_set_qdata_full(G_OBJECT(action), "meocloud-provider",
+                                g_object_ref(G_OBJECT (cloud_provider)),
+                                (GDestroyNotify) g_object_unref);
+        closure = g_cclosure_new_object(G_CALLBACK(cloud_share_folder), G_OBJECT(window));
+        g_signal_connect_closure(G_OBJECT(action), "activate", closure, TRUE);
+        actions = g_list_append(actions, action);
+    }
+    else
+    {
+        action = g_object_new(GTK_TYPE_ACTION,
+                              "name", "MEOCloud::copy-link",
+                              "label", COPY_LINK,
+                              NULL);
+        g_object_set_qdata_full(G_OBJECT(action), "meocloud-selected-files",
+                                thunarx_file_info_list_copy(files),
+                                (GDestroyNotify) thunarx_file_info_list_free);
+        g_object_set_qdata_full(G_OBJECT(action), "meocloud-provider",
+                                g_object_ref(G_OBJECT(cloud_provider)),
+                                (GDestroyNotify) g_object_unref);
+        closure = g_cclosure_new_object(G_CALLBACK(cloud_copy_link), G_OBJECT(window));
+        g_signal_connect_closure(G_OBJECT(action), "activate", closure, TRUE);
+        actions = g_list_append(actions, action);
     }
 
     return actions;

@@ -31,7 +31,8 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject* parent, const QVariantList
     QString BROWSER_STRING = "Open in Browser";
     QString LINK_STRING = "Copy Link";
 
-    if (lang == "pt" || lang == "pt_PT" || lang == "pt_BR") {
+    if(lang == "pt" || lang == "pt_PT" || lang == "pt_BR")
+    {
         SHARE_STRING = "Partilhar Pasta";
         BROWSER_STRING = "Abrir no navegador web";
         LINK_STRING = "Copiar hiperligação";
@@ -77,9 +78,12 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
 
     QString cloud_home;
 
-    if (response.type() == QDBusMessage::ReplyMessage) {
+    if (response.type() == QDBusMessage::ReplyMessage)
+    {
         cloud_home = response.arguments().at(0).value<QString>();
-    } else {
+    }
+    else
+    {
         return true;
     }
 
@@ -91,13 +95,14 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
     {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
 
-        if (filename == cloud_home) {
+        if(filename == cloud_home)
+        {
             cloud_is_here = true;
             break;
         }
     }
 
-    if (!directory.startsWith(cloud_home) && !cloud_is_here)
+    if(!directory.startsWith(cloud_home) && !cloud_is_here)
         return true;
 
     m_versionInfoHash.clear();
@@ -107,17 +112,20 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
         KVersionControlPlugin::VersionState versionstate;
 
-        if (filename == cloud_home) {
+        if(filename == cloud_home)
+        {
             QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                             "/pt/meocloud/dbus",
                                                             "",
                                                             "Status");
             QDBusMessage response = QDBusConnection::sessionBus().call(m);
 
-            if (response.type() == QDBusMessage::ReplyMessage) {
+            if (response.type() == QDBusMessage::ReplyMessage)
+            {
                 int status = response.arguments().at(0).value<int>();
 
-                switch(status) {
+                switch(status)
+                {
                     case 0:
                     case 1:
                     case 2:
@@ -133,7 +141,9 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
             }
 
             return true;
-        } else {
+        }
+        else
+        {
             versionstate = KVersionControlPlugin::UnversionedVersion;
         }
 
@@ -144,14 +154,18 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString& directory)
         m << filename;
         QDBusMessage response = QDBusConnection::sessionBus().call(m);
 
-        if (response.type() == QDBusMessage::ReplyMessage) {
+        if(response.type() == QDBusMessage::ReplyMessage)
+        {
             bool in_cloud = response.arguments().at(0).value<bool>();
             bool is_syncing = response.arguments().at(1).value<bool>();
 
-            if (in_cloud && is_syncing) {
+            if(in_cloud && is_syncing)
+            {
                 versionstate = KVersionControlPlugin::UpdateRequiredVersion;
                 m_versionInfoHash.insert(filename, versionstate);
-            } else if (in_cloud) {
+            }
+            else if(in_cloud)
+            {
                 versionstate = KVersionControlPlugin::NormalVersion;
                 m_versionInfoHash.insert(filename, versionstate);
             }
@@ -169,7 +183,7 @@ KVersionControlPlugin::VersionState DolphinMEOCloudPlugin::versionState(const KF
 {
     const QString itemUrl = item.localPath();
 
-    if (m_versionInfoHash.contains(itemUrl))
+    if(m_versionInfoHash.contains(itemUrl))
     {
         return m_versionInfoHash.value(itemUrl);
     }
@@ -208,23 +222,26 @@ QList<QAction*> DolphinMEOCloudPlugin::getActions(QString path, bool is_dir)
     m << path;
     QDBusMessage response = QDBusConnection::sessionBus().call(m);
 
-    if (response.type() == QDBusMessage::ReplyMessage) {
+    if(response.type() == QDBusMessage::ReplyMessage)
+    {
         bool in_cloud = response.arguments().at(0).value<bool>();
 
         if (!in_cloud)
             return actions;
-    } else {
+    }
+    else
+    {
         return actions;
     }
 
     m_contextUrl = path;
 
-    KActionMenu * menuAction = new KActionMenu(this);
+    KActionMenu* menuAction = new KActionMenu(this);
     menuAction->setText("MEO Cloud");
 
     menuAction->addAction(m_openInBrowserAction);
 
-    if (is_dir)
+    if(is_dir)
         menuAction->addAction(m_shareFolderAction);
     else
         menuAction->addAction(m_shareFileLinkAction);

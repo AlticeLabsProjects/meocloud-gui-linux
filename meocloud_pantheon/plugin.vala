@@ -23,7 +23,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         SHARE_FOLDER = "Share Folder";
         COPY_LINK = "Copy Link";
 
-        string[] langs = GLib.Intl.get_language_names();
+        string[] langs = GLib.Intl.get_language_names ();
 
         if ("pt" in langs[0]) {
             OPEN_BROWSER = "Abrir no navegador web";
@@ -31,10 +31,10 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             COPY_LINK = "Copiar hiperligação";
         }
 
-        this.get_dbus();
+        this.get_dbus ();
     }
 
-    public void get_dbus() {
+    public void get_dbus () {
         if (this.core == null) {
             try {
                 this.core = Bus.get_proxy_sync (BusType.SESSION,
@@ -53,52 +53,49 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         if (gof_files.length() != 1)
             return;
 
-        GOF.File file = gof_files.nth_data(0);
-        string path = GLib.Uri.unescape_string (file.uri.replace("file://", ""));
+        GOF.File file = gof_files.nth_data (0);
+        string path = GLib.Uri.unescape_string (file.uri.replace ("file://", ""));
 
         try {
-            this.get_dbus();
-            var file_in_cloud = this.core.file_in_cloud(path);
+            this.get_dbus ();
+            var file_in_cloud = this.core.file_in_cloud (path);
             if (!file_in_cloud)
                 return;
         } catch (Error e) {
             return;
         }
 
-        Gtk.Menu submenu = new Gtk.Menu();
+        Gtk.Menu submenu = new Gtk.Menu ();
 
         Gtk.MenuItem open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
-        open_in_browser.activate.connect((w) => { this.core.open_in_browser(path); });
-        submenu.add(open_in_browser);
+        open_in_browser.activate.connect ((w) => { this.core.open_in_browser (path); });
+        submenu.add (open_in_browser);
 
         GLib.File f = File.new_for_path (path);
 
         if (f.query_file_type (0) == FileType.DIRECTORY) {
             Gtk.MenuItem share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
-            share_folder.activate.connect((w) => { this.core.share_folder(path); });
-            submenu.add(share_folder);
+            share_folder.activate.connect ((w) => { this.core.share_folder (path); });
+            submenu.add (share_folder);
         } else {
             Gtk.MenuItem copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
-            copy_link.activate.connect((w) => { this.core.share_link(path); });
-            submenu.add(copy_link);
+            copy_link.activate.connect ((w) => { this.core.share_link (path); });
+            submenu.add (copy_link);
         }
 
-        submenu.show_all();
+        submenu.show_all ();
 
         Gtk.MenuItem menu_item = new Gtk.MenuItem.with_label ("MEO Cloud");
-        menu_item.set_submenu(submenu);
+        menu_item.set_submenu (submenu);
         add_menuitem (menu, menu_item);
     }
 
     public override void ui (Gtk.UIManager? widget) {
         ui_manager = widget;
         menu = (Gtk.Menu) ui_manager.get_widget ("/selection");
-        stdout.printf("\n\nMEO Cloud UI\n\n");
     }
 
     public override void directory_loaded (void* user_data) {
-        current_directory = ((Object[]) user_data)[2] as GOF.File;
-        //var window = ((Object[]) user_data)[0] as Gtk.Window;
     }
 
     private void add_menuitem (Gtk.Menu menu, Gtk.MenuItem menu_item) {
@@ -120,24 +117,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
     public override void update_sidebar(Gtk.Widget sidebar)
     {
-        AbstractSidebar _sidebar = (AbstractSidebar) sidebar;
-        _sidebar.add_extra_item("MEOCloud");
-        //Gtk.TreeStore store = _sidebar.store;
-        //sb.add_place("HERP DERP");
-        /*
-        //appends nothing to the tree so the iter is moved to the end of the sidebar
-        gtk_tree_store_append (MARLIN_ABSTRACT_SIDEBAR(sidebar)->store, &iter, NULL);
-        //inserts an item to the end of the sidebar
-        gtk_tree_store_set (MARLIN_ABSTRACT_SIDEBAR(sidebar)->store, &iter,
-                            PLACES_SIDEBAR_COLUMN_ICON, NULL,
-                            PLACES_SIDEBAR_COLUMN_NAME, _("Online"),
-                            PLACES_SIDEBAR_COLUMN_ROW_TYPE, PLACES_STORAGE_CATEGORY,
-                            PLACES_SIDEBAR_COLUMN_EJECT, FALSE,
-                            PLACES_SIDEBAR_COLUMN_NO_EJECT, TRUE,
-                            PLACES_SIDEBAR_COLUMN_BOOKMARK, FALSE,
-                            PLACES_SIDEBAR_COLUMN_TOOLTIP, _("Your online storage services"),
-                            -1);
-        */
     }
 }
 

@@ -6,7 +6,7 @@ G_MODULE_EXPORT void thunar_extension_initialize(ThunarxProviderPlugin * plugin)
 {
     cloud_provider_register_type (plugin);
     type_list[0] = CLOUD_TYPE_PROVIDER;
-    g_message ("Initializing thunar-meocloud extension");
+    g_message("Initializing thunar-meocloud extension");
 }
 
 G_MODULE_EXPORT void thunar_extension_shutdown(void)
