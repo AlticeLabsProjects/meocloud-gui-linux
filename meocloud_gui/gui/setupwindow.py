@@ -123,7 +123,7 @@ class SetupWindow(Gtk.Window):
         success_page_box.pack_start(Gtk.Label(), True, True, 0)
 
         success_label = Gtk.Label(
-            _("Your computer has been successfuly linked."))
+            _("Your computer has been successfully linked."))
         success_page_box.pack_start(success_label, False, False, 10)
 
         success_page_finish_button = Gtk.Button(_("Finish"))
