@@ -195,6 +195,7 @@ class Application(Gtk.Application):
             self.shell = Shell.start()
             self.shell.subscribe_path('/')
             self.dbus_service.shell = self.shell
+            self.dbus_service.update_prefs()
 
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
