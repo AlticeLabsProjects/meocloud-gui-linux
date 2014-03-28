@@ -10,15 +10,25 @@ class TrayIcon (GObject.Object):
         self.app = app
         self.syncing = 0
         self.timeout = None
+        self.last_icon = None
 
         self.icon = Gtk.StatusIcon()
         self.set_icon("meocloud-ok")
         self.icon.connect("activate", self.tray_popup)
         self.icon.connect("popup_menu", self.tray_popup)
+        self.icon.connect("size-changed", self.size_changed)
 
         self.menu = Gtk.Menu()
 
+    def size_changed(self, icon, size):
+        print "change"
+        if self.last_icon is not None:
+            self.set_icon(self.last_icon)
+        return True
+
     def set_icon(self, name):
+        self.last_icon = name
+
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0
         elif self.syncing < 1 and "sync" in name:
