@@ -232,6 +232,10 @@ class Application(Gtk.Application):
             self.update_status(_("Synced"))
             self.update_menu_action(_("Pause"))
 
+            # clean the list of files that are syncing,
+            # just in case we missed a notification
+            self.shell.clean_syncing()
+
             recently_changed = self.core_client.recentlyChangedFilePaths()
             GLib.idle_add(lambda: self.update_recent_files(recently_changed,
                                                            cloud_home))

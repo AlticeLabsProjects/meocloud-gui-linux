@@ -47,6 +47,11 @@ class Shell(object):
     def start():
         return Shell(isDaemon=False)
 
+    def clean_syncing(self):
+        for path in self.syncing:
+            self.syncing.remove(path)
+            utils.touch(os.path.join(self.cloud_home, path[1:]))
+
     def _listener(self):
         log.info('Shell: shell listener ready')
 
