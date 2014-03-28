@@ -12,7 +12,7 @@ from gi.repository import Notify
 
 # Thrift related imports
 from meocloud_gui.protocol.daemon_core import UI
-from meocloud_gui.protocol.daemon_core.ttypes import Account, State
+from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
