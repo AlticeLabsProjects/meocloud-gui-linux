@@ -70,9 +70,9 @@ def touch(fname, times=None):
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
         reply = bus.call(destination, path, interface,
                          method, args, answer_fmt,
-                         proxy_prpty, timeout, cancellable)
+                         proxy_prpty, timeout, cancellable, None, None)
     except:
-        pass
+       pass
 
 
 def create_required_folders():

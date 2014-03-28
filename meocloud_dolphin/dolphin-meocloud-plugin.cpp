@@ -55,6 +55,17 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject* parent, const QVariantList
     m_shareFileLinkAction->setText(LINK_STRING);
     connect(m_shareFileLinkAction, SIGNAL(triggered()),
             this, SLOT(shareFileLinkAction()));
+
+    ShellServer *server = new ShellServer(this);
+    new ShellAdaptor(server);
+
+    QDBusConnection connection = QDBusConnection::sessionBus();
+    bool ret = connection.registerService("pt.meocloud.shell");
+    if (!ret)
+        qDebug() << "registerService failed :(";
+    ret = connection.registerObject("/pt/meocloud/shell", server);
+    if (!ret)
+        qDebug() << "registerObject failed :(";
 }
 
 DolphinMEOCloudPlugin::~DolphinMEOCloudPlugin()
@@ -189,6 +200,11 @@ KVersionControlPlugin::VersionState DolphinMEOCloudPlugin::versionState(const KF
     }
 
     return KVersionControlPlugin::UnversionedVersion;
+}
+
+void DolphinMEOCloudPlugin::setVersionState()
+{
+    emit versionStatesChanged();
 }
 
 QList<QAction*> DolphinMEOCloudPlugin::contextMenuActions(const KFileItemList& items)

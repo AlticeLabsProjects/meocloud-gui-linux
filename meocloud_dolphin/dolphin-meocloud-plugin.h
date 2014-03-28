@@ -8,6 +8,7 @@
 #include <QVariantList>
 #include <QFileInfo>
 #include <QTimer>
+#include "dolphin-meocloud-dbus.h"
 
 class DolphinMEOCloudPlugin : public KVersionControlPlugin
 {
@@ -22,6 +23,9 @@ public:
     virtual KVersionControlPlugin::VersionState versionState(const KFileItem& item);
     virtual QList<QAction*> contextMenuActions(const KFileItemList& items);
     virtual QList<QAction*> contextMenuActions(const QString& directory);
+
+public slots:
+    void setVersionState();
 
 private slots:
     void shareFolderAction();
