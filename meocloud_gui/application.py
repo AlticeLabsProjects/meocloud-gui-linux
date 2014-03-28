@@ -375,5 +375,6 @@ class Application(Gtk.Application):
 
     def quit(self):
         self.stop_threads()
+        log.info('Application.quit: shutting down')
         self.running = False
         Gtk.Application.quit(self)
