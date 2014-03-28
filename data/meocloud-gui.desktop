@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=MEO Cloud
+Terminal=false
+Type=Application
+Icon=/opt/meocloud-gui/icons/app.svg
+Exec=/usr/bin/meocloud-gui
+Categories=Network;FileTransfer;
