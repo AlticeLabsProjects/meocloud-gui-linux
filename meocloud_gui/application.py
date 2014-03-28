@@ -82,11 +82,10 @@ class Application(Gtk.Application):
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 log.info('Application.on_activate: prefs.ini missing')
 
-                try:
+                if keyring.get_password('meocloud', 'clientID') is not None:
                     keyring.delete_password('meocloud', 'clientID')
+                if keyring.get_password('meocloud', 'authKey') is not None:
                     keyring.delete_password('meocloud', 'authKey')
-                except:
-                    pass
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'ignored_directories')):
@@ -105,14 +104,11 @@ class Application(Gtk.Application):
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'ignored_directories')):
-                    try:
-                        f = open(os.path.join(UI_CONFIG_PATH,
-                                              'ignored_directories'), "r")
-                        for line in f.readlines():
-                            self.ignored_directories.append(line.rstrip('\n'))
-                        f.close()
-                    except:
-                        pass
+                    f = open(os.path.join(UI_CONFIG_PATH,
+                                          'ignored_directories'), "r")
+                    for line in f.readlines():
+                        self.ignored_directories.append(line.rstrip('\n'))
+                    f.close()
 
                 recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
                 recentfiles_nothing.show()
@@ -197,6 +193,13 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
 
+        if (status.state == codes.CORE_SYNCING or
+                status.state == codes.CORE_READY):
+            if self.shell is None:
+                self.shell = Shell.start()
+                self.shell.subscribe_path('/')
+                self.dbus_service.shell = self.shell
+
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
@@ -209,11 +212,6 @@ class Application(Gtk.Application):
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
-            if self.shell is None:
-                self.shell = Shell.start()
-                self.shell.subscribe_path('/')
-                self.dbus_service.shell = self.shell
-
             GLib.idle_add(lambda: self.menuitem_prefs.show())
             if self.dark_icons:
                 self.trayicon.set_icon("meocloud-sync-1-black")

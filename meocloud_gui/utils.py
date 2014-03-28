@@ -224,9 +224,18 @@ def move_folder_async(src, dst, callback=None):
 
         try:
             shutil.move(src, dst)
+
+            logging.getLogger(LOGGER_NAME).warning(
+                "utils.move_folder_async: Moved folder " +
+                src + " to " + dst)
+
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, False))
-        except (OSError, IOError, Error):
+        except (OSError, IOError, Exception):
+            logging.getLogger(LOGGER_NAME).warning(
+                "utils.move_folder_async: Error while moving folder " +
+                src + " to " + dst)
+
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, True))
 

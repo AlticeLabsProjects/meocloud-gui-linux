@@ -1,5 +1,6 @@
 import socket
 import os
+import time
 from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
@@ -58,9 +59,10 @@ class Shell(object):
         while True:
             try:
                 msg = self.s.recvfrom(2048)[0]
+                msg = thrift_utils.deserialize(Message(), msg)
             except EOFError:
-                msg = None
-            msg = thrift_utils.deserialize(Message(), msg)
+                log.info('Shell._listener: lost connection to socket')
+                break
 
             if len(msg) > 0:
                 msg = msg[0]
