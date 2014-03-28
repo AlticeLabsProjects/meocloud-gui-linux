@@ -4,7 +4,7 @@ from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
 from meocloud_gui.preferences import Preferences
-from meocloud_gui.constants import UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH
+from meocloud_gui.constants import UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH, LOGGER_NAME
 from meocloud_gui.protocol.shell.ttypes import (
     Message,
     MessageType,
@@ -18,6 +18,10 @@ from meocloud_gui.protocol.shell.ttypes import (
     FileStatusType,
     FileState,
     FileStatus)
+
+# Logging
+import logging
+log = logging.getLogger(LOGGER_NAME)
 
 
 class Shell(object):
@@ -33,6 +37,7 @@ class Shell(object):
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
 
+        log.info('Shell: starting the shell listener thread')
         self._thread = Thread(target=self._listener)
         self._thread.setDaemon(isDaemon)
         self._thread.start()
@@ -42,6 +47,8 @@ class Shell(object):
         return Shell(isDaemon=False)
 
     def _listener(self):
+        log.info('Shell: shell listener ready')
+
         while True:
             try:
                 msg = self.s.recvfrom(2048)[0]
