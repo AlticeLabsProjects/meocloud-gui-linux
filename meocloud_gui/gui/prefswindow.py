@@ -45,8 +45,8 @@ class PrefsWindow(Gtk.Window):
         display_dark = prefs.get("General", "DarkIcons", "False") == "True"
         display_darkicons = Gtk.CheckButton(_("Use dark icons"))
         display_darkicons.set_active(display_dark)
-        display_darkicons.connect("toggled", lambda w:
-                                  self.toggle_icons(w, embed))
+        display_darkicons.connect("toggled",
+                                  self.toggle_icons)
         general_box.pack_start(display_darkicons, False, True, 0)
 
         start_at_login = Gtk.CheckButton(_("Start MEO Cloud at login"))
@@ -177,7 +177,7 @@ class PrefsWindow(Gtk.Window):
         else:
             prefs.put("General", "Notifications", "True")
 
-    def toggle_icons(self, w, embed=False):
+    def toggle_icons(self, w):
         prefs = Preferences()
         old_val = prefs.get("General", "DarkIcons", "False")
 
@@ -187,9 +187,7 @@ class PrefsWindow(Gtk.Window):
             prefs.put("General", "DarkIcons", "True")
 
         self.app.dark_icons = not (old_val == "True")
-
-        if not embed:
-            self.app.update_menu(None, True)
+        self.app.update_menu(None, True)
 
     def toggle_start_at_login(self, w):
         folder_path = os.path.join(os.path.expanduser('~'),

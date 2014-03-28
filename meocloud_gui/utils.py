@@ -68,9 +68,9 @@ def touch(fname, times=None):
 
         # Connect to DBus, send the DBus message, and receive the reply
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        reply = bus.call_sync(destination, path, interface,
-                              method, args, answer_fmt,
-                              proxy_prpty, timeout, cancellable)
+        reply = bus.call(destination, path, interface,
+                         method, args, answer_fmt,
+                         proxy_prpty, timeout, cancellable)
     except:
         pass
 
