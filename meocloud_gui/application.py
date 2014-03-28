@@ -374,6 +374,8 @@ class Application(Gtk.Application):
         if self.core is not None:
             self.core.stop()
 
+        log.info('Application.stop_threads: threads stopped')
+
     def quit(self):
         self.stop_threads()
         self.running = False
