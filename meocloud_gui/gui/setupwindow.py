@@ -1,6 +1,4 @@
-import os
-from gi.repository import Gtk, Gio
-from meocloud_gui.preferences import Preferences
+from gi.repository import Gtk
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.spinnerbox import SpinnerBox

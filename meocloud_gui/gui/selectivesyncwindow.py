@@ -1,15 +1,9 @@
 import os.path
 import os
-from gi.repository import Gtk, Gio, GLib
-from meocloud_gui.preferences import Preferences
+from gi.repository import Gtk
 from meocloud_gui.gui.spinnerbox import SpinnerBox
-import meocloud_gui.utils
 
-from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
-                                    LOGGER_NAME, DAEMON_PID_PATH,
-                                    DAEMON_LOCK_PATH,  DEV_MODE,
-                                    VERSION, DAEMON_VERSION_CHECKER_PERIOD,
-                                    CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
+from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
 
 # Logging
 import logging

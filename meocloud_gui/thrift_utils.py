@@ -42,28 +42,6 @@ def deserialize(msg, data):
     return msg, remaining
 
 
-def deserialize_thrift_msg(data, client):
-    '''
-    Try to deserialize data (or buf + data) into a valid
-    "Message", as defined in the thrift ShellHelper specification
-    '''
-    if client.buffer:
-        data = ''.join((client.buffer, data))
-        client.buffer = None
-    try:
-        msg, remaining = deserialize(Message(), data)
-    except (TProtocolException, EOFError) as dex:
-        log.error('Could not deserialize message: {0}'.format(dex))
-        if len(data) <= MAX_BUFFER_SIZE:
-            client.buffer = data
-            msg = None
-            remaining = None
-        else:
-            raise OverflowError('Message does not fit buffer.')
-
-    return msg, remaining
-
-
 def serialize_thrift_msg(msg):
     '''
     Try to serialize a "Message" (msg) into a byte stream

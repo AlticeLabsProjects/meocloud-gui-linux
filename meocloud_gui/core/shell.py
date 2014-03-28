@@ -1,6 +1,5 @@
 import socket
 import os
-import time
 from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
@@ -16,10 +15,7 @@ from meocloud_gui.protocol.shell.ttypes import (
     OpenMessage,
     ShareType,
     OpenType,
-    FileStatusMessage,
-    FileStatusType,
-    FileState,
-    FileStatus)
+    FileState)
 
 # Logging
 import logging

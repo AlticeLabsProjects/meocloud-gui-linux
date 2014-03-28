@@ -1,13 +1,13 @@
 import os.path
 import os
-from gi.repository import Gtk, Gio, GLib
+from gi.repository import Gtk, GLib
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.progressdialog import ProgressDialog
 from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
-from meocloud_gui.constants import (CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH)
+from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH
 
 
 class PrefsWindow(Gtk.Window):

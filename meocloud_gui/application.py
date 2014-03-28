@@ -2,7 +2,6 @@ import subprocess
 import os
 import keyring
 from threading import Thread
-from time import sleep
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, GLib
 from meocloud_gui import utils
@@ -17,10 +16,8 @@ from meocloud_gui.core.dbusservice import DBusService
 import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
-                                    LOGGER_NAME, DAEMON_PID_PATH,
-                                    DAEMON_LOCK_PATH,  DEV_MODE,
-                                    VERSION, DAEMON_VERSION_CHECKER_PERIOD,
-                                    CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH)
+                                    LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
+                                    UI_CONFIG_PATH)
 
 from meocloud_gui import codes
 
