@@ -72,7 +72,7 @@ def touch(fname, times=None):
                          method, args, answer_fmt,
                          proxy_prpty, timeout, cancellable, None, None)
     except:
-       pass
+        pass
 
 
 def create_required_folders():
