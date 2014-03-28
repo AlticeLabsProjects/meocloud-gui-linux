@@ -58,7 +58,8 @@ class SelectiveSyncWindow(Gtk.Window):
         self.ignored_directories = self.app.ignored_directories[:]
 
     def add_column(self, folders, path='/'):
-        log.info('SelectiveSyncWindow.add_column: received data, adding column')
+        log.info('SelectiveSyncWindow.add_column: received data, '
+                 'adding column')
         if not self.first_column:
             separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
             self.separators.append(separator)
@@ -76,7 +77,8 @@ class SelectiveSyncWindow(Gtk.Window):
         try:
             treeview.set_activate_on_single_click(True)
         except:
-            log.warning('SelectiveSyncWindow.add_column: Gtk older than 3.8, falling back')
+            log.warning('SelectiveSyncWindow.add_column: Gtk older than 3.8, '
+                        'falling back')
 
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", lambda w, p:
@@ -120,7 +122,8 @@ class SelectiveSyncWindow(Gtk.Window):
 
             self.hbox.pack_start(self.spinner, True, True, 0)
             self.spinner.start()
-            log.info('SelectiveSyncWindow.on_row_activated: requesting remote directory listing')
+            log.info('SelectiveSyncWindow.on_row_activated: requesting '
+                     'remote directory listing')
             self.app.core_client.requestRemoteDirectoryListing(path)
         else:
             self.cell_toggled = False
@@ -146,5 +149,6 @@ class SelectiveSyncWindow(Gtk.Window):
             f.write(directory + "\n")
         f.close()
 
-        log.info('SelectiveSyncWindow.save_ignored_directories: ignored directories saved')
+        log.info('SelectiveSyncWindow.save_ignored_directories: '
+                 'ignored directories saved')
         self.destroy()

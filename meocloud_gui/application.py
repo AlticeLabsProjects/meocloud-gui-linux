@@ -367,7 +367,8 @@ class Application(Gtk.Application):
                 self.shell._thread._Thread__stop()
             self.shell = None
         except:
-            log.warning('Application.stop_threads: error while stopping threads')
+            log.warning('Application.stop_threads: an error occurred while '
+                        'stopping the threads')
 
         if self.core:
             self.core.stop()

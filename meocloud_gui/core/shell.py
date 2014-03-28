@@ -4,7 +4,8 @@ from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
 from meocloud_gui.preferences import Preferences
-from meocloud_gui.constants import UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH, LOGGER_NAME
+from meocloud_gui.constants import (UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH,
+                                    LOGGER_NAME)
 from meocloud_gui.protocol.shell.ttypes import (
     Message,
     MessageType,

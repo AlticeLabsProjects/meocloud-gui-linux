@@ -54,7 +54,7 @@ class DBusService(dbus.service.Object):
 
 
 class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
-                       GObject.GObject):
+                   GObject.GObject):
     def __init__(self):
         init_localization()
         self.service = None
@@ -157,14 +157,14 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             return None,
 
         top_menuitem = Nemo.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
-                                             'MEO Cloud', '', '')
+                                         'MEO Cloud', '', '')
 
         submenu = Nemo.Menu()
         top_menuitem.set_submenu(submenu)
 
         if os.path.isfile(uri):
             link_menuitem = Nemo.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                                  _('Copy Link'), '', '')
+                                              _('Copy Link'), '', '')
             link_menuitem.connect("activate", lambda w: self.share_link(uri))
             submenu.append_item(link_menuitem)
         else:
