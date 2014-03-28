@@ -25,8 +25,8 @@ def init_localization():
 if __name__ == "__main__":
     trans_src = os.path.join(os.path.dirname(os.path.realpath(__file__)), "mo")
     trans_dst = os.path.join(os.path.expanduser('~'),
-                                '.local/share/nautilus-python/extensions/'
-                                'meocloud_mo')
+                             '.local/share/nautilus-python/extensions/'
+                             'meocloud_mo')
 
     nautilus_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                "meocloud_nautilus/meocloud-nautilus.py")
@@ -35,9 +35,9 @@ if __name__ == "__main__":
     nautilus_dst = os.path.join(nautilus_dir, "meocloud-nautilus.py")
 
     nemo_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                               "meocloud_nemo/meocloud-nemo.py")
+                           "meocloud_nemo/meocloud-nemo.py")
     nemo_dir = os.path.join(os.path.expanduser('~'),
-                                '.local/share/nemo-python/extensions')
+                            '.local/share/nemo-python/extensions')
     nemo_dst = os.path.join(nemo_dir, "meocloud-nemo.py")
 
     if not os.path.exists(nautilus_dir):
