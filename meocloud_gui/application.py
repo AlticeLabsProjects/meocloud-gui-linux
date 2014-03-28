@@ -234,7 +234,8 @@ class Application(Gtk.Application):
 
             # clean the list of files that are syncing,
             # just in case we missed a notification
-            self.shell.clean_syncing()
+            if self.shell is not None:
+                self.shell.clean_syncing()
 
             recently_changed = self.core_client.recentlyChangedFilePaths()
             GLib.idle_add(lambda: self.update_recent_files(recently_changed,
@@ -362,19 +363,15 @@ class Application(Gtk.Application):
         log.info('Application.restart_core: core restart completed')
 
     def stop_threads(self):
-        try:
-            if self.listener_thread.isAlive:
-                self.listener_thread._Thread__stop()
-            if self.watchdog_thread.isAlive:
-                self.watchdog_thread._Thread__stop()
-            if self.shell._thread.isAlive:
-                self.shell._thread._Thread__stop()
-            self.shell = None
-        except:
-            log.warning('Application.stop_threads: an error occurred while '
-                        'stopping the threads')
+        if self.listener_thread is not None and self.listener_thread.isAlive:
+            self.listener_thread._Thread__stop()
+        if self.watchdog_thread is not None and self.watchdog_thread.isAlive:
+            self.watchdog_thread._Thread__stop()
+        if self.shell is not None and self.shell._thread.isAlive:
+            self.shell._thread._Thread__stop()
+        self.shell = None
 
-        if self.core:
+        if self.core is not None:
             self.core.stop()
 
     def quit(self):
