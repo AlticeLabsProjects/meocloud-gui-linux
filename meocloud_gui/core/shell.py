@@ -59,6 +59,8 @@ class Shell(object):
                     self.syncing.remove(msg.fileStatus.status.path)
                 utils.touch(os.path.join(self.cloud_home,
                                          msg.fileStatus.status.path[1:]))
+            else:
+                utils.touch(self.cloud_home)
 
     def _send(self, data):
         self.s.sendall(data)
