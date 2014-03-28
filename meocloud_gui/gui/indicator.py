@@ -23,7 +23,7 @@ class Indicator (GObject.Object):
 
         self.ind.set_menu(self.menu)
 
-    def set_icon(self, name, ignore_cycle=False):
+    def set_icon(self, name):
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0
         elif self.syncing < 1 and "sync" in name:

@@ -193,12 +193,11 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
 
-        if (status.state == codes.CORE_SYNCING or
-                status.state == codes.CORE_READY):
-            if self.shell is None:
-                self.shell = Shell.start()
-                self.shell.subscribe_path('/')
-                self.dbus_service.shell = self.shell
+        if ((status.state == codes.CORE_SYNCING or
+                status.state == codes.CORE_READY) and self.shell is None):
+            self.shell = Shell.start()
+            self.shell.subscribe_path('/')
+            self.dbus_service.shell = self.shell
 
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
