@@ -1,4 +1,4 @@
-sudo apt-get install kdelibs5-dev cmake
+sudo apt-get install kdelibs5-dev libkonq5-dev cmake
 
 mkdir build
 cd build
