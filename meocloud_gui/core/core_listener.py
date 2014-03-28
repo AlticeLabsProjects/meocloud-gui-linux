@@ -151,57 +151,6 @@ class CoreListenerHandler(UI.Iface):
 
         self.app.update_menu(None, self.ignore_sync)
 
-        def handleSystemNotification():
-            if note.code == codes.STATE_CHANGED:
-                log.debug('CoreListener: code: STATE_CHANGED')
-                current_status = self.core_client.currentStatus()
-                log.debug('CoreListener: {0}'.format(current_status))
-                log.debug('CoreListener: State translation: {0}'.format(
-                    State._VALUES_TO_NAMES[current_status.state]))
-
-                # TODO If we receive a state that indicates the wizard should
-                # be starting but the user is not waiting for that
-                # (how do I know?), panic, kill everything,
-                # and tell user to start over
-                if current_status.state == State.WAITING:
-                    self.start_sync()
-                elif current_status.state == State.OFFLINE:
-                    pass
-                    # TODO handle state change to offline in the middle of sync
-                elif current_status.state == State.ERROR:
-                    error_code = meocloud_gui.utils.get_error_code(
-                        current_status.statusCode)
-                    log.warning('CoreListener: Got error code: {0}'.format(
-                        error_code))
-                    # TODO Error cases, gotta handle this someday...
-                    if error_code == codes.ERROR_AUTH_TIMEOUT:
-                        pass
-                    elif error_code == codes.ERROR_ROOTFOLDER_GONE:
-                        log.warning('CoreListener: Root folder is gone, '
-                                    'will now shutdown')
-                    elif error_code == codes.ERROR_UNKNOWN:
-                        pass
-                    elif error_code == codes.ERROR_THREAD_CRASH:
-                        pass
-                    elif error_code == codes.ERROR_CANNOT_WATCH_FS:
-                        log.warning('CoreListener: Cannot watch filesystem, '
-                                    'will now shutdown')
-                    else:
-                        log.error(
-                            'CoreListener: Got unknown error code: {0}'.format(
-                                error_code))
-                        assert False
-            elif note.code == codes.NETWORK_SETTINGS_CHANGED:
-                log.debug('CoreListener: code: NETWORK_SETTINGS_CHANGED')
-                # I was told this was not being used anymore...
-                assert False
-            elif note.code == codes.SHARED_FOLDER_ADDED:
-                log.debug('CoreListener: code: SHARED_FOLDER_ADDED')
-                # CLI can't handle this, no folder icons to update
-            elif note.code == codes.SHARED_FOLDER_UNSHARED:
-                log.debug('CoreListener: code: SHARED_FOLDER_UNSHARED')
-                # CLI can't handle this, no folder icons to update
-
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
 

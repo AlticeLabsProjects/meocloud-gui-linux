@@ -3,7 +3,7 @@ import os
 import keyring
 from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import Gtk, Gio, GLib
+from gi.repository import Gtk, Gio, GLib, Notify
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
@@ -263,6 +263,40 @@ class Application(Gtk.Application):
             self.paused = True
             self.update_status(_("Error"))
             self.update_menu_action(_("Resume"))
+
+            error_code = meocloud_gui.utils.get_error_code(
+                status.statusCode)
+
+            log.warning('CoreListener: Got error code: {0}'.format(
+                error_code))
+            if error_code == codes.ERROR_AUTH_TIMEOUT:
+                pass
+            elif error_code == codes.ERROR_ROOTFOLDER_GONE:
+                log.warning('CoreListener: Root folder is gone, '
+                            'will now shutdown')
+
+                notif_icon = os.path.join(
+                    self.app_path, "icons/meocloud-ok.svg")
+                notif_title = _('Cloud Folder Missing')
+                notif_string = _('Your cloud folder is missing.')
+                notification = Notify.Notification.new(notif_title, notif_string,
+                                                       notif_icon)
+                notification.show()
+
+                os.system("killall meocloud-gui && " +
+                          os.path.join(self.app_path, "meocloud-gui &"))
+            elif error_code == codes.ERROR_UNKNOWN:
+                pass
+            elif error_code == codes.ERROR_THREAD_CRASH:
+                pass
+            elif error_code == codes.ERROR_CANNOT_WATCH_FS:
+                log.warning('CoreListener: Cannot watch filesystem, '
+                            'will now shutdown')
+            else:
+                log.error(
+                    'CoreListener: Got unknown error code: {0}'.format(
+                        error_code))
+                assert False
 
         utils.touch(cloud_home)
 
