@@ -197,7 +197,7 @@ class PrefsWindow(Gtk.Window):
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
-            meocloud_gui.utils.create_startup_file()
+            meocloud_gui.utils.create_startup_file(self.app.app_path)
 
     def on_selective_sync(self, w):
         self.selective_sync.destroy()
