@@ -290,9 +290,8 @@ class Application(Gtk.Application):
             self.prefs_window = PrefsWindow(self)
             self.prefs_window.connect("destroy", self.prefs_window_destroyed)
             self.prefs_window.logout_button.connect("clicked", self.on_logout)
-            self.prefs_window.show_all()
-        else:
-            self.prefs_window.present()
+        self.prefs_window.show_all()
+        self.prefs_window.present()
 
     def on_logout(self, w):
         self.prefs_window.destroy()
