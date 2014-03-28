@@ -17,13 +17,15 @@ class Indicator (GObject.Object):
             "meocloud-ok",
             appindicator.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
-        self.set_icon("meocloud-ok")
 
         self.menu = Gtk.Menu()
 
         self.ind.set_menu(self.menu)
 
     def set_icon(self, name):
+        if self.app.dark_icons:
+            name = name + "-black"
+
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0
         elif self.syncing < 1 and "sync" in name:
@@ -41,8 +43,6 @@ class Indicator (GObject.Object):
             return False
 
         icon_name = "meocloud-sync-" + str(self.syncing)
-        if self.app.dark_icons:
-            icon_name = icon_name + "-black"
 
         self.set_icon(icon_name)
 
