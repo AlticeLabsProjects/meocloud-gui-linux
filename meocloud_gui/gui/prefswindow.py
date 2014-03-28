@@ -279,6 +279,9 @@ class PrefsWindow(Gtk.Window):
             prefs.put("Network", "Throttle" + throttle, val)
             w.set_sensitive(True)
 
+        self.app.core_client.networkSettingsChanged(
+            api.get_network_settings(prefs))
+
     def throttle_value_changed(self, w, throttle):
         prefs = Preferences()
 
