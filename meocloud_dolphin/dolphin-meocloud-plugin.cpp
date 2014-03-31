@@ -60,9 +60,11 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject* parent, const QVariantList
     new ShellAdaptor(server);
 
     QDBusConnection connection = QDBusConnection::sessionBus();
+    connection.unregisterService("pt.meocloud.shell");
     bool ret = connection.registerService("pt.meocloud.shell");
     if (!ret)
         qDebug() << "registerService failed :(";
+    connection.unregisterObject("/pt/meocloud/shell");
     ret = connection.registerObject("/pt/meocloud/shell", server);
     if (!ret)
         qDebug() << "registerObject failed :(";

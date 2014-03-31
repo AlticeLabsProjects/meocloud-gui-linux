@@ -40,7 +40,10 @@ def init_localization():
 class DBusService(dbus.service.Object):
     def __init__(self, files):
         bus_name = dbus.service.BusName('pt.meocloud.shell',
-                                        bus=dbus.SessionBus())
+                                        bus=dbus.SessionBus(),
+                                        allow_replacement=True,
+                                        replace_existing=True,
+                                        do_not_queue=True)
         dbus.service.Object.__init__(self, bus_name, '/pt/meocloud/shell')
         self.files = files
 
@@ -123,6 +126,8 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                         item.add_emblem("emblem-synchronizing")
                     elif status == CORE_READY:
                         item.add_emblem("emblem-default")
+                    elif status == CORE_ERROR:
+                        item.add_emblem("emblem-important")
                 else:
                     in_cloud, syncing = self.file_in_cloud(uri)
                     if in_cloud and syncing:
