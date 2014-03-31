@@ -16,7 +16,8 @@ from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.constants import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
+from meocloud_gui.constants import (LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
+                                    UI_CONFIG_PATH)
 from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
@@ -77,6 +78,14 @@ class CoreListenerHandler(UI.Iface):
 
     def beginAuthorization(self):
         log.debug('CoreListener.beginAuthorization() <<<<')
+
+        if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                       'prefs.ini')):
+            try:
+                os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
+            except (OSError, IOError):
+                pass
+
         GLib.idle_add(self.beginAuthorizationIdle)
 
     def beginAuthorizationIdle(self):
