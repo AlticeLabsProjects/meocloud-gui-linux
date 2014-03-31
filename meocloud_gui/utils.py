@@ -61,16 +61,16 @@ def touch(fname, times=None):
         method = 'UpdateFile'
         args = GLib.Variant('(s)',
                             (fname,))
-        answer_fmt = GLib.VariantType.new('()')
+        answer_fmt = None
         proxy_prpty = Gio.DBusCallFlags.NONE
         timeout = 5
         cancellable = None
 
-        # Connect to DBus, send the DBus message, and receive the reply
+        # Connect to DBus, send the DBus message
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        reply = bus.call(destination, path, interface,
-                         method, args, answer_fmt,
-                         proxy_prpty, timeout, cancellable, None, None)
+        bus.call(destination, path, interface,
+                 method, args, answer_fmt,
+                 proxy_prpty, timeout, cancellable, None, None)
     except:
         pass
 
