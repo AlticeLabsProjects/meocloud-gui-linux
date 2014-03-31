@@ -109,13 +109,17 @@ def create_startup_file(base_path=None):
     if base_path is None:
         base_path = os.getcwd()
 
-    desktop_file = open(file_path, 'w')
-    desktop_file.write("[Desktop Entry]\n")
-    desktop_file.write("Type=Application\n")
-    desktop_file.write("Name=MEO Cloud\n")
-    desktop_file.write("Exec=" + os.path.join(base_path,
-                       "meocloud-gui") + "\n")
-    desktop_file.close()
+    try:
+        desktop_file = open(file_path, 'w')
+        desktop_file.write("[Desktop Entry]\n")
+        desktop_file.write("Type=Application\n")
+        desktop_file.write("Name=MEO Cloud\n")
+        desktop_file.write("Exec=" + os.path.join(base_path,
+                           "meocloud-gui") + "\n")
+        desktop_file.close()
+    except (IOError, OSError):
+        logging.getLogger(LOGGER_NAME).warning(
+            "utils.create_startup_file: error creating startup file")
 
 
 def clean_bookmark():
