@@ -34,6 +34,7 @@ class DBusService(dbus.service.Object):
     @dbus.service.method('pt.meocloud.dbus')
     def FileInCloud(self, path):
         cloud_home = self.cloud_home
+        path = unicode(path).encode('utf-8')
 
         if os.path.samefile(path, cloud_home):
             return False, False
@@ -47,18 +48,21 @@ class DBusService(dbus.service.Object):
 
     @dbus.service.method('pt.meocloud.dbus')
     def ShareFolder(self, path):
+        path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
         self.shell.share_folder(path)
 
     @dbus.service.method('pt.meocloud.dbus')
     def ShareLink(self, path):
+        path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
         self.shell.share_link(path)
 
     @dbus.service.method('pt.meocloud.dbus')
     def OpenInBrowser(self, path):
+        path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
         self.shell.open_in_browser(path)
