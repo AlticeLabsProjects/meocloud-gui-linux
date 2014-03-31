@@ -96,11 +96,13 @@ class PrefsWindow(Gtk.Window):
                                                    "0")) > 0)
         download_entry.set_text(prefs.get("Network", "ThrottleDownload",
                                           "100"))
+        download_entry.set_alignment(1)
         download_entry.connect("changed", lambda w:
                                self.throttle_value_changed(w, "Download"))
         upload_entry.set_sensitive(int(prefs.get("Network", "ThrottleUpload",
                                    "0")) > 0)
         upload_entry.set_text(prefs.get("Network", "ThrottleUpload", "100"))
+        upload_entry.set_alignment(1)
         upload_entry.connect("changed", lambda w:
                              self.throttle_value_changed(w, "Upload"))
 
