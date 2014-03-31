@@ -12,7 +12,10 @@ log = logging.getLogger(LOGGER_NAME)
 class DBusService(dbus.service.Object):
     def __init__(self, status):
         bus_name = dbus.service.BusName('pt.meocloud.dbus',
-                                        bus=dbus.SessionBus())
+                                        bus=dbus.SessionBus(),
+                                        allow_replacement=True,
+                                        replace_existing=True,
+                                        do_not_queue=True)
         dbus.service.Object.__init__(self, bus_name, '/pt/meocloud/dbus')
         self.status = status
         self.shell = None
