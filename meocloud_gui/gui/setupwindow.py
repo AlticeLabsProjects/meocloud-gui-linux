@@ -170,6 +170,7 @@ class SetupWindow(Gtk.Window):
         self.destroy()
 
     def destroy(self):
+        log.info('SetupWindow.destroy: closing setup')
         self.app.prefs_window.destroy()
         self.app.prefs_window = None
         Gtk.Window.destroy(self)
