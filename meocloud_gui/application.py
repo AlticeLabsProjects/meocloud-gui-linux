@@ -273,7 +273,7 @@ class Application(Gtk.Application):
             elif error_code == codes.ERROR_CANNOT_WATCH_FS:
                 log.warning('CoreListener: Cannot watch filesystem, '
                             'will now shutdown')
-            else:
+            elif status.state == codes.CORE_ERROR:
                 log.error(
                     'CoreListener: Got unknown error code: {0}'.format(
                         error_code))
