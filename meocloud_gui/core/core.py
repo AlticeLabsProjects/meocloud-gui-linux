@@ -22,7 +22,7 @@ class Core(object):
         self.core_client = core_client
         self.process = None
         # assumes core binary is in same dir as daemon
-        core_binary_dir = os.path.join(get_own_dir(__file__), "core")
+        core_binary_dir = get_own_dir(__file__)
         self.core_binary_path = os.path.join(core_binary_dir,
                                              CORE_BINARY_FILENAME)
         self.core_env = os.environ.copy()
