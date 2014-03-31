@@ -270,17 +270,22 @@ class PrefsWindow(Gtk.Window):
         if w.get_sensitive():
             prefs.put("Network", "Throttle" + throttle, "0")
             w.set_sensitive(False)
+            val = 0
         else:
             try:
                 val = int(w.get_text())
             except:
                 val = 100
 
-            prefs.put("Network", "Throttle" + throttle, val)
+            prefs.put("Network", "Throttle" + throttle, str(val))
             w.set_sensitive(True)
 
-        self.app.core_client.networkSettingsChanged(
-            api.get_network_settings(prefs))
+        if throttle == "Download":
+            self.app.core_client.networkSettingsChanged(
+                api.get_network_settings(prefs, download=val))
+        elif throttle == "Upload":
+            self.app.core_client.networkSettingsChanged(
+                api.get_network_settings(prefs, upload=val))
 
     def throttle_value_changed(self, w, throttle):
         prefs = Preferences()
@@ -290,7 +295,7 @@ class PrefsWindow(Gtk.Window):
         except:
             val = 100
 
-        prefs.put("Network", "Throttle" + throttle, val)
+        prefs.put("Network", "Throttle" + throttle, str(val))
 
         if throttle == "Download":
             self.app.core_client.networkSettingsChanged(
