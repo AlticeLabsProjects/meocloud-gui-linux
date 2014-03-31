@@ -52,6 +52,22 @@ class MissingDialog(Gtk.Dialog):
             new_path = os.path.join(dialog.get_filename())
             dialog.destroy()
 
+            if not os.path.exists(os.path.join(new_path, '.cloudcontrol')):
+                error_dialog = Gtk.Dialog("MEO Cloud", self, 0,
+                                          (Gtk.STOCK_OK,
+                                           Gtk.ResponseType.OK))
+
+                error_dialog.set_default_size(150, 100)
+
+                label = Gtk.Label(_("The selected folder is not correct."))
+
+                box = error_dialog.get_content_area()
+                box.add(label)
+                error_dialog.show_all()
+                error_dialog.run()
+                error_dialog.destroy()
+                return
+
             meocloud_gui.utils.purge_meta()
             Preferences().put("Advanced", "Folder", new_path)
 
