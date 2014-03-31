@@ -63,7 +63,7 @@ def touch(fname, times=None):
                             (fname,))
         answer_fmt = GLib.VariantType.new('()')
         proxy_prpty = Gio.DBusCallFlags.NONE
-        timeout = -1
+        timeout = 5
         cancellable = None
 
         # Connect to DBus, send the DBus message, and receive the reply
