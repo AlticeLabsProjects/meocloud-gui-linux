@@ -237,7 +237,7 @@ class Application(Gtk.Application):
             self.offline = True
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
-        else:
+        elif status.state == codes.CORE_ERROR:
             GLib.idle_add(lambda: self.menuitem_prefs.show())
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
@@ -273,7 +273,7 @@ class Application(Gtk.Application):
             elif error_code == codes.ERROR_CANNOT_WATCH_FS:
                 log.warning('CoreListener: Cannot watch filesystem, '
                             'will now shutdown')
-            elif status.state == codes.CORE_ERROR:
+            else:
                 log.error(
                     'CoreListener: Got unknown error code: {0}'.format(
                         error_code))
