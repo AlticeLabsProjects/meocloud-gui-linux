@@ -291,8 +291,13 @@ class PrefsWindow(Gtk.Window):
             val = 100
 
         prefs.put("Network", "Throttle" + throttle, val)
-        self.app.core_client.networkSettingsChanged(
-            api.get_network_settings(prefs))
+
+        if throttle == "Download":
+            self.app.core_client.networkSettingsChanged(
+                api.get_network_settings(prefs, download=val))
+        elif throttle == "Upload":
+            self.app.core_client.networkSettingsChanged(
+                api.get_network_settings(prefs, upload=val))
 
     def proxy_value_changed(self, w):
         prefs = Preferences()

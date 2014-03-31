@@ -62,12 +62,17 @@ def unlink(core_client, ui_config):
     return False
 
 
-def get_network_settings(ui_config):
+def get_network_settings(ui_config, download=None, upload=None):
     network_settings = NetworkSettings()
 
     download_limit, upload_limit = get_ratelimits(ui_config)
     network_settings.downloadBandwidth = download_limit * 1024  # KB/s to B/s
     network_settings.uploadBandwidth = upload_limit * 1024  # KB/s to B/s
+
+    if download is not None:
+        network_settings.downloadBandwidth = download * 1024
+    if upload is not None:
+        network_settings.uploadBandwidth = upload * 1024
 
     proxy_url = get_proxy(ui_config)
     if proxy_url:
