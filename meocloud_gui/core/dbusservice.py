@@ -33,6 +33,7 @@ class DBusService(dbus.service.Object):
 
     @dbus.service.method('pt.meocloud.dbus')
     def FileInCloud(self, path):
+        print path
         cloud_home = self.cloud_home
         path = unicode(path).encode('utf-8')
 
