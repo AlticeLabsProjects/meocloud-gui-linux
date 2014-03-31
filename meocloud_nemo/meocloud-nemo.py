@@ -105,7 +105,6 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
 
     def update_file_info(self, item):
         self.get_dbus()
-        uri = item.get_uri()
 
         if self.valid_uri(uri):
             uri = self.get_local_path(uri)
@@ -115,7 +114,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             item.connect("changed", self.changed_cb)
 
             try:
-                if unicode(uri).encode('utf-8') == self.get_cloud_home():
+                if uri == self.get_cloud_home():
                     status = self.status()
 
                     if (status == CORE_INITIALIZING or
