@@ -1,11 +1,11 @@
-#include "cloud-provider.h"
+#include "meocloud-provider.h"
 
 static GType type_list[1];
 
 G_MODULE_EXPORT void thunar_extension_initialize(ThunarxProviderPlugin * plugin)
 {
-    cloud_provider_register_type (plugin);
-    type_list[0] = CLOUD_TYPE_PROVIDER;
+    meocloud_provider_register_type (plugin);
+    type_list[0] = MEOCLOUD_TYPE_PROVIDER;
     g_message("Initializing thunar-meocloud extension");
 }
 

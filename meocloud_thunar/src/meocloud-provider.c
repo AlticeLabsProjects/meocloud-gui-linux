@@ -3,55 +3,55 @@
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib.h>
 
-#include "cloud-provider.h"
+#include "meocloud-provider.h"
 
-static void cloud_provider_menu_provider_init(ThunarxMenuProviderIface * iface);
-static void cloud_provider_finalize(GObject * object);
-static GList * cloud_provider_get_file_actions(
+static void meocloud_provider_menu_provider_init(ThunarxMenuProviderIface * iface);
+static void meocloud_provider_finalize(GObject * object);
+static GList * meocloud_provider_get_file_actions(
     ThunarxMenuProvider * menu_provider, GtkWidget * window, GList * files);
 
-struct _CloudProviderClass
+struct _MEOCloudProviderClass
 {
     GObjectClass __parent__;
 };
 
-struct _CloudProvider
+struct _MEOCloudProvider
 {
     GObject __parent__;
 };
 
-THUNARX_DEFINE_TYPE_WITH_CODE (CloudProvider,
-    cloud_provider,
+THUNARX_DEFINE_TYPE_WITH_CODE (MEOCloudProvider,
+    meocloud_provider,
     G_TYPE_OBJECT,
     THUNARX_IMPLEMENT_INTERFACE (THUNARX_TYPE_MENU_PROVIDER,
-        cloud_provider_menu_provider_init));
+        meocloud_provider_menu_provider_init));
 
-static void cloud_provider_class_init(CloudProviderClass * klass)
+static void meocloud_provider_class_init(MEOCloudProviderClass * klass)
 {
     GObjectClass * gobject_class;
 
     gobject_class = G_OBJECT_CLASS(klass);
-    gobject_class->finalize = cloud_provider_finalize;
+    gobject_class->finalize = meocloud_provider_finalize;
 }
 
-static void cloud_provider_menu_provider_init(ThunarxMenuProviderIface * iface)
+static void meocloud_provider_menu_provider_init(ThunarxMenuProviderIface * iface)
 {
-    iface->get_file_actions = cloud_provider_get_file_actions;
+    iface->get_file_actions = meocloud_provider_get_file_actions;
 }
 
-static void cloud_provider_init(CloudProvider * cloud_provider)
+static void meocloud_provider_init(MEOCloudProvider * meocloud_provider)
 {
 
 }
 
-static void cloud_provider_finalize(GObject * object)
+static void meocloud_provider_finalize(GObject * object)
 {
-    CloudProvider * cloud_provider = CLOUD_PROVIDER(object);
+    MEOCloudProvider * meocloud_provider = MEOCLOUD_PROVIDER(object);
 
-    (*G_OBJECT_CLASS(cloud_provider_parent_class)->finalize)(object);
+    (*G_OBJECT_CLASS(meocloud_provider_parent_class)->finalize)(object);
 }
 
-static void cloud_callback(GtkAction * action, gpointer data)
+static void meocloud_callback(GtkAction * action, gpointer data)
 {
     GList * actioninfo = (GList*)data;
     gchar * verb = NULL;
@@ -63,7 +63,7 @@ static void cloud_callback(GtkAction * action, gpointer data)
     actioninfo = actioninfo->next;
 }
 
-static void cloud_closure_destroy_notify(gpointer data, GClosure * closure)
+static void meocloud_closure_destroy_notify(gpointer data, GClosure * closure)
 {
     GList * actioninfo = (GList*)data;
     GList * lp;
@@ -76,8 +76,8 @@ static void cloud_closure_destroy_notify(gpointer data, GClosure * closure)
     g_list_free(actioninfo);
 }
 
-static void cloud_copy_link(GtkAction *action,
-                            GtkWidget *window)
+static void meocloud_copy_link(GtkAction *action,
+                               GtkWidget *window)
 {
     GList *files;
     GFile *file;
@@ -119,8 +119,8 @@ static void cloud_copy_link(GtkAction *action,
     g_object_unref(proxy);
 }
 
-static void cloud_share_folder(GtkAction *action,
-                               GtkWidget *window)
+static void meocloud_share_folder(GtkAction *action,
+                                  GtkWidget *window)
 {
     GList *files;
     GFile *file;
@@ -162,8 +162,8 @@ static void cloud_share_folder(GtkAction *action,
     g_object_unref(proxy);
 }
 
-static void cloud_open_in_browser(GtkAction *action,
-                                  GtkWidget *window)
+static void meocloud_open_in_browser(GtkAction *action,
+                                     GtkWidget *window)
 {
     GList *files;
     GFile *file;
@@ -205,7 +205,7 @@ static void cloud_open_in_browser(GtkAction *action,
     g_object_unref(proxy);
 }
 
-static GList * cloud_provider_get_file_actions(
+static GList * meocloud_provider_get_file_actions(
     ThunarxMenuProvider * menu_provider,
     GtkWidget * window,
     GList * files)
@@ -214,7 +214,7 @@ static GList * cloud_provider_get_file_actions(
     GList * actions = NULL;
     GtkAction *action;
     GClosure *closure;
-    CloudProvider *cloud_provider = CLOUD_PROVIDER(menu_provider);
+    MEOCloudProvider *meocloud_provider = MEOCLOUD_PROVIDER(menu_provider);
     gchar * path;
 
     GList * filelist = NULL;
@@ -286,9 +286,9 @@ static GList * cloud_provider_get_file_actions(
                             thunarx_file_info_list_copy(files),
                             (GDestroyNotify) thunarx_file_info_list_free);
     g_object_set_qdata_full(G_OBJECT(action), "meocloud-provider",
-                            g_object_ref(G_OBJECT(cloud_provider)),
+                            g_object_ref(G_OBJECT(meocloud_provider)),
                             (GDestroyNotify) g_object_unref);
-    closure = g_cclosure_new_object(G_CALLBACK(cloud_open_in_browser), G_OBJECT(window));
+    closure = g_cclosure_new_object(G_CALLBACK(meocloud_open_in_browser), G_OBJECT(window));
     g_signal_connect_closure(G_OBJECT(action), "activate", closure, TRUE);
     actions = g_list_append(actions, action);
 
@@ -302,9 +302,9 @@ static GList * cloud_provider_get_file_actions(
                                 thunarx_file_info_list_copy(files),
                                 (GDestroyNotify) thunarx_file_info_list_free);
         g_object_set_qdata_full(G_OBJECT(action), "meocloud-provider",
-                                g_object_ref(G_OBJECT (cloud_provider)),
+                                g_object_ref(G_OBJECT (meocloud_provider)),
                                 (GDestroyNotify) g_object_unref);
-        closure = g_cclosure_new_object(G_CALLBACK(cloud_share_folder), G_OBJECT(window));
+        closure = g_cclosure_new_object(G_CALLBACK(meocloud_share_folder), G_OBJECT(window));
         g_signal_connect_closure(G_OBJECT(action), "activate", closure, TRUE);
         actions = g_list_append(actions, action);
     }
@@ -318,9 +318,9 @@ static GList * cloud_provider_get_file_actions(
                                 thunarx_file_info_list_copy(files),
                                 (GDestroyNotify) thunarx_file_info_list_free);
         g_object_set_qdata_full(G_OBJECT(action), "meocloud-provider",
-                                g_object_ref(G_OBJECT(cloud_provider)),
+                                g_object_ref(G_OBJECT(meocloud_provider)),
                                 (GDestroyNotify) g_object_unref);
-        closure = g_cclosure_new_object(G_CALLBACK(cloud_copy_link), G_OBJECT(window));
+        closure = g_cclosure_new_object(G_CALLBACK(meocloud_copy_link), G_OBJECT(window));
         g_signal_connect_closure(G_OBJECT(action), "activate", closure, TRUE);
         actions = g_list_append(actions, action);
     }
