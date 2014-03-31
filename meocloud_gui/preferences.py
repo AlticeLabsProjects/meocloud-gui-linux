@@ -1,10 +1,11 @@
 import ConfigParser
 import os
+from meocloud_gui.constants import UI_CONFIG_PATH
 
 
 class Preferences(object):
     def __init__(self):
-        path = os.path.join(os.path.expanduser('~'), '.meocloud/gui/prefs.ini')
+        path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
         self.config = ConfigParser.ConfigParser()
         self.config.read(path)
 
@@ -20,11 +21,10 @@ class Preferences(object):
             return default
 
     def put(self, section, option, val):
-        folder_path = os.path.join(os.path.expanduser('~'), '.meocloud/gui')
-        file_path = os.path.join(folder_path, 'prefs.ini')
+        file_path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
 
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
+        if not os.path.exists(UI_CONFIG_PATH):
+            os.makedirs(UI_CONFIG_PATH)
 
         prefsfile = open(file_path, 'w')
 
