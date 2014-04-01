@@ -233,6 +233,10 @@ msgstr "0 GB usados de 16 GB"
 msgid "Unauthorized"
 msgstr "Sem autorização"
 
+#: ../meocloud_gui/application.py:126
+msgid "About"
+msgstr "Sobre"
+
 #: ../meocloud_gui/application.py:204
 msgid "Initializing"
 msgstr "A inicializar"
