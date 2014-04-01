@@ -70,18 +70,52 @@ class PrefsWindow(Gtk.Window):
         proxy_label.set_use_markup(True)
         proxy_label.set_alignment(0, 0)
 
-        proxy_automatic = Gtk.RadioButton.new_with_label(None, _("Automatic"))
-        proxy_automatic.connect("toggled", lambda w: self.set_proxy(w,
-                                "Automatic"))
-        proxy_manual = Gtk.RadioButton.new_with_label_from_widget(
-            proxy_automatic, _("Manual"))
-        proxy_manual.connect("toggled", lambda w: self.set_proxy(w,
+        self.proxy_none = Gtk.RadioButton.new_with_label(None, _("None"))
+        self.proxy_none.connect("toggled", lambda w: self.set_proxy(w,
+                                                                    "None"))
+        self.proxy_automatic = Gtk.RadioButton.new_with_label_from_widget(
+            self.proxy_none, _("Automatic"))
+        self.proxy_automatic.connect("toggled", lambda w: self.set_proxy(w,
+                             "Automatic"))
+        self.proxy_manual = Gtk.RadioButton.new_with_label_from_widget(
+            self.proxy_none, _("Manual"))
+        self.proxy_manual.connect("toggled", lambda w: self.set_proxy(w,
                              "Manual"))
-        self.proxy_manual_url = Gtk.Entry()
-        self.proxy_manual_url.set_placeholder_text("http://www.example.com")
-        self.proxy_manual_url.set_text(prefs.get("Network", "ProxyURL", ""))
-        self.proxy_manual_url.set_no_show_all(True)
-        self.proxy_manual_url.connect("changed", self.proxy_value_changed)
+
+        self.proxy_automatic_url = Gtk.Entry()
+        self.proxy_automatic_url.set_placeholder_text("http://www.example.com")
+        self.proxy_automatic_url.set_text(prefs.get("Network", "ProxyURL", ""))
+        self.proxy_automatic_url.set_no_show_all(True)
+        self.proxy_automatic_url.connect("changed", self.proxy_automatic_value_changed)
+
+        self.proxy_manual_address = Gtk.Entry()
+        self.proxy_manual_address.set_placeholder_text("Address")
+        self.proxy_manual_address.set_text(
+            prefs.get("Network", "ProxyAddress", ""))
+        self.proxy_manual_address.set_no_show_all(True)
+        self.proxy_manual_address.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyAddress"))
+
+        self.proxy_manual_port = Gtk.Entry()
+        self.proxy_manual_port.set_placeholder_text("Port")
+        self.proxy_manual_port.set_text(
+            prefs.get("Network", "ProxyPort", ""))
+        self.proxy_manual_port.set_no_show_all(True)
+        self.proxy_manual_port.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyPort"))
+
+        self.proxy_manual_user = Gtk.Entry()
+        self.proxy_manual_user.set_placeholder_text("User")
+        self.proxy_manual_user.set_text(
+            prefs.get("Network", "ProxyUser", ""))
+        self.proxy_manual_user.set_no_show_all(True)
+        self.proxy_manual_user.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyUser"))
+
+        self.proxy_manual_password = Gtk.Entry()
+        self.proxy_manual_password.set_visibility(False)
+        self.proxy_manual_password.set_placeholder_text("Password")
+        self.proxy_manual_password.set_text(
+            prefs.get("Network", "ProxyPassword", ""))
+        self.proxy_manual_password.set_no_show_all(True)
+        self.proxy_manual_password.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyPassword"))
 
         bandwidth_label = Gtk.Label("<b>" + _("Bandwidth") + "</b>")
         bandwidth_label.set_use_markup(True)
@@ -138,18 +172,29 @@ class PrefsWindow(Gtk.Window):
         upload_box.pack_start(Gtk.Label("KB"), False, False, 5)
 
         network_box.pack_start(proxy_label, False, False, 5)
-        network_box.pack_start(proxy_automatic, False, False, 0)
-        network_box.pack_start(proxy_manual, False, False, 0)
-        network_box.pack_start(self.proxy_manual_url, False, False, 0)
+        network_box.pack_start(self.proxy_none, False, False, 0)
+        network_box.pack_start(self.proxy_automatic, False, False, 0)
+        network_box.pack_start(self.proxy_manual, False, False, 0)
+        network_box.pack_start(self.proxy_automatic_url, False, False, 0)
+        network_box.pack_start(self.proxy_manual_address, False, False, 0)
+        network_box.pack_start(self.proxy_manual_port, False, False, 0)
+        network_box.pack_start(self.proxy_manual_user, False, False, 0)
+        network_box.pack_start(self.proxy_manual_password, False, False, 0)
         network_box.pack_start(bandwidth_label, False, False, 5)
         network_box.pack_start(download_box, False, False, 0)
         network_box.pack_start(upload_box, False, False, 5)
 
-        if prefs.get("Network", "Proxy", "Automatic") == "Manual":
-            proxy_manual.set_active(True)
-            self.proxy_manual_url.show()
+        if prefs.get("Network", "Proxy", "None") == "Automatic":
+            self.proxy_automatic.set_active(True)
+            self.proxy_automatic_url.show()
+        elif prefs.get("Network", "Proxy", "None") == "Manual":
+            self.proxy_manual.set_active(True)
+            self.proxy_manual_address.show()
+            self.proxy_manual_port.show()
+            self.proxy_manual_user.show()
+            self.proxy_manual_password.show()
         else:
-            proxy_automatic.set_active(True)
+            self.proxy_none.set_active(True)
 
         # advanced
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
@@ -312,9 +357,15 @@ class PrefsWindow(Gtk.Window):
             self.app.core_client.networkSettingsChanged(
                 api.get_network_settings(prefs, upload=val))
 
-    def proxy_value_changed(self, w):
+    def proxy_automatic_value_changed(self, w):
         prefs = Preferences()
-        prefs.put("Network", "ProxyURL", self.proxy_manual_url.get_text())
+        prefs.put("Network", "ProxyURL", self.proxy_automatic_url.get_text())
+        self.app.core_client.networkSettingsChanged(
+            api.get_network_settings(prefs))
+
+    def proxy_manual_value_changed(self, w, pref_name):
+        prefs = Preferences()
+        prefs.put("Network", pref_name, w.get_text())
         self.app.core_client.networkSettingsChanged(
             api.get_network_settings(prefs))
 
@@ -323,10 +374,33 @@ class PrefsWindow(Gtk.Window):
             prefs = Preferences()
             prefs.put("Network", "Proxy", proxy)
 
-            if proxy == "Manual":
-                self.proxy_manual_url.show()
-                prefs.put("Network", "ProxyURL",
-                          self.proxy_manual_url.get_text())
-            else:
+            if proxy == "None":
+                self.proxy_automatic_url.hide()
+                self.proxy_manual_address.hide()
+                self.proxy_manual_port.hide()
+                self.proxy_manual_user.hide()
+                self.proxy_manual_password.hide()
                 prefs.put("Network", "ProxyURL", "")
-                self.proxy_manual_url.hide()
+                prefs.put("Network", "ProxyAddress", "")
+                prefs.put("Network", "ProxyPort", "")
+                prefs.put("Network", "ProxyUser", "")
+                prefs.put("Network", "ProxyPassword", "")
+            elif proxy == "Automatic":
+                self.proxy_manual_address.hide()
+                self.proxy_manual_port.hide()
+                self.proxy_manual_user.hide()
+                self.proxy_manual_password.hide()
+                prefs.put("Network", "ProxyAddress", "")
+                prefs.put("Network", "ProxyPort", "")
+                prefs.put("Network", "ProxyUser", "")
+                prefs.put("Network", "ProxyPassword", "")
+                self.proxy_automatic_url.show()
+                prefs.put("Network", "ProxyURL",
+                          self.proxy_automatic_url.get_text())
+            else:
+                self.proxy_automatic_url.hide()
+                self.proxy_manual_address.show()
+                self.proxy_manual_port.show()
+                self.proxy_manual_user.show()
+                self.proxy_manual_password.show()
+                prefs.put("Network", "ProxyURL", "")

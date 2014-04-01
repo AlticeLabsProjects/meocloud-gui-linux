@@ -7,6 +7,7 @@ from gi.repository import GLib, Gdk
 
 from meocloud_gui.protocol.daemon_core.ttypes import NetworkSettings, Account
 from meocloud_gui.utils import get_proxy, get_ratelimits
+from meocloud_gui.preferences import Preferences
 
 
 def get_account_dict(ui_config):
@@ -91,5 +92,27 @@ def get_network_settings(ui_config, download=None, upload=None):
                     parsed.user if hasattr(parsed, 'user') else ''
                 network_settings.proxyPassword = \
                     parsed.password if hasattr(parsed, 'password') else ''
+    else:
+        prefs = Preferences()
+
+        use_proxy = prefs.get('Network', 'Proxy', 'None')
+
+        if use_proxy == 'Manual':
+            address = prefs.get('Network', 'ProxyAddress', '')
+            port = prefs.get('Network', 'ProxyPort', '')
+            user = prefs.get('Network', 'ProxyUser', '')
+            password = prefs.get('Network', 'ProxyPassword', '')
+
+            if len(address) > 0 and len(port) > 0:
+                network_settings.proxyAddress = address
+                network_settings.proxyType = 'http'
+
+                try:
+                    network_settings.proxyPort = int(port)
+                except:
+                    network_settings.proxyPort = 3128
+
+                network_settings.proxyUser = user
+                network_settings.proxyPassword = password
 
     return network_settings
