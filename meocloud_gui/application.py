@@ -7,6 +7,7 @@ from gi.repository import Gtk, Gio, GLib, Notify
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
+from meocloud_gui.gui.aboutdialog import AboutDialog
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.core.core import Core
 from meocloud_gui.core.shell import Shell
@@ -122,6 +123,7 @@ class Application(Gtk.Application):
                 self.menuitem_status.set_sensitive(False)
                 self.menuitem_changestatus = Gtk.MenuItem(_("Authorize"))
                 self.menuitem_prefs = Gtk.MenuItem(_("Preferences"))
+                menuitem_about = Gtk.MenuItem(_("About"))
                 menuitem_quit = Gtk.MenuItem(_("Quit"))
 
                 self.trayicon.add_menu_item(menuitem_folder)
@@ -134,6 +136,7 @@ class Application(Gtk.Application):
                 self.trayicon.add_menu_item(self.menuitem_changestatus)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
                 self.trayicon.add_menu_item(self.menuitem_prefs, True)
+                self.trayicon.add_menu_item(menuitem_about)
                 self.trayicon.add_menu_item(menuitem_quit)
 
                 menuitem_folder.connect("activate", self.open_folder)
@@ -141,6 +144,8 @@ class Application(Gtk.Application):
                 self.menuitem_changestatus.connect("activate",
                                                    self.toggle_status)
                 self.menuitem_prefs.connect("activate", self.show_prefs)
+                menuitem_about.connect(
+                    "activate", lambda w: AboutDialog(self.app_path))
                 menuitem_quit.connect("activate", lambda w: self.quit())
 
                 self.restart_core()

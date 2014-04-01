@@ -16,6 +16,7 @@ class SelectiveSyncWindow(Gtk.Window):
     def __init__(self, app):
         Gtk.Window.__init__(self)
         self.set_title(_("Selective Sync"))
+        self.set_position(Gtk.WindowPosition.CENTER)
 
         self.app = app
         self.first_column = True

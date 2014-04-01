@@ -16,6 +16,7 @@ class PrefsWindow(Gtk.Window):
     def __init__(self, app, embed=False):
         Gtk.Window.__init__(self)
         self.set_title(_("Preferences"))
+        self.set_position(Gtk.WindowPosition.CENTER)
 
         prefs = Preferences()
         self.app = app
@@ -282,7 +283,7 @@ class PrefsWindow(Gtk.Window):
             try:
                 val = int(w.get_text())
             except:
-                val = 100
+                val = 128
 
             prefs.put("Network", "Throttle" + throttle, str(val))
             w.set_sensitive(True)
@@ -300,7 +301,7 @@ class PrefsWindow(Gtk.Window):
         try:
             val = int(w.get_text())
         except:
-            val = 100
+            val = 128
 
         prefs.put("Network", "Throttle" + throttle, str(val))
 
