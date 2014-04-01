@@ -117,7 +117,8 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             item.connect("changed", self.changed_cb)
 
             try:
-                if uri == self.get_cloud_home():
+                dec_home = self.get_cloud_home().decode('utf-8')
+                if uri.decode('utf-8') == dec_home:
                     status = self.status()
 
                     if (status == CORE_INITIALIZING or
