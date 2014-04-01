@@ -99,6 +99,8 @@ class Application(Gtk.Application):
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'ignored_directories')):
+                    log.info('Application.on_activate: loading ignored '
+                             'directories')
                     f = open(os.path.join(UI_CONFIG_PATH,
                                           'ignored_directories'), "r")
                     for line in f.readlines():
@@ -172,7 +174,10 @@ class Application(Gtk.Application):
                 menuitem.show()
 
     def open_recent_file(self, w, cloud_home):
-        subprocess.Popen(["xdg-open", os.path.join(cloud_home, w.get_label())])
+        path = os.path.join(cloud_home, w.get_label())
+        path = path.replace(os.path.basename(path), '')
+
+        subprocess.Popen(["xdg-open", path])
 
     def update_menu(self, status=None, ignore_sync=False):
         if self.requires_authorization:
