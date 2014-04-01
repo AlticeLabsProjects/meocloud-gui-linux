@@ -228,7 +228,7 @@ class PrefsWindow(Gtk.Window):
 
         self.add(self.notebook)
 
-        self.set_size_request(300, 350)
+        self.set_size_request(300, 360)
 
     def toggle_display_notifications(self, w):
         prefs = Preferences()
