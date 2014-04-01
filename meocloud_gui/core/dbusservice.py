@@ -26,6 +26,7 @@ class DBusService(dbus.service.Object):
         prefs = Preferences()
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
+        log.info('DBusService.update_prefs: cloud_home is ' + self.cloud_home)
 
     @dbus.service.method('pt.meocloud.dbus')
     def Status(self):
