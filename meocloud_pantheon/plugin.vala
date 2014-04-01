@@ -19,11 +19,13 @@ public class ShellServer : Object {
 
     public void UpdateFile (string path) {
         if (this.parent.map.has_key (path)) {
-            GOF.File file = this.parent.map.get(path);
-            file.emblems_list.foreach((emblem) => {
-                file.emblems_list.remove(emblem);
+            GOF.File file = this.parent.map.get (path);
+
+            file.emblems_list.foreach ((emblem) => {
+                file.emblems_list.remove (emblem);
             });
-            file.update_emblem();
+
+            file.update_emblem ();
         }
     }
 }
@@ -146,7 +148,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                 int status;
 
                 try {
-                    status = this.core.status();
+                    status = this.core.status ();
                 } catch (Error e) {
                     return;
                 }
@@ -156,19 +158,19 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                     case 1:
                     case 2:
                     case 3:
-                        file.add_emblem("emblem-synchronizing");
+                        file.add_emblem ("emblem-synchronizing");
                         break;
                     default:
-                        file.add_emblem("emblem-default");
+                        file.add_emblem ("emblem-default");
                         break;
                 }
             } else {
                 try {
                     if (this.core.file_in_cloud (path)) {
                         if (this.core.file_syncing (path))
-                            file.add_emblem("emblem-synchronizing");
+                            file.add_emblem ("emblem-synchronizing");
                         else
-                            file.add_emblem("emblem-default");
+                            file.add_emblem ("emblem-default");
                     }
                 } catch (Error e) {
                     return;
@@ -176,11 +178,11 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             }
         }
 
-        this.map.set(path, file);
+        this.map.set (path, file);
     }
 
     public override void directory_loaded (void* user_data) {
-        this.map.clear();
+        this.map.clear ();
     }
 
     private void add_menuitem (Gtk.Menu menu, Gtk.MenuItem menu_item) {
@@ -200,7 +202,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         return file_array;
     }
 
-    public override void update_sidebar(Gtk.Widget sidebar)
+    public override void update_sidebar (Gtk.Widget sidebar)
     {
     }
 }
