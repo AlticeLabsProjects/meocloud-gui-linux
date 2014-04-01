@@ -49,6 +49,8 @@ class DBusService(dbus.service.Object):
 
     @dbus.service.method('pt.meocloud.shell')
     def UpdateFile(self, path):
+        path = unicode(path).encode("utf-8")
+
         if path in self.files:
             item = self.files[path]
             self.files.pop(path, None)
