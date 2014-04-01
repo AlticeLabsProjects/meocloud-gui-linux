@@ -57,7 +57,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
         Bus.own_name (BusType.SESSION, "pt.meocloud.shell", BusNameOwnerFlags.ALLOW_REPLACEMENT + BusNameOwnerFlags.REPLACE,
                       (conn) => {
-                          stderr.printf ("\n\nregistering\n\n");
                           try {
                               conn.register_object ("/pt/meocloud/shell", new ShellServer (this));
                           } catch (IOError e) {
