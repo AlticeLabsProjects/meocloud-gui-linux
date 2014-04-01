@@ -116,8 +116,8 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             item.connect("changed", self.changed_cb)
 
             try:
-                dec_home = self.get_cloud_home().decode('utf-8')
-                if uri.decode('utf-8') == dec_home:
+                dec_home = self.get_cloud_home().encode('utf-8')
+                if uri == dec_home:
                     status = self.status()
 
                     if (status == CORE_INITIALIZING or
@@ -132,6 +132,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                         item.add_emblem("emblem-important")
                 else:
                     in_cloud, syncing = self.file_in_cloud(uri)
+                    print uri
                     if in_cloud and syncing:
                         item.add_emblem("emblem-synchronizing")
                     elif in_cloud:
