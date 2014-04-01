@@ -75,39 +75,46 @@ class PrefsWindow(Gtk.Window):
                                                                     "None"))
         self.proxy_automatic = Gtk.RadioButton.new_with_label_from_widget(
             self.proxy_none, _("Automatic"))
-        self.proxy_automatic.connect("toggled", lambda w: self.set_proxy(w,
-                             "Automatic"))
+        self.proxy_automatic.connect("toggled", lambda w:
+                                     self.set_proxy(w, "Automatic"))
         self.proxy_manual = Gtk.RadioButton.new_with_label_from_widget(
             self.proxy_none, _("Manual"))
-        self.proxy_manual.connect("toggled", lambda w: self.set_proxy(w,
-                             "Manual"))
+        self.proxy_manual.connect("toggled", lambda w:
+                                  self.set_proxy(w, "Manual"))
 
         self.proxy_automatic_url = Gtk.Entry()
         self.proxy_automatic_url.set_placeholder_text("http://www.example.com")
         self.proxy_automatic_url.set_text(prefs.get("Network", "ProxyURL", ""))
         self.proxy_automatic_url.set_no_show_all(True)
-        self.proxy_automatic_url.connect("changed", self.proxy_automatic_value_changed)
+        self.proxy_automatic_url.connect("changed",
+                                         self.proxy_automatic_value_changed)
 
         self.proxy_manual_address = Gtk.Entry()
         self.proxy_manual_address.set_placeholder_text("Address")
         self.proxy_manual_address.set_text(
             prefs.get("Network", "ProxyAddress", ""))
         self.proxy_manual_address.set_no_show_all(True)
-        self.proxy_manual_address.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyAddress"))
+        self.proxy_manual_address.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyAddress"))
 
         self.proxy_manual_port = Gtk.Entry()
         self.proxy_manual_port.set_placeholder_text("Port")
         self.proxy_manual_port.set_text(
             prefs.get("Network", "ProxyPort", ""))
         self.proxy_manual_port.set_no_show_all(True)
-        self.proxy_manual_port.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyPort"))
+        self.proxy_manual_port.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyPort"))
 
         self.proxy_manual_user = Gtk.Entry()
         self.proxy_manual_user.set_placeholder_text("User")
         self.proxy_manual_user.set_text(
             prefs.get("Network", "ProxyUser", ""))
         self.proxy_manual_user.set_no_show_all(True)
-        self.proxy_manual_user.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyUser"))
+        self.proxy_manual_user.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyUser"))
 
         self.proxy_manual_password = Gtk.Entry()
         self.proxy_manual_password.set_visibility(False)
@@ -115,7 +122,9 @@ class PrefsWindow(Gtk.Window):
         self.proxy_manual_password.set_text(
             prefs.get("Network", "ProxyPassword", ""))
         self.proxy_manual_password.set_no_show_all(True)
-        self.proxy_manual_password.connect("changed", lambda w: self.proxy_manual_value_changed(w, "ProxyPassword"))
+        self.proxy_manual_password.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyPassword"))
 
         bandwidth_label = Gtk.Label("<b>" + _("Bandwidth") + "</b>")
         bandwidth_label.set_use_markup(True)

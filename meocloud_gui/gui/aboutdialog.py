@@ -4,6 +4,7 @@ from gi.repository import GObject, Gtk, GLib
 from gi.repository import GdkPixbuf
 from meocloud_gui.constants import VERSION
 
+
 class AboutDialog (GObject.Object):
     __gtype_name__ = 'AboutDialog'
 
