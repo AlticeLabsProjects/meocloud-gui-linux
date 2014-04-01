@@ -133,6 +133,11 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     }
 
     public override void update_file_info (GOF.File file) {
+        if (file.is_trashed() || !file.exists ||
+                file.is_remote_uri_scheme () || file.is_network_uri_scheme () ||
+                file.is_smb_uri_scheme ())
+            return;
+
         string path = file.get_target_location ().get_path ();
 
         if (file.emblems_list.length() == 0) {
