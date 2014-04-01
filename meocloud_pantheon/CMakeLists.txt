@@ -21,6 +21,7 @@ PACKAGES
     marlincore
 OPTIONS
     --thread
+    --vapidir=${CMAKE_SOURCE_DIR}/vapi
 )
 
 # C stuff

@@ -2,10 +2,30 @@
 interface Core : Object {
     public abstract int status () throws GLib.Error;
     public abstract bool file_in_cloud (string path) throws GLib.Error;
+    public abstract bool file_syncing (string path) throws GLib.Error;
     public abstract string get_cloud_home () throws GLib.Error;
     public abstract void share_link (string path) throws GLib.Error;
     public abstract void share_folder (string path) throws GLib.Error;
     public abstract void open_in_browser (string path) throws GLib.Error;
+}
+
+[DBus (name = "pt.meocloud.shell")]
+public class ShellServer : Object {
+    private Marlin.Plugins.MEOCloud parent;
+
+    public ShellServer (Marlin.Plugins.MEOCloud parent) {
+        this.parent = parent;
+    }
+
+    public void UpdateFile (string path) {
+        if (this.parent.map.has_key (path)) {
+            GOF.File file = this.parent.map.get(path);
+            file.emblems_list.foreach((emblem) => {
+                file.emblems_list.remove(emblem);
+            });
+            file.update_emblem();
+        }
+    }
 }
 
 public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
@@ -18,7 +38,11 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string SHARE_FOLDER;
     private string COPY_LINK;
 
+    public Gee.HashMap<string, GOF.File> map;
+
     public MEOCloud () {
+        this.map = new Gee.HashMap<string, GOF.File> ();
+
         OPEN_BROWSER = "Open in Browser";
         SHARE_FOLDER = "Share Folder";
         COPY_LINK = "Copy Link";
@@ -30,6 +54,18 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             SHARE_FOLDER = "Partilhar pasta";
             COPY_LINK = "Copiar hiperligação";
         }
+
+        Bus.own_name (BusType.SESSION, "pt.meocloud.shell", BusNameOwnerFlags.ALLOW_REPLACEMENT + BusNameOwnerFlags.REPLACE,
+                      (conn) => {
+                          stderr.printf ("\n\nregistering\n\n");
+                          try {
+                              conn.register_object ("/pt/meocloud/shell", new ShellServer (this));
+                          } catch (IOError e) {
+                              stderr.printf ("Could not register service\n");
+                          }
+                      },
+                      () => {},
+                      () => stderr.printf ("Could not aquire name\n"));
 
         this.get_dbus ();
     }
@@ -95,7 +131,57 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         menu = (Gtk.Menu) ui_manager.get_widget ("/selection");
     }
 
+    public override void update_file_info (GOF.File file) {
+        string path = file.get_target_location ().get_path ();
+
+        if (file.emblems_list.length() == 0) {
+            string cloud_home;
+
+            try {
+                cloud_home = this.core.get_cloud_home ();
+            } catch (Error e) {
+                return;
+            }
+
+            if (path == cloud_home) {
+                int status;
+
+                try {
+                    status = this.core.status();
+                } catch (Error e) {
+                    return;
+                }
+
+                switch (status) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        file.add_emblem("emblem-synchronizing");
+                        break;
+                    default:
+                        file.add_emblem("emblem-default");
+                        break;
+                }
+            } else {
+                try {
+                    if (this.core.file_in_cloud (path)) {
+                        if (this.core.file_syncing (path))
+                            file.add_emblem("emblem-synchronizing");
+                        else
+                            file.add_emblem("emblem-default");
+                    }
+                } catch (Error e) {
+                    return;
+                }
+            }
+        }
+
+        this.map.set(path, file);
+    }
+
     public override void directory_loaded (void* user_data) {
+        this.map.clear();
     }
 
     private void add_menuitem (Gtk.Menu menu, Gtk.MenuItem menu_item) {

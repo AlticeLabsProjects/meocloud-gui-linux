@@ -48,6 +48,21 @@ class DBusService(dbus.service.Object):
             return path.startswith(cloud_home), is_syncing
 
     @dbus.service.method('pt.meocloud.dbus')
+    def FileSyncing(self, path):
+        cloud_home = self.cloud_home
+        path = unicode(path).encode('utf-8')
+
+        if os.path.samefile(path, cloud_home):
+            return False
+        else:
+            if self.shell is None:
+                is_syncing = False
+            else:
+                is_syncing = path.replace(cloud_home, '') in self.shell.syncing
+
+            return is_syncing
+
+    @dbus.service.method('pt.meocloud.dbus')
     def ShareFolder(self, path):
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
