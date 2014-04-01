@@ -1,6 +1,4 @@
-import subprocess
-import os
-from gi.repository import GObject, Gtk
+from gi.repository import Gtk
 
 
 class Pages (Gtk.Notebook):

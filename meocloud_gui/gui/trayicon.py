@@ -1,4 +1,3 @@
-import subprocess
 import os
 from gi.repository import GObject, Gtk, GLib
 

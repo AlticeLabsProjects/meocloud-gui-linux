@@ -25,7 +25,6 @@ from dbus.mainloop.glib import DBusGMainLoop
 def init_localization():
     '''prepare l10n'''
     locale.setlocale(locale.LC_ALL, '')
-    loc = locale.getlocale()
     filename = "meocloud_mo/%s.mo" % locale.getlocale()[0][0:2]
     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
 
