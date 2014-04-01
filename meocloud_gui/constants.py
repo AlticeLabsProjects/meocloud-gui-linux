@@ -4,7 +4,6 @@ import sys
 # Timeouts
 DEFAULT_TIMEOUT = 3
 CONNECTION_REQUIRED_TIMEOUT = 15
-USER_ACTION_REQUIRED_TIMEOUT = 1200
 
 HOME_PATH = os.path.expanduser('~')
 CONFIG_PATH = os.path.join(HOME_PATH, '.meocloud')
@@ -41,17 +40,9 @@ SHELL_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
 
 LOGGER_NAME = 'meocloud_gui'
 LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_gui.log')
-NOTIFICATIONS_LOG_PATH = os.path.join(UI_CONFIG_PATH, 'user_notifications.log')
-
-DAEMON_BINARY_FILENAME = 'daemon'
-DAEMON_LOCK_PATH = os.path.join(UI_CONFIG_PATH, 'ui.lock')
-DAEMON_PID_PATH = os.path.join(UI_CONFIG_PATH, 'ui.pid')
 
 # seconds
 CORE_WATCHDOG_PERIOD = 20
-DAEMON_VERSION_CHECKER_PERIOD = 3600
-
-DEFAULT_NOTIFS_TAIL_LINES = 10
 
 
 def get_own_dir(own_filename):
