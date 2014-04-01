@@ -60,17 +60,21 @@ msgstr "Remover Ligação"
 msgid "Proxy"
 msgstr ""
 
-#: ../meocloud_gui/gui/prefswindow.py:72
+#: ../meocloud_gui/gui/prefswindow.py:73
+msgid "None"
+msgstr "Nenhum"
+
+#: ../meocloud_gui/gui/prefswindow.py:77
 msgid "Automatic"
 msgstr "Automático"
 
-#: ../meocloud_gui/gui/prefswindow.py:76
+#: ../meocloud_gui/gui/prefswindow.py:81
 msgid "Manual"
 msgstr ""
 
 #: ../meocloud_gui/gui/prefswindow.py:85
 msgid "Bandwidth"
-msgstr "Tráfego"
+msgstr "Largura de banda"
 
 #: ../meocloud_gui/gui/prefswindow.py:111
 msgid "Upload"
@@ -150,6 +154,10 @@ msgstr "Recriar Pasta"
 #: ../meocloud_gui/gui/missingdialog.py:32 ../meocloud_gui/application.py:121
 msgid "Quit"
 msgstr "Sair"
+
+#: ../meocloud_gui/gui/missingdialog.py:62
+msgid "The selected folder is not correct."
+msgstr "A pasta escolhida não é a correta."
 
 #: ../meocloud_gui/gui/selectivesyncwindow.py:38
 msgid "Cancel"
