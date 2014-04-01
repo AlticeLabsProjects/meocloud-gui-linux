@@ -107,6 +107,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
 
     def update_file_info(self, item):
         self.get_dbus()
+        uri = item.get_uri()
 
         if self.valid_uri(uri):
             uri = self.get_local_path(uri)
