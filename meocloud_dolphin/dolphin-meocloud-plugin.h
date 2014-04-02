@@ -15,14 +15,14 @@ class DolphinMEOCloudPlugin : public KVersionControlPlugin
     Q_OBJECT
 
 public:
-    DolphinMEOCloudPlugin(QObject* parent = 0, const QVariantList & args = QVariantList());
+    DolphinMEOCloudPlugin(QObject *parent = 0, const QVariantList &args = QVariantList());
     virtual ~DolphinMEOCloudPlugin();
     virtual QString fileName() const;
-    virtual bool beginRetrieval(const QString& directory);
+    virtual bool beginRetrieval(const QString &directory);
     virtual void endRetrieval();
-    virtual KVersionControlPlugin::VersionState versionState(const KFileItem& item);
-    virtual QList<QAction*> contextMenuActions(const KFileItemList& items);
-    virtual QList<QAction*> contextMenuActions(const QString& directory);
+    virtual KVersionControlPlugin::VersionState versionState(const KFileItem &item);
+    virtual QList<QAction *>contextMenuActions(const KFileItemList &items);
+    virtual QList<QAction *>contextMenuActions(const QString &directory);
 
 public slots:
     void setVersionState();
@@ -33,11 +33,11 @@ private slots:
     void shareFileLinkAction();
 
 private:
-    QList<QAction*> getActions(QString url, bool is_dir);
+    QList<QAction *>getActions(QString url, bool isDir);
 
-    QAction* m_shareFolderAction;
-    QAction* m_openInBrowserAction;
-    QAction* m_shareFileLinkAction;
+    QAction *m_shareFolderAction;
+    QAction *m_openInBrowserAction;
+    QAction *m_shareFileLinkAction;
 
     void requestLink(QString path);
     void requestShare(QString path);
