@@ -3,11 +3,11 @@
 
 #include <kversioncontrolplugin.h>
 #include <kabstractfileitemactionplugin.h>
-#include <QDateTime>
-#include <QHash>
-#include <QVariantList>
-#include <QFileInfo>
-#include <QTimer>
+#include <QtCore/QDateTime>
+#include <QtCore/QHash>
+#include <QtCore/QVariantList>
+#include <QtCore/QFileInfo>
+#include <QtCore/QTimer>
 #include "dolphin-meocloud-dbus.h"
 
 class DolphinMEOCloudPlugin : public KVersionControlPlugin
