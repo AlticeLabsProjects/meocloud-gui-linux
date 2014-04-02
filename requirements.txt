@@ -1,0 +1,2 @@
+keyring==3.7
+thrift==0.9.1
