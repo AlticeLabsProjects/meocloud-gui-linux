@@ -10,7 +10,7 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class DBusService(dbus.service.Object):
-    def __init__(self, status):
+    def __init__(self, status, app_path):
         bus_name = dbus.service.BusName('pt.meocloud.dbus',
                                         bus=dbus.SessionBus(),
                                         allow_replacement=True,
@@ -19,6 +19,7 @@ class DBusService(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, '/pt/meocloud/dbus')
         self.status = status
         self.shell = None
+        self.app_path = app_path
         self.update_prefs()
         log.info('DBusService: initialized')
 
@@ -103,3 +104,7 @@ class DBusService(dbus.service.Object):
     @dbus.service.method('pt.meocloud.dbus')
     def GetCloudHome(self):
         return self.cloud_home
+
+    @dbus.service.method('pt.meocloud.dbus')
+    def GetAppPath(self):
+        return self.app_path

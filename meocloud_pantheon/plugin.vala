@@ -5,6 +5,7 @@ interface Core : Object {
     public abstract bool file_syncing (string path) throws GLib.Error;
     public abstract bool file_ignored (string path) throws GLib.Error;
     public abstract string get_cloud_home () throws GLib.Error;
+    public abstract string get_app_path () throws GLib.Error;
     public abstract void share_link (string path) throws GLib.Error;
     public abstract void share_folder (string path) throws GLib.Error;
     public abstract void open_in_browser (string path) throws GLib.Error;
@@ -31,6 +32,26 @@ public class ShellServer : Object {
     }
 }
 
+enum SidebarPlaces {
+    COLUMN_ROW_TYPE,
+    COLUMN_URI,
+    COLUMN_DRIVE,
+    COLUMN_VOLUME,
+    COLUMN_MOUNT,
+    COLUMN_NAME,
+    COLUMN_ICON,
+    COLUMN_INDEX,
+    COLUMN_EJECT,
+    COLUMN_NO_EJECT,
+    COLUMN_BOOKMARK,
+    COLUMN_TOOLTIP,
+    COLUMN_EJECT_ICON,
+    COLUMN_FREE_SPACE,
+    COLUMN_DISK_SIZE,
+
+    COLUMN_COUNT
+}
+
 public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private Gtk.UIManager ui_manager;
     private Gtk.Menu menu;
@@ -39,6 +60,9 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string OPEN_BROWSER;
     private string SHARE_FOLDER;
     private string COPY_LINK;
+    private string CLOUD_LABEL;
+    private string CLOUD_TOOLTIP;
+    private string MEOCLOUD_TOOLTIP;
 
     public Gee.HashMap<string, GOF.File> map;
 
@@ -48,6 +72,9 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         OPEN_BROWSER = "Open in Browser";
         SHARE_FOLDER = "Share Folder";
         COPY_LINK = "Copy Link";
+        CLOUD_LABEL = "Cloud";
+        CLOUD_TOOLTIP = "Your cloud locations";
+        MEOCLOUD_TOOLTIP = "Your MEO Cloud folder";
 
         string[] langs = GLib.Intl.get_language_names ();
 
@@ -55,6 +82,9 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             OPEN_BROWSER = "Abrir no navegador web";
             SHARE_FOLDER = "Partilhar pasta";
             COPY_LINK = "Copiar hiperligação";
+            CLOUD_LABEL = "Nuvem";
+            CLOUD_TOOLTIP = "Nuvem";
+            MEOCLOUD_TOOLTIP = "A sua pasta MEO Cloud";
         }
 
         Bus.own_name (BusType.SESSION, "pt.meocloud.shell",
@@ -223,8 +253,58 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         plugins.menuitem_references.add (menu_item);
     }
 
-    public override void update_sidebar (Gtk.Widget sidebar)
-    {
+    public override void update_sidebar (Gtk.Widget sidebar) {
+        string cloud_home, app_path;
+
+        try {
+            cloud_home = this.core.get_cloud_home();
+            app_path = this.core.get_app_path();
+        } catch (Error e) {
+            return;
+        }
+
+        AbstractSidebar _sidebar = (AbstractSidebar) sidebar;
+        Gtk.TreeStore store = _sidebar.store;
+
+        Gdk.Pixbuf icon = new Gdk.Pixbuf.from_file_at_size (app_path + "/icons/meocloud.svg", 18, 18);
+
+        Gtk.TreeIter cloud_category;
+        store.append (out cloud_category, null);
+        store.set (cloud_category, SidebarPlaces.COLUMN_ICON, null,
+                   SidebarPlaces.COLUMN_NAME, CLOUD_LABEL,
+                   SidebarPlaces.COLUMN_URI, null,
+                   SidebarPlaces.COLUMN_DRIVE, null,
+                   SidebarPlaces.COLUMN_VOLUME, null,
+                   SidebarPlaces.COLUMN_MOUNT, null,
+                   SidebarPlaces.COLUMN_ROW_TYPE, 3,
+                   SidebarPlaces.COLUMN_INDEX, 0,
+                   SidebarPlaces.COLUMN_EJECT, false,
+                   SidebarPlaces.COLUMN_NO_EJECT, true,
+                   SidebarPlaces.COLUMN_BOOKMARK, false,
+                   SidebarPlaces.COLUMN_TOOLTIP, CLOUD_TOOLTIP,
+                   SidebarPlaces.COLUMN_EJECT_ICON, null,
+                   SidebarPlaces.COLUMN_FREE_SPACE, 0,
+                   SidebarPlaces.COLUMN_DISK_SIZE, 0,
+                    -1, -1);
+
+        Gtk.TreeIter meocloud_iter;
+        store.append (out meocloud_iter, cloud_category);
+        store.set (meocloud_iter, SidebarPlaces.COLUMN_ICON, icon,
+                   SidebarPlaces.COLUMN_NAME, "MEO Cloud",
+                   SidebarPlaces.COLUMN_URI, "file://" + cloud_home.replace(" ", "%20"),
+                   SidebarPlaces.COLUMN_DRIVE, null,
+                   SidebarPlaces.COLUMN_VOLUME, null,
+                   SidebarPlaces.COLUMN_MOUNT, null,
+                   SidebarPlaces.COLUMN_ROW_TYPE, 2,
+                   SidebarPlaces.COLUMN_INDEX, 0,
+                   SidebarPlaces.COLUMN_EJECT, false,
+                   SidebarPlaces.COLUMN_NO_EJECT, true,
+                   SidebarPlaces.COLUMN_BOOKMARK, 2,
+                   SidebarPlaces.COLUMN_TOOLTIP, MEOCLOUD_TOOLTIP,
+                   SidebarPlaces.COLUMN_EJECT_ICON, null,
+                   SidebarPlaces.COLUMN_FREE_SPACE, 0,
+                   SidebarPlaces.COLUMN_DISK_SIZE, 0,
+                    -1, -1);
     }
 }
 

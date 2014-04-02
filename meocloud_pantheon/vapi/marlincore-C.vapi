@@ -68,6 +68,7 @@ namespace Marlin
     [CCode (cheader_filename = "marlin-abstract-sidebar.h")]
     public abstract class AbstractSidebar : Gtk.ScrolledWindow
     {
+        public Gtk.TreeStore store;
         public void add_extra_item(string text);
     }
 

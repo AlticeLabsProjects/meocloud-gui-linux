@@ -64,7 +64,7 @@ class Application(Gtk.Application):
 
         # initialize dbus
         DBusGMainLoop(set_as_default=True)
-        self.dbus_service = DBusService(codes.CORE_INITIALIZING)
+        self.dbus_service = DBusService(codes.CORE_INITIALIZING, self.app_path)
 
     def on_activate(self, data=None):
         if not self.running:
