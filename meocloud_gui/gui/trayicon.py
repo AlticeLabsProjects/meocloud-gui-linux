@@ -35,7 +35,7 @@ class TrayIcon (GObject.Object):
             self.syncing = 2
             if self.timeout is not None:
                 GLib.source_remove(self.timeout)
-            self.timeout = GLib.timeout_add(1000, self.cycle_sync_icon)
+            self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
         icon_file = os.path.join(self.app.app_path, "icons/" + name + ".svg")
         GLib.idle_add(lambda: self.icon.set_from_file(icon_file))

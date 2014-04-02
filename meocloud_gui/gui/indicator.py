@@ -31,7 +31,7 @@ class Indicator (GObject.Object):
             self.syncing = 2
             if self.timeout is not None:
                 GLib.source_remove(self.timeout)
-            self.timeout = GLib.timeout_add(1000, self.cycle_sync_icon)
+            self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
         GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path,
                                                              "icons/" + name +
