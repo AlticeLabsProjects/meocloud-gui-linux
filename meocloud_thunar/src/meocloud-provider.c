@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <string.h>
 #include <gio/gio.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib.h>
@@ -88,7 +89,7 @@ meocloud_copy_link (GtkAction *action, GtkWidget *window)
   GFile *file;
   gchar *path;
 
-  files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
+  files = g_object_get_qdata (G_OBJECT (action), g_quark_from_string ("meocloud-selected-files"));
   if (G_UNLIKELY (files == NULL))
     return;
 
@@ -105,7 +106,7 @@ meocloud_copy_link (GtkAction *action, GtkWidget *window)
   if (G_UNLIKELY (connection == NULL))
     {
       g_error_free (error);
-      return NULL;
+      return;
     }
 
   proxy = dbus_g_proxy_new_for_name (connection,
@@ -118,7 +119,7 @@ meocloud_copy_link (GtkAction *action, GtkWidget *window)
                           path, G_TYPE_INVALID, G_TYPE_INVALID))
     {
       g_error_free (error);
-      return NULL;
+      return;
     }
 
   g_object_unref (proxy);
@@ -131,7 +132,7 @@ meocloud_share_folder (GtkAction *action, GtkWidget *window)
   GFile *file;
   gchar *path;
 
-  files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
+  files = g_object_get_qdata (G_OBJECT (action), g_quark_from_string ("meocloud-selected-files"));
   if (G_UNLIKELY (files == NULL))
     return;
 
@@ -148,7 +149,7 @@ meocloud_share_folder (GtkAction *action, GtkWidget *window)
   if (G_UNLIKELY (connection == NULL))
     {
       g_error_free (error);
-      return NULL;
+      return;
     }
 
   proxy = dbus_g_proxy_new_for_name (connection,
@@ -161,7 +162,7 @@ meocloud_share_folder (GtkAction *action, GtkWidget *window)
                           path, G_TYPE_INVALID, G_TYPE_INVALID))
     {
       g_error_free (error);
-      return NULL;
+      return;
     }
 
   g_object_unref (proxy);
@@ -174,7 +175,7 @@ meocloud_open_in_browser (GtkAction *action, GtkWidget *window)
   GFile *file;
   gchar *path;
 
-  files = g_object_get_qdata (G_OBJECT (action), "meocloud-selected-files");
+  files = g_object_get_qdata (G_OBJECT (action), g_quark_from_string ("meocloud-selected-files"));
   if (G_UNLIKELY (files == NULL))
     return;
 
@@ -191,7 +192,7 @@ meocloud_open_in_browser (GtkAction *action, GtkWidget *window)
   if (G_UNLIKELY (connection == NULL))
     {
       g_error_free(error);
-      return NULL;
+      return;
     }
 
   proxy = dbus_g_proxy_new_for_name (connection,
@@ -204,7 +205,7 @@ meocloud_open_in_browser (GtkAction *action, GtkWidget *window)
                           path, G_TYPE_INVALID, G_TYPE_INVALID))
     {
       g_error_free (error);
-      return NULL;
+      return;
     }
 
   g_object_unref (proxy);
@@ -270,7 +271,7 @@ meocloud_provider_get_file_actions (ThunarxMenuProvider *menu_provider,
     return NULL;
 
   const gchar * const *names = g_get_language_names ();
-  gchar *lang = names[0];
+  const gchar *lang = names[0];
 
   gchar *OPEN_BROWSER = "Open in Browser";
   gchar *SHARE_FOLDER = "Share Folder";
@@ -287,10 +288,10 @@ meocloud_provider_get_file_actions (ThunarxMenuProvider *menu_provider,
                          "name", "MEOCloud::open-in-browser",
                          "label", OPEN_BROWSER,
                          NULL);
-  g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
+  g_object_set_qdata_full (G_OBJECT (action), g_quark_from_string ("meocloud-selected-files"),
                            thunarx_file_info_list_copy (files),
                            (GDestroyNotify) thunarx_file_info_list_free);
-  g_object_set_qdata_full (G_OBJECT (action), "meocloud-provider",
+  g_object_set_qdata_full (G_OBJECT (action), g_quark_from_string ("meocloud-provider"),
                            g_object_ref (G_OBJECT (meocloud_provider)),
                            (GDestroyNotify) g_object_unref);
   closure = g_cclosure_new_object (G_CALLBACK (meocloud_open_in_browser),
@@ -304,10 +305,10 @@ meocloud_provider_get_file_actions (ThunarxMenuProvider *menu_provider,
                              "name", "MEOCloud::share-folder",
                              "label", SHARE_FOLDER,
                              NULL);
-      g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
+      g_object_set_qdata_full (G_OBJECT (action), g_quark_from_string ("meocloud-selected-files"),
                                thunarx_file_info_list_copy (files),
                                (GDestroyNotify) thunarx_file_info_list_free);
-      g_object_set_qdata_full(G_OBJECT (action), "meocloud-provider",
+      g_object_set_qdata_full(G_OBJECT (action), g_quark_from_string ("meocloud-provider"),
                               g_object_ref (G_OBJECT (meocloud_provider)),
                               (GDestroyNotify) g_object_unref);
       closure = g_cclosure_new_object (G_CALLBACK (meocloud_share_folder),
@@ -321,10 +322,10 @@ meocloud_provider_get_file_actions (ThunarxMenuProvider *menu_provider,
                              "name", "MEOCloud::copy-link",
                              "label", COPY_LINK,
                              NULL);
-      g_object_set_qdata_full (G_OBJECT (action), "meocloud-selected-files",
+      g_object_set_qdata_full (G_OBJECT (action), g_quark_from_string ("meocloud-selected-files"),
                                thunarx_file_info_list_copy (files),
                                (GDestroyNotify) thunarx_file_info_list_free);
-      g_object_set_qdata_full(G_OBJECT (action), "meocloud-provider",
+      g_object_set_qdata_full(G_OBJECT (action), g_quark_from_string ("meocloud-provider"),
                               g_object_ref (G_OBJECT (meocloud_provider)),
                               (GDestroyNotify) g_object_unref);
       closure = g_cclosure_new_object (G_CALLBACK (meocloud_copy_link),
