@@ -57,10 +57,13 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             COPY_LINK = "Copiar hiperligação";
         }
 
-        Bus.own_name (BusType.SESSION, "pt.meocloud.shell", BusNameOwnerFlags.ALLOW_REPLACEMENT + BusNameOwnerFlags.REPLACE,
+        Bus.own_name (BusType.SESSION, "pt.meocloud.shell",
+                      BusNameOwnerFlags.ALLOW_REPLACEMENT +
+                      BusNameOwnerFlags.REPLACE,
                       (conn) => {
                           try {
-                              conn.register_object ("/pt/meocloud/shell", new ShellServer (this));
+                              conn.register_object ("/pt/meocloud/shell",
+                                                    new ShellServer (this));
                           } catch (IOError e) {
                               stderr.printf ("Could not register service\n");
                           }
@@ -83,7 +86,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         }
     }
 
-    public override void context_menu (Gtk.Widget? widget, List<GOF.File> gof_files) {
+    public override void context_menu (Gtk.Widget? widget,
+                                       List<GOF.File> gof_files) {
         menu = widget as Gtk.Menu;
         return_if_fail (menu != null);
 
@@ -91,7 +95,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             return;
 
         GOF.File file = gof_files.nth_data (0);
-        string path = GLib.Uri.unescape_string (file.uri.replace ("file://", ""));
+        string path = GLib.Uri.unescape_string (file.uri.replace ("file://",
+                                                                  ""));
 
         try {
             this.get_dbus ();
@@ -104,19 +109,25 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
         Gtk.Menu submenu = new Gtk.Menu ();
 
-        Gtk.MenuItem open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
-        open_in_browser.activate.connect ((w) => { this.core.open_in_browser (path); });
+        var open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
+        open_in_browser.activate.connect ((w) => {
+            this.core.open_in_browser (path);
+        });
         submenu.add (open_in_browser);
 
         GLib.File f = File.new_for_path (path);
 
         if (f.query_file_type (0) == FileType.DIRECTORY) {
-            Gtk.MenuItem share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
-            share_folder.activate.connect ((w) => { this.core.share_folder (path); });
+            var share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
+            share_folder.activate.connect ((w) => {
+                this.core.share_folder (path);
+            });
             submenu.add (share_folder);
         } else {
-            Gtk.MenuItem copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
-            copy_link.activate.connect ((w) => { this.core.share_link (path); });
+            var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
+            copy_link.activate.connect ((w) => {
+                this.core.share_link (path);
+            });
             submenu.add (copy_link);
         }
 
@@ -134,8 +145,9 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
     public override void update_file_info (GOF.File file) {
         if (file.is_trashed() || !file.exists ||
-                file.is_remote_uri_scheme () || file.is_network_uri_scheme () ||
-                file.is_smb_uri_scheme ())
+            file.is_remote_uri_scheme () ||
+            file.is_network_uri_scheme () ||
+            file.is_smb_uri_scheme ())
             return;
 
         string path = file.get_target_location ().get_path ();
