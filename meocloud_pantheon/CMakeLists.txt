@@ -13,6 +13,8 @@ include(ValaVersion)
 ensure_vala_version("0.12.0" MINIMUM)
 include(ValaPrecompile)
 
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
+
 vala_precompile(VALA_C marlin-meocloud
     plugin.vala
 PACKAGES

@@ -33,7 +33,6 @@ public class ShellServer : Object {
 public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private Gtk.UIManager ui_manager;
     private Gtk.Menu menu;
-    private GOF.File current_directory = null;
     private Core? core = null;
 
     private string OPEN_BROWSER;
@@ -111,7 +110,10 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
         var open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
         open_in_browser.activate.connect ((w) => {
-            this.core.open_in_browser (path);
+            try {
+                this.core.open_in_browser (path);
+            } catch (Error e) {
+            }
         });
         submenu.add (open_in_browser);
 
@@ -120,13 +122,19 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         if (f.query_file_type (0) == FileType.DIRECTORY) {
             var share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
             share_folder.activate.connect ((w) => {
-                this.core.share_folder (path);
+                try {
+                    this.core.share_folder (path);
+                } catch (Error e) {
+                }
             });
             submenu.add (share_folder);
         } else {
             var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
             copy_link.activate.connect ((w) => {
-                this.core.share_link (path);
+                try {
+                    this.core.share_link (path);
+                } catch (Error e) {
+                }
             });
             submenu.add (copy_link);
         }
@@ -206,17 +214,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         menu.append (menu_item);
         menu_item.show ();
         plugins.menuitem_references.add (menu_item);
-    }
-
-    private static File[] get_file_array (List<GOF.File> files) {
-        File[] file_array = new File[0];
-
-        foreach (var file in files) {
-            if (file.location != null)
-                file_array += file.location;
-        }
-
-        return file_array;
     }
 
     public override void update_sidebar (Gtk.Widget sidebar)
