@@ -8,8 +8,8 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
-#include <QtCore/QApplication>
 #include <QtCore/QtDebug>
+#include <QtGui/QApplication>
 #include <QtGui/QClipboard>
 #include <QtDBus/QtDBus>
 #include <KDE/KPluginFactory>
