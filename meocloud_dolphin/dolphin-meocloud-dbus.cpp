@@ -35,6 +35,10 @@ ShellAdaptor::~ShellAdaptor()
 
 void ShellAdaptor::UpdateFile(const QString &path)
 {
+    // do something with the path to get rid of the unused warning
+    // even if it's just doing nothing
+    (void)(path);
+
     // handle method call pt.meocloud.shell.UpdateFile
-    QMetaObject::invokeMethod(parent(), "UpdateFile", Q_ARG(QString, path));
+    QMetaObject::invokeMethod(parent(), "UpdateFile");
 }

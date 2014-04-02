@@ -55,7 +55,7 @@ public:
     }
 
 public slots:
-    void UpdateFile(const QString &path)
+    void UpdateFile()
     {
         QMetaObject::invokeMethod(parent(), "setVersionState");
     }
