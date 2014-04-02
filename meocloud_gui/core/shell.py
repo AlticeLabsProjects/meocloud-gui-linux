@@ -30,6 +30,7 @@ class Shell(object):
                                     'meocloud_shell_listener.socket'))
 
         self.syncing = []
+        self.ignored = []
 
         prefs = Preferences()
         self.cloud_home = prefs.get('Advanced', 'Folder',
@@ -66,6 +67,8 @@ class Shell(object):
             if msg.fileStatus.status.path != "/":
                 if msg.fileStatus.status.state == FileState.SYNCING:
                     self.syncing.append(msg.fileStatus.status.path)
+                elif msg.fileStatus.status.state == FileState.IGNORED:
+                    self.ignored.append(msg.fileStatus.status.path)
                 elif msg.fileStatus.status.path in self.syncing:
                     self.syncing.remove(msg.fileStatus.status.path)
                 utils.touch(os.path.join(self.cloud_home,

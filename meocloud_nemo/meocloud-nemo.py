@@ -131,10 +131,12 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                     elif status == CORE_ERROR or status == CORE_OFFLINE:
                         item.add_emblem("emblem-important")
                 else:
-                    in_cloud, syncing = self.file_in_cloud(uri)
+                    in_cloud, syncing, ignored = self.file_in_cloud(uri)
 
                     if in_cloud and syncing:
                         item.add_emblem("emblem-synchronizing")
+                    elif in_cloud and ignored:
+                        item.add_emblem("emblem-important")
                     elif in_cloud:
                         item.add_emblem("emblem-default")
             except:

@@ -42,10 +42,12 @@ class DBusService(dbus.service.Object):
         else:
             if self.shell is None:
                 is_syncing = False
+                is_ignored = False
             else:
                 is_syncing = path.replace(cloud_home, '') in self.shell.syncing
+                is_ignored = path.replace(cloud_home, '') in self.shell.ignored
 
-            return path.startswith(cloud_home), is_syncing
+            return path.startswith(cloud_home), is_syncing, is_ignored
 
     @dbus.service.method('pt.meocloud.dbus')
     def FileSyncing(self, path):
@@ -61,6 +63,21 @@ class DBusService(dbus.service.Object):
                 is_syncing = path.replace(cloud_home, '') in self.shell.syncing
 
             return is_syncing
+
+    @dbus.service.method('pt.meocloud.dbus')
+    def FileIgnored(self, path):
+        cloud_home = self.cloud_home
+        path = unicode(path).encode('utf-8')
+
+        if os.path.samefile(path, cloud_home):
+            return False
+        else:
+            if self.shell is None:
+                is_ignored = False
+            else:
+                is_ignored = path.replace(cloud_home, '') in self.shell.ignored
+
+            return is_ignored
 
     @dbus.service.method('pt.meocloud.dbus')
     def ShareFolder(self, path):

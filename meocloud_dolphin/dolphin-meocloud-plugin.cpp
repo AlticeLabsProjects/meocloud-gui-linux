@@ -162,9 +162,13 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
         if (response.type() == QDBusMessage::ReplyMessage) {
             bool inCloud = response.arguments().at(0).value<bool>();
             bool isSyncing = response.arguments().at(1).value<bool>();
+            bool isIgnored = response.arguments().at(2).value<bool>();
 
             if (inCloud && isSyncing) {
                 versionState = KVersionControlPlugin::UpdateRequiredVersion;
+                m_versionInfoHash.insert(filename, versionState);
+            } else if (inCloud && isIgnored) {
+                versionState = KVersionControlPlugin::ConflictingVersion;
                 m_versionInfoHash.insert(filename, versionState);
             } else if (inCloud) {
                 versionState = KVersionControlPlugin::NormalVersion;

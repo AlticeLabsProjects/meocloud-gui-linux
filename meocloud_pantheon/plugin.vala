@@ -3,6 +3,7 @@ interface Core : Object {
     public abstract int status () throws GLib.Error;
     public abstract bool file_in_cloud (string path) throws GLib.Error;
     public abstract bool file_syncing (string path) throws GLib.Error;
+    public abstract bool file_ignored (string path) throws GLib.Error;
     public abstract string get_cloud_home () throws GLib.Error;
     public abstract void share_link (string path) throws GLib.Error;
     public abstract void share_folder (string path) throws GLib.Error;
@@ -185,6 +186,10 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                     case 3:
                         file.add_emblem ("emblem-synchronizing");
                         break;
+                    case 6:
+                    case 9:
+                        file.add_emblem ("emblem-important");
+                        break;
                     default:
                         file.add_emblem ("emblem-default");
                         break;
@@ -194,6 +199,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                     if (this.core.file_in_cloud (path)) {
                         if (this.core.file_syncing (path))
                             file.add_emblem ("emblem-synchronizing");
+                        else if (this.core.file_ignored (path))
+                            file.add_emblem ("emblem-important");
                         else
                             file.add_emblem ("emblem-default");
                     }
