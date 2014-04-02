@@ -1,5 +1,5 @@
-#ifndef __CLOUD_PROVIDER_H__
-#define __CLOUD_PROVIDER_H__
+#ifndef __MEOCLOUD_PROVIDER_H__
+#define __MEOCLOUD_PROVIDER_H__
 
 #include <thunarx/thunarx.h>
 
