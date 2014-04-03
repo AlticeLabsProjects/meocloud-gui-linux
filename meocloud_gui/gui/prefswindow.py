@@ -280,6 +280,8 @@ class PrefsWindow(Gtk.Window):
             self.selective_sync.connect("destroy", self.on_selective_destroy)
             self.app.core_client.requestRemoteDirectoryListing('/')
             self.selective_sync.show_all()
+        else:
+            self.selective_sync.present()
 
     def on_selective_destroy(self, w):
         selective_sync = self.selective_sync
