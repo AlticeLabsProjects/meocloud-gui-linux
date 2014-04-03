@@ -236,7 +236,7 @@ def move_folder_async(src, dst, callback=None):
         try:
             shutil.move(src, dst)
 
-            logging.getLogger(LOGGER_NAME).warning(
+            logging.getLogger(LOGGER_NAME).info(
                 "utils.move_folder_async: Moved folder " +
                 src + " to " + dst)
 
