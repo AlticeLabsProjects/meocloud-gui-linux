@@ -20,13 +20,16 @@ class SetupWindow(Gtk.Window):
 
         self.app = app
         self.pages = Pages()
-        self.add(self.pages)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        welcome_label = Gtk.Label("<b>" + _("Welcome to MEO Cloud") + "</b>")
+        welcome_label.set_use_markup(True)
+        box.pack_start(welcome_label, False, False, 10)
+        box.pack_start(self.pages, True, True, 0)
+        self.add(box)
 
         # First page
 
         first_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        first_page_box.pack_start(self.new_welcome_label(), False,
-                                  True, 10)
         first_page_box.pack_start(Gtk.Label(), True, True, 0)
 
         self.setup_easy = Gtk.RadioButton.new_with_label(None, "Easy")
@@ -61,8 +64,6 @@ class SetupWindow(Gtk.Window):
         # Second page (device info)
 
         second_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        second_page_box.pack_start(self.new_welcome_label(), False,
-                                   True, 10)
         second_page_box.pack_start(Gtk.Label(), True, True, 0)
         self.pages.append_page(second_page_box, Gtk.Label())
         device_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -94,8 +95,6 @@ class SetupWindow(Gtk.Window):
         # Advanced setup page
 
         advanced_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        advanced_page_box.pack_start(self.new_welcome_label(), False,
-                                     True, 10)
 
         app.prefs_window = PrefsWindow(app, True)
         app.prefs_window.remove(app.prefs_window.notebook)
@@ -118,8 +117,6 @@ class SetupWindow(Gtk.Window):
         # Success page
 
         success_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        success_page_box.pack_start(self.new_welcome_label(), False,
-                                    True, 10)
         success_page_box.pack_start(Gtk.Label(), True, True, 0)
 
         success_label = Gtk.Label(
@@ -140,11 +137,6 @@ class SetupWindow(Gtk.Window):
         self.pages.append_page(success_page_box, Gtk.Label())
 
         self.set_size_request(400, 300)
-
-    def new_welcome_label(self):
-        label = Gtk.Label("<b>" + _("Welcome to MEO Cloud") + "</b>")
-        label.set_use_markup(True)
-        return label
 
     def on_first_page(self, widget):
         log.info('SetupWindow.on_first_page: changing to first page')
