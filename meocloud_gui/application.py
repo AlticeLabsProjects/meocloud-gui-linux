@@ -268,7 +268,7 @@ class Application(Gtk.Application):
                             'will now shutdown')
 
                 notif_icon = os.path.join(
-                    self.app_path, "icons/meocloud-ok.svg")
+                    self.app_path, "icons/meocloud.svg")
                 notif_title = _('Cloud Folder Missing')
                 notif_string = _('Your cloud folder is missing.')
                 notification = Notify.Notification.new(notif_title,

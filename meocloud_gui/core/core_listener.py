@@ -151,7 +151,7 @@ class CoreListenerHandler(UI.Iface):
                                                    os.path.join(
                                                        self.app.app_path,
                                                        "icons/"
-                                                       "meocloud-ok.svg"))
+                                                       "meocloud.svg"))
             notification.show()
         elif (note.code == codes.SHARE_FOLDER or
                 note.code == codes.OPEN_IN_BROWSER):
@@ -173,7 +173,7 @@ class CoreListenerHandler(UI.Iface):
                 lang = 'en'
 
             notif_icon = os.path.join(
-                self.app.app_path, "icons/meocloud-ok.svg")
+                self.app.app_path, "icons/meocloud.svg")
             notif_title = NOTIFICATIONS[lang][str(note.code) + "_title"]
             notif_string = NOTIFICATIONS[lang][str(note.code) +
                                                "_description"].format(
