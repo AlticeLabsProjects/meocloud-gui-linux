@@ -186,9 +186,7 @@ class Application(Gtk.Application):
 
     def file_changed(self):
         if self.prefs_window is not None:
-            print "prefs"
             if self.prefs_window.selective_sync is not None:
-                print "selective"
                 GLib.idle_add(self.prefs_window.selective_sync.panic)
 
     def update_menu(self, status=None, ignore_sync=False):
