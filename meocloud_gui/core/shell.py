@@ -1,5 +1,6 @@
 import socket
 import os
+from gi.repository import GLib
 from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
@@ -23,12 +24,13 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class Shell(object):
-    def __init__(self, isDaemon):
+    def __init__(self, isDaemon, cb_file_changed=None):
         self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
         self.s.connect(os.path.join(UI_CONFIG_PATH,
                                     'meocloud_shell_listener.socket'))
 
+        self.cb_file_changed = cb_file_changed
         self.syncing = []
         self.ignored = []
 
@@ -42,8 +44,8 @@ class Shell(object):
         self._thread.start()
 
     @staticmethod
-    def start():
-        return Shell(isDaemon=False)
+    def start(cb_file_changed):
+        return Shell(False, cb_file_changed)
 
     def clean_syncing(self):
         for path in self.syncing:
@@ -73,6 +75,9 @@ class Shell(object):
                     self.syncing.remove(msg.fileStatus.status.path)
                 utils.touch(os.path.join(self.cloud_home,
                                          msg.fileStatus.status.path[1:]))
+
+                if self.cb_file_changed is not None:
+                    GLib.idle_add(self.cb_file_changed)
             else:
                 utils.touch(self.cloud_home)
 

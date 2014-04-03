@@ -20,7 +20,7 @@ class PrefsWindow(Gtk.Window):
 
         prefs = Preferences()
         self.app = app
-        self.selective_sync = SelectiveSyncWindow(self.app)
+        self.selective_sync = None
 
         # notebook boxes
         general_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -271,11 +271,20 @@ class PrefsWindow(Gtk.Window):
         else:
             meocloud_gui.utils.create_startup_file(self.app.app_path)
 
-    def on_selective_sync(self, w):
-        self.selective_sync.destroy()
-        self.selective_sync = SelectiveSyncWindow(self.app)
-        self.app.core_client.requestRemoteDirectoryListing('/')
-        self.selective_sync.show_all()
+    def on_selective_sync(self, w, force_destroy=False):
+        if force_destroy:
+            self.selective_sync.destroy()
+
+        if self.selective_sync is None:
+            self.selective_sync = SelectiveSyncWindow(self.app)
+            self.selective_sync.connect("destroy", self.on_selective_destroy)
+            self.app.core_client.requestRemoteDirectoryListing('/')
+            self.selective_sync.show_all()
+
+    def on_selective_destroy(self, w):
+        selective_sync = self.selective_sync
+        self.selective_sync = None
+        selective_sync.destroy()
 
     def on_choose_folder(self, w):
         dialog = Gtk.FileChooserDialog(_("Please choose a folder"), self,
