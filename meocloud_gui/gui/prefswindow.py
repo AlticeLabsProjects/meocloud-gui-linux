@@ -22,6 +22,7 @@ class PrefsWindow(Gtk.Window):
         self.app = app
         self.selective_sync = SelectiveSyncWindow(self.app)
 
+        # notebook boxes
         general_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         general_box.set_margin_left(10)
         general_box.set_margin_right(10)
@@ -35,7 +36,7 @@ class PrefsWindow(Gtk.Window):
         advanced_box.set_margin_left(10)
         advanced_box.set_margin_right(10)
 
-        # general
+        # display notifications
         display_notif = prefs.get("General", "Notifications", "True") == "True"
         display_notifications = Gtk.CheckButton(_("Display notifications"))
         display_notifications.set_active(display_notif)
@@ -43,6 +44,7 @@ class PrefsWindow(Gtk.Window):
                                       self.toggle_display_notifications)
         general_box.pack_start(display_notifications, False, True, 10)
 
+        # use dark icons
         display_dark = prefs.get("General", "DarkIcons", "False") == "True"
         display_darkicons = Gtk.CheckButton(_("Use dark icons"))
         display_darkicons.set_active(display_dark)
@@ -50,6 +52,7 @@ class PrefsWindow(Gtk.Window):
                                   self.toggle_icons)
         general_box.pack_start(display_darkicons, False, True, 0)
 
+        # start at login
         start_at_login = Gtk.CheckButton(_("Start MEO Cloud at login"))
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
@@ -65,11 +68,12 @@ class PrefsWindow(Gtk.Window):
         account_box.pack_start(login_label, False, True, 10)
         account_box.pack_start(self.logout_button, False, True, 10)
 
-        # network
+        # proxy label
         proxy_label = Gtk.Label("<b>" + _("Proxy") + "</b>")
         proxy_label.set_use_markup(True)
         proxy_label.set_alignment(0, 0)
 
+        # proxy radio buttons
         self.proxy_none = Gtk.RadioButton.new_with_label(None, _("None"))
         self.proxy_none.connect("toggled", lambda w: self.set_proxy(w,
                                                                     "None"))
@@ -82,6 +86,7 @@ class PrefsWindow(Gtk.Window):
         self.proxy_manual.connect("toggled", lambda w:
                                   self.set_proxy(w, "Manual"))
 
+        # proxy automatic configuration
         self.proxy_automatic_url = Gtk.Entry()
         self.proxy_automatic_url.set_placeholder_text("http://www.example.com")
         self.proxy_automatic_url.set_text(prefs.get("Network", "ProxyURL", ""))
@@ -89,6 +94,7 @@ class PrefsWindow(Gtk.Window):
         self.proxy_automatic_url.connect("changed",
                                          self.proxy_automatic_value_changed)
 
+        # proxy manual configuration
         self.proxy_manual_address = Gtk.Entry()
         self.proxy_manual_address.set_placeholder_text("Address")
         self.proxy_manual_address.set_text(
@@ -126,15 +132,14 @@ class PrefsWindow(Gtk.Window):
             "changed", lambda w: self.proxy_manual_value_changed(
                 w, "ProxyPassword"))
 
+        # bandwidth label
         bandwidth_label = Gtk.Label("<b>" + _("Bandwidth") + "</b>")
         bandwidth_label.set_use_markup(True)
         bandwidth_label.set_alignment(0, 0)
 
+        # download limit
         download_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        upload_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-
         download_entry = Gtk.Entry()
-        upload_entry = Gtk.Entry()
         download_entry.set_sensitive(int(prefs.get("Network",
                                                    "ThrottleDownload",
                                                    "0")) > 0)
@@ -145,6 +150,17 @@ class PrefsWindow(Gtk.Window):
         download_entry.set_alignment(1)
         download_entry.connect("changed", lambda w:
                                self.throttle_value_changed(w, "Download"))
+        download_check_active = int(prefs.get("Network", "ThrottleDownload",
+                                              "0")) > 0
+        download_check = Gtk.CheckButton(_("Download"))
+        download_check.set_active(download_check_active)
+        download_check.connect("toggled", lambda w:
+                               self.toggle_throttle(download_entry,
+                                                    "Download"))
+
+        # upload limit
+        upload_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        upload_entry = Gtk.Entry()
         upload_entry.set_sensitive(int(prefs.get("Network", "ThrottleUpload",
                                    "0")) > 0)
         upload_text = prefs.get("Network", "ThrottleUpload", "64")
@@ -157,26 +173,18 @@ class PrefsWindow(Gtk.Window):
 
         upload_check_active = int(prefs.get("Network", "ThrottleUpload",
                                             "0")) > 0
-        download_check_active = int(prefs.get("Network", "ThrottleDownload",
-                                              "0")) > 0
         upload_check = Gtk.CheckButton(_("Upload"))
         upload_check.set_active(upload_check_active)
         upload_check.connect("toggled", lambda w:
                              self.toggle_throttle(upload_entry, "Upload"))
-        download_check = Gtk.CheckButton(_("Download"))
-        download_check.set_active(download_check_active)
-        download_check.connect("toggled", lambda w:
-                               self.toggle_throttle(download_entry,
-                                                    "Download"))
+
+        # pack it all up
         download_box.pack_start(download_check, False, False, 0)
         upload_box.pack_start(upload_check, False, False, 0)
-
         download_box.pack_start(Gtk.Label(), True, True, 0)
         upload_box.pack_start(Gtk.Label(), True, True, 0)
-
         download_box.pack_start(download_entry, False, False, 5)
         upload_box.pack_start(upload_entry, False, False, 5)
-
         download_box.pack_start(Gtk.Label("KB/s"), False, False, 5)
         upload_box.pack_start(Gtk.Label("KB/s"), False, False, 5)
 
@@ -193,6 +201,7 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(download_box, False, False, 0)
         network_box.pack_start(upload_box, False, False, 5)
 
+        # set the proxy settings
         if prefs.get("Network", "Proxy", "None") == "Automatic":
             self.proxy_automatic.set_active(True)
             self.proxy_automatic_url.show()
@@ -216,6 +225,7 @@ class PrefsWindow(Gtk.Window):
 
         self.notebook = Gtk.Notebook()
 
+        # change the contents according to where the preferences will be
         if embed:
             self.notebook.append_page(general_box, Gtk.Label(_("General")))
             self.notebook.append_page(network_box, Gtk.Label(_("Network")))
