@@ -3,11 +3,8 @@ gir1.2-gtk-3.0
 gir1.2-notify-0.7
 gir1.2-appindicator3-0.1
 libappindicator3-1
-gir1.2-nautilus-3.0
-python-nautilus
 
 fedora:
-nautilus-python
 libnotify
 
 python:
@@ -16,6 +13,10 @@ dbus
 
 ---
 
+gnome 3/unity 7 (ubuntu):
+gir1.2-nautilus-3.0
+python-nautilus
+
 mate (ubuntu):
 python-caja
 gir1.2-caja
@@ -23,3 +24,9 @@ gir1.2-caja
 cinnamon (ubuntu):
 gir1.2-nemo-3.0
 python-nemo
+
+gnome 3 (fedora):
+nautilus-python
+
+mate (fedora):
+python-caja
