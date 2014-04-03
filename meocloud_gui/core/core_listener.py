@@ -97,9 +97,14 @@ class CoreListenerHandler(UI.Iface):
     def beginAuthorizationBrowser(self, w):
         self.setup.start_waiting()
 
-        subprocess.Popen(["xdg-open",
-                         self.core_client.authorizeWithDeviceName
-                         (self.setup.device_entry.get_text())])
+        device_name = self.setup.device_entry.get_text()
+
+        if len(device_name) > 0:
+            subprocess.Popen(["xdg-open",
+                             self.core_client.authorizeWithDeviceName
+                             (device_name)])
+        else:
+            self.setup.pages.set_current_page(1)
 
     def authorized(self, account):
         log.debug('CoreListener.authorized({0}) <<<<'.format(account))
