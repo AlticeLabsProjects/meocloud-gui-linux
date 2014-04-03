@@ -7,10 +7,6 @@ libappindicator3-1
 fedora:
 libnotify
 
-python:
-keyring
-dbus
-
 ---
 
 gnome 3/unity 7 (ubuntu):
