@@ -13,3 +13,13 @@ libnotify
 python:
 keyring
 dbus
+
+---
+
+mate (ubuntu):
+python-caja
+gir1.2-caja
+
+cinnamon (ubuntu):
+gir1.2-nemo-3.0
+python-nemo
