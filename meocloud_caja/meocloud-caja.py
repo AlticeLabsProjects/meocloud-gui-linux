@@ -1,4 +1,4 @@
-from gi.repository import Nemo, GObject
+from gi.repository import Caja, GObject
 import dbus
 import dbus.service
 import urllib
@@ -57,8 +57,8 @@ class DBusService(dbus.service.Object):
             del item
 
 
-class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
-                   GObject.GObject):
+class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
+                       GObject.GObject):
     def __init__(self):
         init_localization()
         self.service = None
@@ -143,7 +143,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                 self.service = None
                 pass
 
-        return Nemo.OperationResult.COMPLETE
+        return Caja.OperationResult.COMPLETE
 
     def get_file_items(self, window, files):
         if len(files) != 1:
@@ -166,25 +166,25 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         else:
             return None,
 
-        top_menuitem = Nemo.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
-                                         'MEO Cloud', '', '')
+        top_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
+                                             'MEO Cloud', '', '')
 
-        submenu = Nemo.Menu()
+        submenu = Caja.Menu()
         top_menuitem.set_submenu(submenu)
 
         if os.path.isfile(uri):
-            link_menuitem = Nemo.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                              _('Copy Link'), '', '')
+            link_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::Copy',
+                                                  _('Copy Link'), '', '')
             link_menuitem.connect("activate", lambda w: self.share_link(uri))
             submenu.append_item(link_menuitem)
         else:
-            share_menuitem = Nemo.MenuItem.new(
+            share_menuitem = Caja.MenuItem.new(
                 'MEOCloudMenuProvider::Share', _('Share Folder'), '', '')
             share_menuitem.connect("activate", lambda w:
                                    self.share_folder(uri))
             submenu.append_item(share_menuitem)
 
-        browser_menuitem = Nemo.MenuItem.new(
+        browser_menuitem = Caja.MenuItem.new(
             'MEOCloudMenuProvider::Browser', _('Open in Browser'), '', '')
         browser_menuitem.connect("activate", lambda w:
                                  self.open_in_browser(uri))
