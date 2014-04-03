@@ -18,7 +18,8 @@ class Pages (Gtk.Notebook):
 
         try:
             self.stack = Gtk.Stack()
-            self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+            self.stack.set_transition_type(
+                Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
             self.max_stack = 0
             self.current_stack = 0
         except:
