@@ -23,10 +23,12 @@ class PrefsWindow(Gtk.Window):
 
         self.notebook = CustomNotebook()
 
-        if embed:
+        if embed or not app.use_headerbar:
             try:
                 stack = Gtk.StackSwitcher()
                 stack.set_stack(self.notebook)
+                stack.set_margin_right(5)
+                stack.set_margin_left(5)
 
                 hor_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 

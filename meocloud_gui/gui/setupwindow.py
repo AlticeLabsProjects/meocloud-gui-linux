@@ -23,6 +23,9 @@ class SetupWindow(Gtk.Window):
         self.pages = Pages()
 
         try:
+            if not app.use_headerbar:
+                assert False
+
             self.headerbar = Gtk.HeaderBar()
             self.headerbar.set_title("Welcome to MEO Cloud")
             self.headerbar.set_show_close_button(True)

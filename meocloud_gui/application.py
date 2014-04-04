@@ -56,6 +56,7 @@ class Application(Gtk.Application):
         self.core = None
         self.ignored_directories = []
         self.dark_icons = False
+        self.use_headerbar = utils.use_headerbar()
 
         self.sync_thread = None
         self.menu_thread = None

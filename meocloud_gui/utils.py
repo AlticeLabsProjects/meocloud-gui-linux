@@ -6,6 +6,7 @@ import urllib
 import logging
 import logging.handlers
 import shutil
+import dbus
 from threading import Thread
 from gi.repository import GLib, Gio
 from meocloud_gui.preferences import Preferences
@@ -256,3 +257,17 @@ def move_folder_async(src, dst, callback=None):
 def get_error_code(status_code):
     # most significant byte
     return status_code >> 24
+
+
+def use_headerbar():
+    try:
+        bus = dbus.SessionBus()
+        versionservice = bus.get_object('org.gnome.Shell', '/org/gnome/Shell')
+        version = versionservice.get_dbus_method('ShellVersion', 'org.gnome.Shell')
+
+        if version is not None:
+            return True
+        else:
+            return False
+    except:
+        return False
