@@ -109,6 +109,9 @@ class Application(Gtk.Application):
                         self.ignored_directories.append(line.rstrip('\n'))
                     f.close()
 
+                    log.info('Application.on_activate: ignored '
+                             'directories: ' + str(self.ignored_directories))
+
                 recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
                 recentfiles_nothing.show()
                 self.recentfiles_menu = Gtk.Menu()
