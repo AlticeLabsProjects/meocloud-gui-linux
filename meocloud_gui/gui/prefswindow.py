@@ -4,6 +4,7 @@ from gi.repository import Gtk, GLib
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.progressdialog import ProgressDialog
 from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
+from meocloud_gui.gui.customnotebook import CustomNotebook
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
@@ -17,6 +18,35 @@ class PrefsWindow(Gtk.Window):
         Gtk.Window.__init__(self)
         self.set_title(_("Preferences"))
         self.set_position(Gtk.WindowPosition.CENTER)
+
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+        self.notebook = CustomNotebook()
+
+        if embed:
+            try:
+                stack = Gtk.StackSwitcher()
+                stack.set_stack(self.notebook)
+
+                hor_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+
+                hor_box.pack_start(Gtk.Label(), True, True, 0)
+                hor_box.pack_start(stack, False, False, 0)
+                hor_box.pack_start(Gtk.Label(), True, True, 0)
+
+                self.box.pack_start(hor_box, False, False, 10)
+            except:
+                pass
+        else:
+            try:
+                headerbar = Gtk.HeaderBar()
+                stack = Gtk.StackSwitcher()
+                stack.set_stack(self.notebook)
+                headerbar.set_custom_title(stack)
+                headerbar.set_show_close_button(True)
+                self.set_titlebar(headerbar)
+            except:
+                pass
 
         prefs = Preferences()
         self.app = app
@@ -223,8 +253,6 @@ class PrefsWindow(Gtk.Window):
         advanced_box.pack_start(folder_button, False, True, 10)
         advanced_box.pack_start(selective_button, False, True, 0)
 
-        self.notebook = Gtk.Notebook()
-
         # change the contents according to where the preferences will be
         if embed:
             self.notebook.append_page(general_box, Gtk.Label(_("General")))
@@ -236,8 +264,9 @@ class PrefsWindow(Gtk.Window):
             self.notebook.append_page(network_box, Gtk.Label(_("Network")))
             self.notebook.append_page(advanced_box, Gtk.Label(_("Advanced")))
 
-        self.add(self.notebook)
+        self.box.pack_start(self.notebook, True, True, 0)
 
+        self.add(self.box)
         self.set_size_request(300, 360)
 
     def toggle_display_notifications(self, w):

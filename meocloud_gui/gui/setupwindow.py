@@ -15,17 +15,27 @@ class SetupWindow(Gtk.Window):
     def __init__(self, app):
         Gtk.Window.__init__(self)
         self.set_title(_("Setup"))
+        self.set_position(Gtk.WindowPosition.CENTER)
 
         log.info('SetupWindow: initializing setup')
 
         self.app = app
         self.pages = Pages()
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        welcome_label = Gtk.Label("<b>" + _("Welcome to MEO Cloud") + "</b>")
-        welcome_label.set_use_markup(True)
-        box.pack_start(welcome_label, False, False, 10)
-        box.pack_start(self.pages, True, True, 0)
-        self.add(box)
+
+        try:
+            self.headerbar = Gtk.HeaderBar()
+            self.headerbar.set_title("Welcome to MEO Cloud")
+            self.headerbar.set_show_close_button(True)
+            self.set_titlebar(self.headerbar)
+            self.add(self.pages)
+        except:
+            self.headerbar = None
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            welcome_label = Gtk.Label("<b>" + _("Welcome to MEO Cloud") + "</b>")
+            welcome_label.set_use_markup(True)
+            box.pack_start(welcome_label, False, False, 10)
+            box.pack_start(self.pages, True, True, 0)
+            self.add(box)
 
         # First page
 
@@ -97,8 +107,8 @@ class SetupWindow(Gtk.Window):
         advanced_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         app.prefs_window = PrefsWindow(app, True)
-        app.prefs_window.remove(app.prefs_window.notebook)
-        advanced_page_box.pack_start(app.prefs_window.notebook, False,
+        app.prefs_window.remove(app.prefs_window.box)
+        advanced_page_box.pack_start(app.prefs_window.box, False,
                                      False, 0)
 
         advanced_page_finish_button = Gtk.Button(_("Finish"))
@@ -150,6 +160,9 @@ class SetupWindow(Gtk.Window):
         log.info('SetupWindow.start_waiting: waiting for core')
         self.pages.next_page()
         self.spinner.start()
+
+        if self.headerbar is not None:
+            self.headerbar.set_show_close_button(False)
 
     def stop_waiting(self):
         log.info('SetupWindow.stop_waiting: no longer waiting')
