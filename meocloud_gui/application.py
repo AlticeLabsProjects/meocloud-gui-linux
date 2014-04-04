@@ -56,7 +56,6 @@ class Application(Gtk.Application):
         self.core = None
         self.ignored_directories = []
         self.dark_icons = False
-        self.use_headerbar = utils.use_headerbar()
 
         self.sync_thread = None
         self.menu_thread = None
@@ -66,6 +65,8 @@ class Application(Gtk.Application):
         # initialize dbus
         DBusGMainLoop(set_as_default=True)
         self.dbus_service = DBusService(codes.CORE_INITIALIZING, self.app_path)
+
+        self.use_headerbar = utils.use_headerbar()
 
     def on_activate(self, data=None):
         if not self.running:
