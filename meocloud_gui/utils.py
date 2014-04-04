@@ -10,9 +10,10 @@ import dbus
 from threading import Thread
 from gi.repository import GLib, Gio
 from meocloud_gui.preferences import Preferences
-from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, UI_CONFIG_PATH,
-                                    LOGGER_NAME, LOG_PATH, DEBUG_ON_PATH,
-                                    DEBUG_OFF_PATH, DEV_MODE, BETA_MODE,
+from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
+                                    UI_CONFIG_PATH, LOGGER_NAME, LOG_PATH,
+                                    DEBUG_ON_PATH, DEBUG_OFF_PATH,
+                                    DEV_MODE, BETA_MODE,
                                     PURGEMETA_PATH, PURGEALL_PATH,
                                     CONFIG_PATH)
 
@@ -83,9 +84,14 @@ def create_required_folders():
 
     if not os.path.exists(cloud_home):
         os.makedirs(cloud_home)
+        os.chmod(cloud_home, 0700)
         purge_meta()
+    if not os.path.exists(CONFIG_PATH):
+        os.makedirs(CONFIG_PATH)
+        os.chmod(CONFIG_PATH, 0700)
     if not os.path.exists(UI_CONFIG_PATH):
         os.makedirs(UI_CONFIG_PATH)
+        os.chmod(UI_CONFIG_PATH, 0700)
 
 
 def clean_cloud_path():
