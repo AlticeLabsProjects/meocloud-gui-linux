@@ -260,6 +260,14 @@ def get_error_code(status_code):
 
 
 def use_headerbar():
+    if os.path.isfile("/etc/lsb-release"):
+        lsb_f = open("/etc/lsb-release", "r")
+        lsb = lsb_f.read()
+        lsb_f.close()
+
+        if "elementary OS" in lsb:
+            return True
+
     try:
         bus = dbus.SessionBus()
         versionservice = bus.get_object('org.gnome.Shell', '/org/gnome/Shell')
