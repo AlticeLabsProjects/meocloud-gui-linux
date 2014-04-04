@@ -321,11 +321,15 @@ class Application(Gtk.Application):
             self.core_client.pause()
 
     def update_storage(self, used, total):
-        used = utils.convert_size(used)
+        if total > 0:
+            used_percentage = (used * 100) / total
+        else:
+            used_percentage = 100
+        used_percentage = str(used_percentage) + "%"
         total = utils.convert_size(total)
 
         self.menuitem_storage.set_label(
-            _("{0} used of {1}").format(str(used), str(total)))
+            _("{0} used of {1}").format(str(used_percentage), str(total)))
 
     def prefs_window_destroyed(self, w):
         self.prefs_window = None
