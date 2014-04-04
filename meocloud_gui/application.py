@@ -29,7 +29,7 @@ log = logging.getLogger(LOGGER_NAME)
 try:
     from meocloud_gui.gui.indicator import Indicator as TrayIcon
     log.info('Application: using Indicator')
-except:
+except ImportError:
     from meocloud_gui.gui.trayicon import TrayIcon
     log.info('Application: using TrayIcon')
 
