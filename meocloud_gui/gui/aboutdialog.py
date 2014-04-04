@@ -9,6 +9,7 @@ class AboutDialog (GObject.Object):
 
     def __init__(self, app_path):
         aboutdialog = Gtk.AboutDialog()
+        aboutdialog.set_position(Gtk.WindowPosition.CENTER)
 
         authors = ["SAPO"]
         logo_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
