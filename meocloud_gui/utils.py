@@ -271,7 +271,8 @@ def use_headerbar():
     try:
         bus = dbus.SessionBus()
         versionservice = bus.get_object('org.gnome.Shell', '/org/gnome/Shell')
-        version = versionservice.get_dbus_method('ShellVersion', 'org.gnome.Shell')
+        version = versionservice.get_dbus_method('ShellVersion',
+                                                 'org.gnome.Shell')
 
         if version is not None:
             return True
