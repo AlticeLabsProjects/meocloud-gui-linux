@@ -31,7 +31,8 @@ class SetupWindow(Gtk.Window):
         except:
             self.headerbar = None
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            welcome_label = Gtk.Label("<b>" + _("Welcome to MEO Cloud") + "</b>")
+            welcome_label = Gtk.Label(
+                "<b>" + _("Welcome to MEO Cloud") + "</b>")
             welcome_label.set_use_markup(True)
             box.pack_start(welcome_label, False, False, 10)
             box.pack_start(self.pages, True, True, 0)
