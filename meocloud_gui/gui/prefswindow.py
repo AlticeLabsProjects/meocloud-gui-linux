@@ -42,6 +42,7 @@ class PrefsWindow(Gtk.Window):
                 headerbar = Gtk.HeaderBar()
                 stack = Gtk.StackSwitcher()
                 stack.set_stack(self.notebook)
+                stack.set_margin_right(5)
                 headerbar.set_custom_title(stack)
                 headerbar.set_show_close_button(True)
                 self.set_titlebar(headerbar)
