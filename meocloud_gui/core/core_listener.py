@@ -1,6 +1,6 @@
 # Python standard library imports
 import os
-import subprocess
+import webbrowser
 import keyring
 import locale
 
@@ -100,9 +100,8 @@ class CoreListenerHandler(UI.Iface):
         device_name = self.setup.device_entry.get_text()
 
         if len(device_name) > 0:
-            subprocess.Popen(["xdg-open",
-                             self.core_client.authorizeWithDeviceName
-                             (device_name)])
+            webbrowser.open(self.core_client.authorizeWithDeviceName
+                            (device_name))
         else:
             self.setup.pages.set_current_page(1)
 
@@ -160,8 +159,7 @@ class CoreListenerHandler(UI.Iface):
             notification.show()
         elif (note.code == codes.SHARE_FOLDER or
                 note.code == codes.OPEN_IN_BROWSER):
-            subprocess.Popen(["xdg-open",
-                             note.parameters[2]])
+            webbrowser.open(note.parameters[2])
 
         self.app.update_menu(None, self.ignore_sync)
 

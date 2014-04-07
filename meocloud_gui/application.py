@@ -1,6 +1,6 @@
-import subprocess
 import os
 import keyring
+import webbrowser
 from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, GLib, Notify
@@ -194,7 +194,7 @@ class Application(Gtk.Application):
         path = os.path.join(cloud_home, w.get_label())
         path = path.replace(os.path.basename(path), '')
 
-        subprocess.Popen(["xdg-open", path])
+        webbrowser.open(path)
 
     def file_changed(self):
         if self.prefs_window is not None:
@@ -376,11 +376,11 @@ class Application(Gtk.Application):
 
     def open_folder(self, w):
         prefs = Preferences()
-        subprocess.Popen(["xdg-open", prefs.get('Advanced', 'Folder',
-                                                CLOUD_HOME_DEFAULT_PATH)])
+        webbrowser.open(prefs.get('Advanced', 'Folder',
+                                  CLOUD_HOME_DEFAULT_PATH))
 
     def open_website(self, w):
-        subprocess.Popen(["xdg-open", self.core_client.webLoginURL()])
+        webbrowser.open(self.core_client.webLoginURL())
 
     def restart_core(self, ignore_sync=False):
         log.info('Application.restart_core: initiating core restart')
