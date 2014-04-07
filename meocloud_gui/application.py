@@ -390,7 +390,7 @@ class Application(Gtk.Application):
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
                                           self.core_client, prefs, self,
                                           ignore_sync)
-        self.core = Core(self.core_client)
+        self.core = Core(self.core_client, self.app_path)
 
         # Make sure core isn't running
         self.stop_threads()

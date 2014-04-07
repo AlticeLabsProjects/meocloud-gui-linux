@@ -16,15 +16,14 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class Core(object):
-    def __init__(self, core_client):
+    def __init__(self, core_client, app_path):
         log.debug('Core: Initializing...')
         super(Core, self).__init__()
         self.core_client = core_client
         self.process = None
         # assumes core binary is in same dir as daemon
-        core_binary_dir = get_own_dir(__file__)
-        self.core_binary_path = os.path.join(core_binary_dir,
-                                             CORE_BINARY_FILENAME)
+        self.core_binary_path = os.path.join(app_path,
+                                             "meocloud_core/" + CORE_BINARY_FILENAME)
         self.core_env = os.environ.copy()
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS
