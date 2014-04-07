@@ -285,7 +285,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                    SidebarPlaces.COLUMN_EJECT_ICON, null,
                    SidebarPlaces.COLUMN_FREE_SPACE, 0,
                    SidebarPlaces.COLUMN_DISK_SIZE, 0,
-                    -1, -1);
+                   -1, -1);
 
         Gtk.TreeIter meocloud_iter;
         store.append (out meocloud_iter, cloud_category);
@@ -304,7 +304,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                    SidebarPlaces.COLUMN_EJECT_ICON, null,
                    SidebarPlaces.COLUMN_FREE_SPACE, 0,
                    SidebarPlaces.COLUMN_DISK_SIZE, 0,
-                    -1, -1);
+                   -1, -1);
     }
 }
 
