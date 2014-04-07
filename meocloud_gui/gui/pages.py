@@ -34,7 +34,7 @@ class Pages (Gtk.Notebook):
             Gtk.Notebook.append_page(self, widget, label)
         else:
             self.stack.add_named(widget, str(self.max_stack))
-            self.max_stack = self.max_stack + 1
+            self.max_stack += 1
 
     def set_current_page(self, number):
         if self.stack is None:
@@ -47,7 +47,7 @@ class Pages (Gtk.Notebook):
         if self.stack is None:
             Gtk.Notebook.next_page(self)
         else:
-            self.current_stack = self.current_stack + 1
+            self.current_stack += 1
             self.set_current_page(self.current_stack)
 
     def first_page(self):

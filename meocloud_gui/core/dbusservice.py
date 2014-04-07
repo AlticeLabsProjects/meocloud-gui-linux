@@ -20,6 +20,7 @@ class DBusService(dbus.service.Object):
         self.status = status
         self.shell = None
         self.app_path = app_path
+        self.cloud_home = None
         self.update_prefs()
         log.info('DBusService: initialized')
 

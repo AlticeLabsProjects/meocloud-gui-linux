@@ -23,7 +23,7 @@ class Indicator (GObject.Object):
 
     def set_icon(self, name):
         if self.app.dark_icons:
-            name = name + "-black"
+            name += "-black"
 
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0
@@ -46,7 +46,7 @@ class Indicator (GObject.Object):
         self.set_icon(icon_name)
 
         if self.syncing < 4:
-            self.syncing = self.syncing + 1
+            self.syncing += 1
         else:
             self.syncing = 1
 

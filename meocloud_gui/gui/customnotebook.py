@@ -24,7 +24,7 @@ class CustomNotebook (base_class):
             Gtk.Notebook.append_page(self, widget, label)
         else:
             self.add_titled(widget, label.get_text(), label.get_text())
-            self.max_stack = self.max_stack + 1
+            self.max_stack += 1
 
     def set_current_page(self, number):
         if base_class is Gtk.Notebook:
@@ -37,7 +37,7 @@ class CustomNotebook (base_class):
         if base_class is Gtk.Notebook:
             Gtk.Notebook.next_page(self)
         else:
-            self.current_stack = self.current_stack + 1
+            self.current_stack += 1
             self.set_current_page(self.current_stack)
 
     def first_page(self):

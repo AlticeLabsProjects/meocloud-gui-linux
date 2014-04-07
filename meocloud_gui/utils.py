@@ -14,8 +14,7 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     UI_CONFIG_PATH, LOGGER_NAME, LOG_PATH,
                                     DEBUG_ON_PATH, DEBUG_OFF_PATH,
                                     DEV_MODE, BETA_MODE,
-                                    PURGEMETA_PATH, PURGEALL_PATH,
-                                    CONFIG_PATH)
+                                    PURGEMETA_PATH, PURGEALL_PATH)
 
 
 def init_logging():
@@ -55,7 +54,7 @@ def purge_meta():
         purge_file.close()
 
 
-def touch(fname, times=None):
+def touch(fname):
     try:
         destination = 'pt.meocloud.shell'
         path = '/pt/meocloud/shell'
@@ -223,7 +222,7 @@ def convert_size(size):
         i = int(math.floor(math.log(size, 1024)))
         p = math.pow(1024, i)
         s = round(size/p, 2)
-        if (s > 0):
+        if s > 0:
             return '%s %s' % (s, size_name[i])
         else:
             return '0 B'

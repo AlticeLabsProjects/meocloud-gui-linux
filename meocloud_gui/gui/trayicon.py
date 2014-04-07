@@ -27,7 +27,7 @@ class TrayIcon (GObject.Object):
         self.last_icon = name
 
         if self.app.dark_icons:
-            name = name + "-black"
+            name += "-black"
 
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0
@@ -49,7 +49,7 @@ class TrayIcon (GObject.Object):
         self.set_icon(icon_name)
 
         if self.syncing < 4:
-            self.syncing = self.syncing + 1
+            self.syncing += 1
         else:
             self.syncing = 1
 
