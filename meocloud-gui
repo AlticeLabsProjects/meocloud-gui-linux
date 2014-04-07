@@ -5,6 +5,7 @@ import locale
 import os
 import os.path
 import filecmp
+import sys
 
 
 def init_localization():
@@ -22,24 +23,29 @@ def init_localization():
 
 
 if __name__ == "__main__":
-    trans_src = os.path.join(os.path.dirname(os.path.realpath(__file__)), "mo")
+    if getattr(sys, "frozen", False):
+        own_path = sys.executable
+    else:
+        own_path = os.path.realpath(__file__)
+
+    trans_src = os.path.join(os.path.dirname(own_path), "mo")
     trans_dst = os.path.join(os.path.expanduser('~'),
                              '.local/share/nautilus-python/extensions/'
                              'meocloud_mo')
 
-    nautilus_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    nautilus_py = os.path.join(os.path.dirname(own_path),
                                "meocloud_nautilus/meocloud-nautilus.py")
     nautilus_dir = os.path.join(os.path.expanduser('~'),
                                 '.local/share/nautilus-python/extensions')
     nautilus_dst = os.path.join(nautilus_dir, "meocloud-nautilus.py")
 
-    nemo_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    nemo_py = os.path.join(os.path.dirname(own_path),
                            "meocloud_nemo/meocloud-nemo.py")
     nemo_dir = os.path.join(os.path.expanduser('~'),
                             '.local/share/nemo-python/extensions')
     nemo_dst = os.path.join(nemo_dir, "meocloud-nemo.py")
 
-    caja_py = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    caja_py = os.path.join(os.path.dirname(own_path),
                                "meocloud_caja/meocloud-caja.py")
     caja_dir = os.path.join(os.path.expanduser('~'),
                                 '.local/share/caja-python/extensions')
@@ -79,5 +85,5 @@ if __name__ == "__main__":
         os.symlink(caja_py, caja_dst)
 
     init_localization()
-    app = Application(os.path.dirname(os.path.realpath(__file__)))
+    app = Application(os.path.dirname(own_path))
     app.run(None)
