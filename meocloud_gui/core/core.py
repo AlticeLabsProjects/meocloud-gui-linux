@@ -39,7 +39,8 @@ class Core(object):
                     log.info('Forcing locale to en_US.utf8')
                     self.core_env['LC_ALL'] = 'en_US.utf8'
         except Exception:
-            log.exception('Something went wrong while trying to fix set the LC_ALL env variable')
+            log.exception('Something went wrong while trying to fix set the '
+                          'LC_ALL env variable')
 
     def start(self):
         """
