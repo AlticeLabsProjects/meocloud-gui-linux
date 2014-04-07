@@ -46,9 +46,9 @@ if __name__ == "__main__":
     nemo_dst = os.path.join(nemo_dir, "meocloud-nemo.py")
 
     caja_py = os.path.join(os.path.dirname(own_path),
-                               "meocloud_caja/meocloud-caja.py")
+                           "meocloud_caja/meocloud-caja.py")
     caja_dir = os.path.join(os.path.expanduser('~'),
-                                '.local/share/caja-python/extensions')
+                            '.local/share/caja-python/extensions')
     caja_dst = os.path.join(caja_dir, "meocloud-caja.py")
 
     if not os.path.exists(nautilus_dir):
