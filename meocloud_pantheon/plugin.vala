@@ -299,7 +299,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                    SidebarPlaces.COLUMN_INDEX, 0,
                    SidebarPlaces.COLUMN_EJECT, false,
                    SidebarPlaces.COLUMN_NO_EJECT, true,
-                   SidebarPlaces.COLUMN_BOOKMARK, 2,
+                   SidebarPlaces.COLUMN_BOOKMARK, 0,
                    SidebarPlaces.COLUMN_TOOLTIP, MEOCLOUD_TOOLTIP,
                    SidebarPlaces.COLUMN_EJECT_ICON, null,
                    SidebarPlaces.COLUMN_FREE_SPACE, 0,
