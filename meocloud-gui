@@ -1,11 +1,43 @@
 #!/usr/bin/python2
-from meocloud_gui.application import Application
 import gettext
 import locale
 import os
 import os.path
 import filecmp
 import sys
+
+# warn about unavailable libraries
+try:
+    import keyring
+except:
+    print "Keyring unavailable. Please install python-keyring."
+    sys.exit(1)
+
+try:
+    import thrift
+except:
+    print "Thrift unavailable. Please install python-thrift."
+    sys.exit(1)
+
+try:
+    from dbus.mainloop.glib import DBusGMainLoop
+except:
+    print "D-Bus unavailable. Please install dbus-python."
+    sys.exit(1)
+
+try:
+    from gi.repository import Gtk
+except:
+    print "GTK is required. Please install GTK+ 3 with the GIR bindings."
+    sys.exit(1)
+
+try:
+    from gi.repository import Notify
+except:
+    print "Notify is required. Please install the Notify GIR bindings."
+    sys.exit(1)
+
+from meocloud_gui.application import Application
 
 
 def init_localization():
