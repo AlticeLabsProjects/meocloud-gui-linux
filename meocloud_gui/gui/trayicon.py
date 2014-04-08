@@ -10,6 +10,7 @@ class TrayIcon (GObject.Object):
         self.syncing = 0
         self.timeout = None
         self.last_icon = None
+        self.icon_name = "meocloud-ok"
 
         self.icon = Gtk.StatusIcon()
         self.icon.connect("activate", self.tray_popup)
@@ -28,6 +29,8 @@ class TrayIcon (GObject.Object):
 
         if self.app.dark_icons:
             name += "-black"
+
+        self.icon_name = name
 
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0

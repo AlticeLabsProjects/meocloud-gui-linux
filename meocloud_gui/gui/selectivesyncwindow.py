@@ -52,11 +52,17 @@ class SelectiveSyncWindow(Gtk.Window):
 
         self.ignored_directories = self.app.ignored_directories[:]
 
+        if "meocloud-sync" in self.app.trayicon.icon_name:
+            self.ignore_panic = True
+        else:
+            self.ignore_panic = False
+
     def panic(self):
-        log.info('SelectiveSyncWindow.panic: something changed. panic before '
-                 'the user breaks something')
-        if self.app.prefs_window is not None:
-            self.app.prefs_window.on_selective_sync(None, True)
+        if not self.ignore_panic:
+            log.info('SelectiveSyncWindow.panic: something changed. panic before '
+                     'the user breaks something')
+            if self.app.prefs_window is not None:
+                self.app.prefs_window.on_selective_sync(None, True)
 
     def add_column(self, folders, path='/'):
         log.info('SelectiveSyncWindow.add_column: received data, '

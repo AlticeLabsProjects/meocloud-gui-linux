@@ -10,6 +10,7 @@ class Indicator (GObject.Object):
         self.app = app
         self.syncing = 0
         self.timeout = None
+        self.icon_name = "meocloud-ok"
 
         self.ind = appindicator.Indicator.new(
             "meocloud",
@@ -24,6 +25,8 @@ class Indicator (GObject.Object):
     def set_icon(self, name):
         if self.app.dark_icons:
             name += "-black"
+
+        self.icon_name = name
 
         if self.syncing > 0 and "sync" not in name:
             self.syncing = 0
