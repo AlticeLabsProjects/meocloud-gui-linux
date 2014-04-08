@@ -3,6 +3,6 @@ Type=Application
 Name=MEO Cloud
 Terminal=false
 Type=Application
-Icon=/opt/meocloud-gui/icons/meocloud.svg
+Icon=/opt/meocloud/gui/icons/meocloud.svg
 Exec=/usr/bin/meocloud-gui
 Categories=Network;FileTransfer;
