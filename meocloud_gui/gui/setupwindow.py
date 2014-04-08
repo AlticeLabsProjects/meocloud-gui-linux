@@ -111,6 +111,7 @@ class SetupWindow(Gtk.Window):
         advanced_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         app.prefs_window = PrefsWindow(app, True)
+        self.prefs_window = app.prefs_window
         app.prefs_window.remove(app.prefs_window.box)
         advanced_page_box.pack_start(app.prefs_window.box, False,
                                      False, 0)
@@ -175,11 +176,11 @@ class SetupWindow(Gtk.Window):
 
     def finish_advanced_setup(self, widget):
         log.info('SetupWindow.finish_advanced_setup: completing setup')
-        self.app.restart_core()
+        self.prefs_window.restart_core = True
+        self.prefs_window.destroy()
         self.destroy()
 
     def destroy(self):
         log.info('SetupWindow.destroy: closing setup')
-        self.app.prefs_window.destroy()
-        self.app.prefs_window = None
+        self.prefs_window.destroy()
         Gtk.Window.destroy(self)

@@ -275,7 +275,7 @@ class PrefsWindow(Gtk.Window):
         self.add(self.box)
         self.set_size_request(300, 360)
 
-    def destroy(self, w):
+    def destroy(self, w=None):
         prefs = Preferences()
 
         prefs.put("General", "Notifications", self.display_notif)
@@ -294,10 +294,13 @@ class PrefsWindow(Gtk.Window):
         if self.restart_core:
             self.app.restart_core()
         else:
-            self.app.core_client.networkSettingsChanged(
-                api.get_network_settings(
-                    prefs, upload=int(self.throttle["Upload"]),
-                    download=int(self.throttle["Download"])))
+            try:
+                self.app.core_client.networkSettingsChanged(
+                    api.get_network_settings(
+                        prefs, upload=int(self.throttle["Upload"]),
+                        download=int(self.throttle["Download"])))
+            except:
+                pass
 
         self.app.prefs_window = None
         Gtk.Window.destroy(self)
