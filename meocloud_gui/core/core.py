@@ -22,8 +22,8 @@ class Core(object):
         self.core_client = core_client
         self.process = None
         # assumes core binary is in same dir as daemon
-        self.core_binary_path = os.path.join(app_path,
-                                             "meocloud_core/" + CORE_BINARY_FILENAME)
+        self.core_binary_path = os.path.join(
+            app_path, "meocloud_core/" + CORE_BINARY_FILENAME)
         self.core_env = os.environ.copy()
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS

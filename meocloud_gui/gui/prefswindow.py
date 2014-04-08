@@ -70,7 +70,8 @@ class PrefsWindow(Gtk.Window):
         advanced_box.set_margin_right(10)
 
         # display notifications
-        self.display_notif = prefs.get("General", "Notifications", "True") == "True"
+        self.display_notif = prefs.get("General",
+                                       "Notifications", "True") == "True"
         display_notifications = Gtk.CheckButton(_("Display notifications"))
         display_notifications.set_active(self.display_notif)
         display_notifications.connect("toggled",
@@ -78,7 +79,8 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(display_notifications, False, True, 10)
 
         # use dark icons
-        self.display_dark = prefs.get("General", "DarkIcons", "False") == "True"
+        self.display_dark = prefs.get("General",
+                                      "DarkIcons", "False") == "True"
         display_darkicons = Gtk.CheckButton(_("Use dark icons"))
         display_darkicons.set_active(self.display_dark)
         display_darkicons.connect("toggled",
@@ -176,7 +178,8 @@ class PrefsWindow(Gtk.Window):
         download_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         download_entry = Gtk.Entry()
         self.throttle = dict()
-        self.throttle["Download"] = prefs.get("Network", "ThrottleDownload", "0")
+        self.throttle["Download"] = prefs.get("Network",
+                                              "ThrottleDownload", "0")
         download_entry.set_sensitive(int(self.throttle["Download"]) > 0)
         download_text = self.throttle["Download"]
         if download_text == "0":

@@ -59,8 +59,8 @@ class SelectiveSyncWindow(Gtk.Window):
 
     def panic(self):
         if not self.ignore_panic:
-            log.info('SelectiveSyncWindow.panic: something changed. panic before '
-                     'the user breaks something')
+            log.info('SelectiveSyncWindow.panic: something changed. panic '
+                     'before the user breaks something')
             if self.app.prefs_window is not None:
                 self.app.prefs_window.on_selective_sync(None, True)
 
