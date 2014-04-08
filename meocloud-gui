@@ -6,7 +6,7 @@ import os.path
 import filecmp
 import sys
 
-sys.path.append("/opt/meocloud/meocloud_libs/")
+sys.path.append("/opt/meocloud/gui/meocloud_libs/")
 
 # warn about unavailable libraries
 try:
