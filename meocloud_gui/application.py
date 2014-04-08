@@ -339,13 +339,9 @@ class Application(Gtk.Application):
         self.menuitem_storage.set_label(
             _("{0} used of {1}").format(str(used_percentage), str(total)))
 
-    def prefs_window_destroyed(self, w):
-        self.prefs_window = None
-
     def show_prefs(self, w):
         if not self.prefs_window:
             self.prefs_window = PrefsWindow(self)
-            self.prefs_window.connect("destroy", self.prefs_window_destroyed)
             self.prefs_window.logout_button.connect("clicked", self.on_logout)
         self.prefs_window.show_all()
         self.prefs_window.present()

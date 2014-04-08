@@ -70,17 +70,17 @@ class PrefsWindow(Gtk.Window):
         advanced_box.set_margin_right(10)
 
         # display notifications
-        display_notif = prefs.get("General", "Notifications", "True") == "True"
+        self.display_notif = prefs.get("General", "Notifications", "True") == "True"
         display_notifications = Gtk.CheckButton(_("Display notifications"))
-        display_notifications.set_active(display_notif)
+        display_notifications.set_active(self.display_notif)
         display_notifications.connect("toggled",
                                       self.toggle_display_notifications)
         general_box.pack_start(display_notifications, False, True, 10)
 
         # use dark icons
-        display_dark = prefs.get("General", "DarkIcons", "False") == "True"
+        self.display_dark = prefs.get("General", "DarkIcons", "False") == "True"
         display_darkicons = Gtk.CheckButton(_("Use dark icons"))
-        display_darkicons.set_active(display_dark)
+        display_darkicons.set_active(self.display_dark)
         display_darkicons.connect("toggled",
                                   self.toggle_icons)
         general_box.pack_start(display_darkicons, False, True, 0)
@@ -122,7 +122,9 @@ class PrefsWindow(Gtk.Window):
         # proxy automatic configuration
         self.proxy_automatic_url = Gtk.Entry()
         self.proxy_automatic_url.set_placeholder_text("http://www.example.com")
-        self.proxy_automatic_url.set_text(prefs.get("Network", "ProxyURL", ""))
+        self.proxy = dict()
+        self.proxy["ProxyURL"] = prefs.get("Network", "ProxyURL", "")
+        self.proxy_automatic_url.set_text(self.proxy["ProxyURL"])
         self.proxy_automatic_url.set_no_show_all(True)
         self.proxy_automatic_url.connect("changed",
                                          self.proxy_automatic_value_changed)
@@ -130,8 +132,8 @@ class PrefsWindow(Gtk.Window):
         # proxy manual configuration
         self.proxy_manual_address = Gtk.Entry()
         self.proxy_manual_address.set_placeholder_text("Address")
-        self.proxy_manual_address.set_text(
-            prefs.get("Network", "ProxyAddress", ""))
+        self.proxy["ProxyAddress"] = prefs.get("Network", "ProxyAddress", "")
+        self.proxy_manual_address.set_text(self.proxy["ProxyAddress"])
         self.proxy_manual_address.set_no_show_all(True)
         self.proxy_manual_address.connect(
             "changed", lambda w: self.proxy_manual_value_changed(
@@ -139,8 +141,8 @@ class PrefsWindow(Gtk.Window):
 
         self.proxy_manual_port = Gtk.Entry()
         self.proxy_manual_port.set_placeholder_text("Port")
-        self.proxy_manual_port.set_text(
-            prefs.get("Network", "ProxyPort", ""))
+        self.proxy["ProxyPort"] = prefs.get("Network", "ProxyPort", "")
+        self.proxy_manual_port.set_text(self.proxy["ProxyPort"])
         self.proxy_manual_port.set_no_show_all(True)
         self.proxy_manual_port.connect(
             "changed", lambda w: self.proxy_manual_value_changed(
@@ -148,8 +150,8 @@ class PrefsWindow(Gtk.Window):
 
         self.proxy_manual_user = Gtk.Entry()
         self.proxy_manual_user.set_placeholder_text("User")
-        self.proxy_manual_user.set_text(
-            prefs.get("Network", "ProxyUser", ""))
+        self.proxy["ProxyUser"] = prefs.get("Network", "ProxyUser", "")
+        self.proxy_manual_user.set_text(self.proxy["ProxyUser"])
         self.proxy_manual_user.set_no_show_all(True)
         self.proxy_manual_user.connect(
             "changed", lambda w: self.proxy_manual_value_changed(
@@ -158,8 +160,8 @@ class PrefsWindow(Gtk.Window):
         self.proxy_manual_password = Gtk.Entry()
         self.proxy_manual_password.set_visibility(False)
         self.proxy_manual_password.set_placeholder_text("Password")
-        self.proxy_manual_password.set_text(
-            prefs.get("Network", "ProxyPassword", ""))
+        self.proxy["ProxyPassword"] = prefs.get("Network", "ProxyPassword", "")
+        self.proxy_manual_password.set_text(self.proxy["ProxyPassword"])
         self.proxy_manual_password.set_no_show_all(True)
         self.proxy_manual_password.connect(
             "changed", lambda w: self.proxy_manual_value_changed(
@@ -173,18 +175,17 @@ class PrefsWindow(Gtk.Window):
         # download limit
         download_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         download_entry = Gtk.Entry()
-        download_entry.set_sensitive(int(prefs.get("Network",
-                                                   "ThrottleDownload",
-                                                   "0")) > 0)
-        download_text = prefs.get("Network", "ThrottleDownload", "128")
+        self.throttle = dict()
+        self.throttle["Download"] = prefs.get("Network", "ThrottleDownload", "0")
+        download_entry.set_sensitive(int(self.throttle["Download"]) > 0)
+        download_text = self.throttle["Download"]
         if download_text == "0":
             download_text = "128"
         download_entry.set_text(download_text)
         download_entry.set_alignment(1)
         download_entry.connect("changed", lambda w:
                                self.throttle_value_changed(w, "Download"))
-        download_check_active = int(prefs.get("Network", "ThrottleDownload",
-                                              "0")) > 0
+        download_check_active = int(self.throttle["Download"]) > 0
         download_check = Gtk.CheckButton(_("Download"))
         download_check.set_active(download_check_active)
         download_check.connect("toggled", lambda w:
@@ -194,9 +195,9 @@ class PrefsWindow(Gtk.Window):
         # upload limit
         upload_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         upload_entry = Gtk.Entry()
-        upload_entry.set_sensitive(int(prefs.get("Network", "ThrottleUpload",
-                                   "0")) > 0)
-        upload_text = prefs.get("Network", "ThrottleUpload", "64")
+        self.throttle["Upload"] = prefs.get("Network", "ThrottleUpload", "0")
+        upload_entry.set_sensitive(int(self.throttle["Upload"]) > 0)
+        upload_text = self.throttle["Upload"]
         if upload_text == "0":
             upload_text = "64"
         upload_entry.set_text(upload_text)
@@ -204,8 +205,7 @@ class PrefsWindow(Gtk.Window):
         upload_entry.connect("changed", lambda w:
                              self.throttle_value_changed(w, "Upload"))
 
-        upload_check_active = int(prefs.get("Network", "ThrottleUpload",
-                                            "0")) > 0
+        upload_check_active = int(self.throttle["Upload"]) > 0
         upload_check = Gtk.CheckButton(_("Upload"))
         upload_check.set_active(upload_check_active)
         upload_check.connect("toggled", lambda w:
@@ -235,10 +235,11 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(upload_box, False, False, 5)
 
         # set the proxy settings
-        if prefs.get("Network", "Proxy", "None") == "Automatic":
+        self.proxy["Proxy"] = prefs.get("Network", "Proxy", "None")
+        if self.proxy["Proxy"] == "Automatic":
             self.proxy_automatic.set_active(True)
             self.proxy_automatic_url.show()
-        elif prefs.get("Network", "Proxy", "None") == "Manual":
+        elif self.proxy["Proxy"] == "Manual":
             self.proxy_manual.set_active(True)
             self.proxy_manual_address.show()
             self.proxy_manual_port.show()
@@ -268,29 +269,52 @@ class PrefsWindow(Gtk.Window):
             self.notebook.append_page(advanced_box, Gtk.Label(_("Advanced")))
 
         self.box.pack_start(self.notebook, True, True, 0)
+        self.connect("destroy", self.destroy)
 
+        self.restart_core = False
         self.add(self.box)
         self.set_size_request(300, 360)
 
-    def toggle_display_notifications(self, w):
+    def destroy(self, w):
         prefs = Preferences()
-        old_val = prefs.get("General", "Notifications", "True")
 
-        if old_val == "True":
-            prefs.put("General", "Notifications", "False")
+        prefs.put("General", "Notifications", self.display_notif)
+        prefs.put("General", "DarkIcons", self.display_dark)
+
+        prefs.put("Network", "ThrottleUpload", self.throttle["Upload"])
+        prefs.put("Network", "ThrottleDownload", self.throttle["Download"])
+
+        prefs.put("Network", "Proxy", self.proxy["Proxy"])
+        prefs.put("Network", "ProxyURL", self.proxy["ProxyURL"])
+        prefs.put("Network", "ProxyAddress", self.proxy["ProxyAddress"])
+        prefs.put("Network", "ProxyPort", self.proxy["ProxyPort"])
+        prefs.put("Network", "ProxyUser", self.proxy["ProxyUser"])
+        prefs.put("Network", "ProxyPassword", self.proxy["ProxyPassword"])
+
+        if self.restart_core:
+            self.app.restart_core()
         else:
-            prefs.put("General", "Notifications", "True")
+            self.app.core_client.networkSettingsChanged(
+                api.get_network_settings(
+                    prefs, upload=int(self.throttle["Upload"]),
+                    download=int(self.throttle["Download"])))
+
+        self.app.prefs_window = None
+        Gtk.Window.destroy(self)
+
+    def toggle_display_notifications(self, w):
+        if str(self.display_notif) == "True":
+            self.display_notif = "False"
+        else:
+            self.display_notif = "True"
 
     def toggle_icons(self, w):
-        prefs = Preferences()
-        old_val = prefs.get("General", "DarkIcons", "False")
-
-        if old_val == "True":
-            prefs.put("General", "DarkIcons", "False")
+        if str(self.display_dark) == "True":
+            self.display_dark = "False"
         else:
-            prefs.put("General", "DarkIcons", "True")
+            self.display_dark = "True"
 
-        self.app.dark_icons = not (old_val == "True")
+        self.app.dark_icons = (self.display_dark == "True")
         self.app.update_menu(None, True)
 
     def toggle_start_at_login(self, w):
@@ -380,61 +404,39 @@ class PrefsWindow(Gtk.Window):
             dialog.destroy()
 
     def toggle_throttle(self, w, throttle):
-        prefs = Preferences()
-
         if w.get_sensitive():
-            prefs.put("Network", "Throttle" + throttle, "0")
+            self.throttle[throttle] = "0"
             w.set_sensitive(False)
-            val = 0
         else:
             try:
                 val = int(w.get_text())
             except:
                 val = 128
 
-            prefs.put("Network", "Throttle" + throttle, str(val))
+            self.throttle[throttle] = str(val)
             w.set_sensitive(True)
 
-        if throttle == "Download":
-            self.app.core_client.networkSettingsChanged(
-                api.get_network_settings(prefs, download=val))
-        elif throttle == "Upload":
-            self.app.core_client.networkSettingsChanged(
-                api.get_network_settings(prefs, upload=val))
-
     def throttle_value_changed(self, w, throttle):
-        prefs = Preferences()
-
         try:
             val = int(w.get_text())
         except:
             val = 128
 
-        prefs.put("Network", "Throttle" + throttle, str(val))
-
-        if throttle == "Download":
-            self.app.core_client.networkSettingsChanged(
-                api.get_network_settings(prefs, download=val))
-        elif throttle == "Upload":
-            self.app.core_client.networkSettingsChanged(
-                api.get_network_settings(prefs, upload=val))
+        self.throttle[throttle] = str(val)
 
     def proxy_automatic_value_changed(self, w):
-        prefs = Preferences()
-        prefs.put("Network", "ProxyURL", self.proxy_automatic_url.get_text())
-        self.app.core_client.networkSettingsChanged(
-            api.get_network_settings(prefs))
+        self.restart_core = True
+        self.proxy["ProxyURL"] = self.proxy_automatic_url.get_text()
 
     def proxy_manual_value_changed(self, w, pref_name):
-        prefs = Preferences()
-        prefs.put("Network", pref_name, w.get_text())
-        self.app.core_client.networkSettingsChanged(
-            api.get_network_settings(prefs))
+        self.restart_core = True
+        self.proxy[pref_name] = w.get_text()
 
     def set_proxy(self, w, proxy):
+        self.restart_core = True
+
         if w.get_active():
-            prefs = Preferences()
-            prefs.put("Network", "Proxy", proxy)
+            self.proxy["Proxy"] = proxy
 
             if proxy == "None":
                 self.proxy_automatic_url.hide()
@@ -442,27 +444,26 @@ class PrefsWindow(Gtk.Window):
                 self.proxy_manual_port.hide()
                 self.proxy_manual_user.hide()
                 self.proxy_manual_password.hide()
-                prefs.put("Network", "ProxyURL", "")
-                prefs.put("Network", "ProxyAddress", "")
-                prefs.put("Network", "ProxyPort", "")
-                prefs.put("Network", "ProxyUser", "")
-                prefs.put("Network", "ProxyPassword", "")
+                self.proxy["ProxyURL"] = ""
+                self.proxy["ProxyAddress"] = ""
+                self.proxy["ProxyPort"] = ""
+                self.proxy["ProxyUser"] = ""
+                self.proxy["ProxyPassword"] = ""
             elif proxy == "Automatic":
                 self.proxy_manual_address.hide()
                 self.proxy_manual_port.hide()
                 self.proxy_manual_user.hide()
                 self.proxy_manual_password.hide()
-                prefs.put("Network", "ProxyAddress", "")
-                prefs.put("Network", "ProxyPort", "")
-                prefs.put("Network", "ProxyUser", "")
-                prefs.put("Network", "ProxyPassword", "")
+                self.proxy["ProxyAddress"] = ""
+                self.proxy["ProxyPort"] = ""
+                self.proxy["ProxyUser"] = ""
+                self.proxy["ProxyPassword"] = ""
                 self.proxy_automatic_url.show()
-                prefs.put("Network", "ProxyURL",
-                          self.proxy_automatic_url.get_text())
+                self.proxy["ProxyURL"] = self.proxy_automatic_url.get_text()
             else:
                 self.proxy_automatic_url.hide()
                 self.proxy_manual_address.show()
                 self.proxy_manual_port.show()
                 self.proxy_manual_user.show()
                 self.proxy_manual_password.show()
-                prefs.put("Network", "ProxyURL", "")
+                self.proxy["ProxyURL"] = ""
