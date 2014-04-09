@@ -207,7 +207,7 @@ msgstr "Bem-vindo à MEO Cloud"
 
 #: ../meocloud_gui/core/core_listener.py:140
 msgid "Link copied to clipboard."
-msgstr "Hiperligação copiada para a área de transferência."
+msgstr "Link copiado para a área de transferência."
 
 #: ../meocloud_gui/application.py:108 ../meocloud_gui/application.py:150
 msgid "No Recent Files"
