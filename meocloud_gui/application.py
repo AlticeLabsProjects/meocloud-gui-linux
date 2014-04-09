@@ -3,7 +3,7 @@ import keyring
 import webbrowser
 from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import Gtk, Gio, GLib, Notify
+from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
@@ -101,7 +101,9 @@ class Application(Gtk.Application):
                                                 CLOUD_HOME_DEFAULT_PATH)):
                     log.info('Application.on_activate: cloud_home missing')
                     missing = MissingDialog(self)
+                    Gdk.threads_enter()
                     missing.run()
+                    Gdk.threads_leave()
 
             if not self.missing_quit:
                 utils.create_required_folders()
