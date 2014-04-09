@@ -99,16 +99,17 @@ def clean_cloud_path():
     cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
 
     if os.path.exists(cloud_home):
-        dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.QUESTION,
-            Gtk.ButtonsType.YES_NO,
-            _("The MEOCloud folder already exists. If you want to use it, the "
-              "contents will be synchronized to your account. Would you like "
-              "to continue?"))
-        response = dialog.run()
-        dialog.destroy()
+        if os.listdir(cloud_home) != []:
+            dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.QUESTION,
+                Gtk.ButtonsType.YES_NO,
+                _("The MEOCloud folder already exists. If you want to use it, the "
+                  "contents will be synchronized to your account. Would you like "
+                  "to continue?"))
+            response = dialog.run()
+            dialog.destroy()
 
-        if response == Gtk.ResponseType.NO:
-            assert False
+            if response == Gtk.ResponseType.NO:
+                assert False
     if not os.path.exists(cloud_home):
         os.makedirs(cloud_home)
 
