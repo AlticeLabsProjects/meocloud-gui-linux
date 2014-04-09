@@ -274,10 +274,6 @@ msgstr ""
 msgid "Error"
 msgstr "Erro"
 
-#: ../meocloud_gui/application.py:260
-msgid "MEO Cloud Folder Missing"
-msgstr "A sua pasta MEO Cloud desapareceu"
-
 #: ../meocloud_gui/application.py:261
 msgid "Your MEO Cloud folder is missing."
 msgstr "Não conseguimos encontrar a sua pasta MEO Cloud."
