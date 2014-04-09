@@ -140,6 +140,8 @@ class CoreListenerHandler(UI.Iface):
             meocloud_gui.utils.create_bookmark()
             self.app.restart_core(True)
 
+        GLib.idle_add(lambda: self.setup.present())
+
     def endAuthorization(self):
         log.debug('CoreListener.endAuthorization() <<<<')
 
