@@ -1,3 +1,4 @@
+import socket
 from gi.repository import Gtk
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
@@ -82,6 +83,7 @@ class SetupWindow(Gtk.Window):
         self.pages.append_page(second_page_box, Gtk.Label())
         device_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.device_entry = Gtk.Entry()
+        self.device_entry.set_text(socket.gethostname())
         device_box.pack_start(Gtk.Label(""), True, True, 0)
         device_box.pack_start(Gtk.Label(_("Device name: ")), False, False, 0)
         device_box.pack_start(self.device_entry, False, False, 0)
