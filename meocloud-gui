@@ -28,7 +28,7 @@ except:
     sys.exit(1)
 
 try:
-    from gi.repository import Gtk
+    from gi.repository import Gtk, GLib, Gdk
 except:
     print "GTK is required. Please install GTK+ 3 with the GIR bindings."
     sys.exit(1)
@@ -119,5 +119,7 @@ if __name__ == "__main__":
         os.symlink(caja_py, caja_dst)
 
     init_localization()
+    GLib.threads_init()
+    Gdk.threads_init()
     app = Application(os.path.dirname(own_path))
     app.run(None)
