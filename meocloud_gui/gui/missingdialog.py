@@ -9,7 +9,7 @@ class MissingDialog(Gtk.Dialog):
     __gtype_name__ = 'MissingDialog'
 
     def __init__(self, app):
-        Gtk.Dialog.__init__(self, title=_("Cloud Home Missing"))
+        Gtk.Dialog.__init__(self, title=_("MEO Cloud Folder Missing"))
 
         self.set_resizable(False)
 
@@ -18,7 +18,7 @@ class MissingDialog(Gtk.Dialog):
         self.get_children()[0].add(vbox)
 
         self.label = Gtk.Label(
-            _("We were unable to find your cloud home folder."))
+            _("We were unable to find your MEO Cloud folder."))
         vbox.add(self.label)
 
         self.find_folder = Gtk.Button(_("Find Folder"))

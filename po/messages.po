@@ -136,11 +136,11 @@ msgid "Moving"
 msgstr ""
 
 #: ../meocloud_gui/gui/missingdialog.py:12
-msgid "Cloud Home Missing"
+msgid "MEO Cloud Folder Missing"
 msgstr ""
 
 #: ../meocloud_gui/gui/missingdialog.py:21
-msgid "We were unable to find your cloud home folder."
+msgid "We were unable to find your MEO Cloud folder."
 msgstr ""
 
 #: ../meocloud_gui/gui/missingdialog.py:24
@@ -275,11 +275,11 @@ msgid "Error"
 msgstr ""
 
 #: ../meocloud_gui/application.py:295
-msgid "Cloud Folder Missing"
+msgid "MEO Cloud Folder Missing"
 msgstr ""
 
 #: ../meocloud_gui/application.py:296
-msgid "Your cloud folder is missing."
+msgid "Your MEO Cloud folder is missing."
 msgstr ""
 
 #: ../meocloud_gui/application.py:346

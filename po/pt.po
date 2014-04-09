@@ -20,7 +20,7 @@ msgstr ""
 #: ../meocloud_nautilus/meocloud-nautilus.py:167
 #: ../meocloud_nemo/meocloud-nemo.py:167
 msgid "Copy Link"
-msgstr "Copiar hiperligação"
+msgstr "Copiar link"
 
 #: ../meocloud_nautilus/meocloud-nautilus.py:172
 #: ../meocloud_nemo/meocloud-nemo.py:172
@@ -30,7 +30,7 @@ msgstr "Partilhar pasta"
 #: ../meocloud_nautilus/meocloud-nautilus.py:178
 #: ../meocloud_nemo/meocloud-nemo.py:178
 msgid "Open in Browser"
-msgstr "Abrir no navegador web"
+msgstr "Abrir no browser"
 
 #: ../meocloud_gui/gui/prefswindow.py:18 ../meocloud_gui/application.py:120
 msgid "Preferences"
@@ -136,12 +136,12 @@ msgid "Moving"
 msgstr "A mover"
 
 #: ../meocloud_gui/gui/missingdialog.py:12
-msgid "Cloud Home Missing"
-msgstr ""
+msgid "MEO Cloud Folder Missing"
+msgstr "A sua pasta MEO Cloud desapareceu"
 
 #: ../meocloud_gui/gui/missingdialog.py:21
-msgid "We were unable to find your cloud home folder."
-msgstr "Não conseguimos encontrar a sua pasta."
+msgid "We were unable to find your MEO Cloud folder."
+msgstr "Não conseguimos encontrar a sua pasta MEO Cloud."
 
 #: ../meocloud_gui/gui/missingdialog.py:24
 msgid "Find Folder"
@@ -275,12 +275,12 @@ msgid "Error"
 msgstr "Erro"
 
 #: ../meocloud_gui/application.py:260
-msgid "Cloud Folder Missing"
-msgstr ""
+msgid "MEO Cloud Folder Missing"
+msgstr "A sua pasta MEO Cloud desapareceu"
 
 #: ../meocloud_gui/application.py:261
-msgid "Your cloud folder is missing."
-msgstr ""
+msgid "Your MEO Cloud folder is missing."
+msgstr "Não conseguimos encontrar a sua pasta MEO Cloud."
 
 #: ../meocloud_gui/application.py:307
 msgid "{0} used of {1}"

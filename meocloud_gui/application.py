@@ -294,8 +294,8 @@ class Application(Gtk.Application):
 
                 notif_icon = os.path.join(
                     self.app_path, "icons/meocloud.svg")
-                notif_title = _('Cloud Folder Missing')
-                notif_string = _('Your cloud folder is missing.')
+                notif_title = _('MEO Cloud Folder Missing')
+                notif_string = _('Your MEO Cloud folder is missing.')
                 notification = Notify.Notification.new(notif_title,
                                                        notif_string,
                                                        notif_icon)
