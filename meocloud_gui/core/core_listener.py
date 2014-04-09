@@ -177,7 +177,9 @@ class CoreListenerHandler(UI.Iface):
 
             notif_icon = os.path.join(
                 self.app.app_path, "icons/meocloud.svg")
-            notif_title = NOTIFICATIONS[lang][str(note.code) + "_title"]
+            notif_title = NOTIFICATIONS[lang][str(note.code) +
+                                              "_title"].format(
+                *note.parameters)
             notif_string = NOTIFICATIONS[lang][str(note.code) +
                                                "_description"].format(
                 *note.parameters)
