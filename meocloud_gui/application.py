@@ -136,6 +136,7 @@ class Application(Gtk.Application):
                 self.menuitem_changestatus = Gtk.MenuItem(_("Authorize"))
                 self.menuitem_prefs = Gtk.MenuItem(_("Preferences"))
                 menuitem_about = Gtk.MenuItem(_("About"))
+                menuitem_bug = Gtk.MenuItem(_("Report a Bug"))
                 menuitem_quit = Gtk.MenuItem(_("Quit"))
 
                 self.trayicon.add_menu_item(menuitem_folder)
@@ -148,6 +149,7 @@ class Application(Gtk.Application):
                 self.trayicon.add_menu_item(self.menuitem_changestatus)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
                 self.trayicon.add_menu_item(self.menuitem_prefs, True)
+                self.trayicon.add_menu_item(menuitem_bug)
                 self.trayicon.add_menu_item(menuitem_about)
                 self.trayicon.add_menu_item(menuitem_quit)
 
@@ -158,11 +160,15 @@ class Application(Gtk.Application):
                 self.menuitem_prefs.connect("activate", self.show_prefs)
                 menuitem_about.connect(
                     "activate", lambda w: AboutDialog(self.app_path))
+                menuitem_bug.connect("activate", self.report_bug)
                 menuitem_quit.connect("activate", lambda w: self.quit())
 
                 self.restart_core()
 
                 self.hold()
+
+    def report_bug(self, w):
+        webbrowser.open("http://ajuda.cld.pt")
 
     def clean_recent_files(self):
         for menuitem in self.recentfiles_menu.get_children():
