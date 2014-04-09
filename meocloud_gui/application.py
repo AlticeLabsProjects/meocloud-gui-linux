@@ -299,8 +299,11 @@ class Application(Gtk.Application):
                                                        notif_icon)
                 notification.show()
 
-                os.system("killall meocloud-gui && " +
-                          os.path.join(self.app_path, "meocloud-gui &"))
+
+                cmd = "kill {0} && {1} &".format(
+                    os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
+                print cmd
+                os.system(cmd)
             elif error_code == codes.ERROR_UNKNOWN:
                 pass
             elif error_code == codes.ERROR_THREAD_CRASH:
