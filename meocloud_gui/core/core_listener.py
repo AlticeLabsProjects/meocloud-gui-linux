@@ -95,6 +95,11 @@ class CoreListenerHandler(UI.Iface):
         self.setup.show_all()
 
     def beginAuthorizationBrowser(self, w):
+        try:
+            meocloud_gui.utils.clean_cloud_path()
+        except:
+            return
+
         self.setup.start_waiting()
 
         device_name = self.setup.device_entry.get_text()
@@ -127,7 +132,7 @@ class CoreListenerHandler(UI.Iface):
             GLib.idle_add(self.setup.spinner.stop)
             GLib.idle_add(self.setup.pages.last_page)
 
-            meocloud_gui.utils.clean_cloud_path()
+
             meocloud_gui.utils.create_startup_file(self.app.app_path)
             meocloud_gui.utils.create_bookmark()
             self.app.restart_core()

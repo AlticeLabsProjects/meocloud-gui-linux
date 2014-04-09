@@ -8,7 +8,7 @@ import logging.handlers
 import shutil
 import dbus
 from threading import Thread
-from gi.repository import GLib, Gio
+from gi.repository import GLib, Gio, Gtk
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     UI_CONFIG_PATH, LOGGER_NAME, LOG_PATH,
@@ -99,7 +99,16 @@ def clean_cloud_path():
     cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
 
     if os.path.exists(cloud_home):
-        shutil.rmtree(cloud_home)
+        dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.QUESTION,
+            Gtk.ButtonsType.YES_NO,
+            _("The MEOCloud folder already exists. If you want to use it, the "
+              "contents will be synchronized to your account. Would you like "
+              "to continue?"))
+        response = dialog.run()
+        dialog.destroy()
+
+        if response == Gtk.ResponseType.NO:
+            assert False
     if not os.path.exists(cloud_home):
         os.makedirs(cloud_home)
 
