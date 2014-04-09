@@ -237,6 +237,10 @@ msgstr "Sem autorização"
 msgid "About"
 msgstr "Sobre"
 
+#: ../meocloud_gui/application.py:139
+msgid "Report a Bug"
+msgstr "Reportar um problema"
+
 #: ../meocloud_gui/application.py:204
 msgid "Initializing"
 msgstr "A inicializar"
