@@ -272,6 +272,14 @@ class PrefsWindow(Gtk.Window):
             self.notebook.append_page(advanced_box, Gtk.Label(_("Advanced")))
 
         self.box.pack_start(self.notebook, True, True, 0)
+
+        if not embed and not app.use_headerbar:
+            close_button = Gtk.Button(_("Close"))
+            close_button.connect("clicked", self.destroy)
+            close_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            close_box.pack_end(close_button, False, False, 10)
+            self.box.pack_end(close_box, False, False, 10)
+
         self.connect("destroy", self.destroy)
 
         self.restart_core = False
