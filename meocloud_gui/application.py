@@ -131,7 +131,7 @@ class Application(Gtk.Application):
                 menuitem_site = Gtk.MenuItem(_("Open Website"))
                 self.menuitem_recent = Gtk.MenuItem(_("Recent Files"))
                 self.menuitem_recent.set_submenu(self.recentfiles_menu)
-                self.menuitem_storage = Gtk.MenuItem(_("0 GB used of 16 GB"))
+                self.menuitem_storage = Gtk.MenuItem("-")
                 self.menuitem_storage.set_sensitive(False)
                 self.menuitem_status = Gtk.MenuItem(_("Unauthorized"))
                 self.menuitem_status.set_sensitive(False)
@@ -235,19 +235,19 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
-            GLib.idle_add(lambda: self.menuitem_prefs.hide())
+            GLib.idle_add(lambda: self.hide_gui_elements())
             self.trayicon.set_icon("meocloud-ok")
             self.paused = True
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
-            GLib.idle_add(lambda: self.menuitem_prefs.show())
+            GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
             self.update_status(_("Syncing"))
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
-            GLib.idle_add(lambda: self.menuitem_prefs.show())
+            GLib.idle_add(lambda: self.show_gui_elements(True))
             self.trayicon.set_icon("meocloud-ok")
             self.paused = False
             self.update_status(_("Synced"))
@@ -262,20 +262,20 @@ class Application(Gtk.Application):
             GLib.idle_add(lambda: self.update_recent_files(recently_changed,
                                                            cloud_home))
         elif status.state == codes.CORE_PAUSED:
-            GLib.idle_add(lambda: self.menuitem_prefs.show())
+            GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-pause")
             self.paused = True
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_OFFLINE:
-            GLib.idle_add(lambda: self.menuitem_prefs.show())
+            GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.offline = True
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_ERROR:
-            GLib.idle_add(lambda: self.menuitem_prefs.show())
+            GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.update_status(_("Error"))
@@ -320,6 +320,15 @@ class Application(Gtk.Application):
                 assert False
 
         utils.touch(cloud_home)
+
+    def hide_gui_elements(self):
+        self.menuitem_prefs.hide()
+        self.menuitem_storage.hide()
+
+    def show_gui_elements(self, storage=False):
+        self.menuitem_prefs.show()
+        if storage:
+            self.menuitem_storage.show()
 
     def update_status(self, status):
         GLib.idle_add(lambda: self.menuitem_status.set_label(status))
@@ -377,7 +386,7 @@ class Application(Gtk.Application):
         self.update_status(_("Unauthorized"))
         self.update_menu_action(_("Authorize"))
         GLib.idle_add(lambda: self.clean_recent_files())
-        GLib.idle_add(lambda: self.menuitem_prefs.hide())
+        GLib.idle_add(lambda: self.hide_gui_elements())
         log.info('Application.on_logout_thread: completing logout')
         self.restart_core()
 
