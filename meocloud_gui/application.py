@@ -402,6 +402,9 @@ class Application(Gtk.Application):
         log.info('Application.restart_core: initiating core restart')
         prefs = Preferences()
 
+        GLib.idle_add(lambda: self.hide_gui_elements())
+        self.trayicon.set_icon("meocloud-ok")
+
         self.core_client = CoreClient()
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
                                           self.core_client, prefs, self,
