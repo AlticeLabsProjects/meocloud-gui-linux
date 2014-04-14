@@ -101,11 +101,12 @@ def clean_cloud_path():
 
     if os.path.exists(cloud_home):
         if os.listdir(cloud_home) != []:
-            dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.QUESTION,
+            dialog = Gtk.MessageDialog(
+                None, 0, Gtk.MessageType.QUESTION,
                 Gtk.ButtonsType.YES_NO,
-                _("The MEOCloud folder already exists. If you want to use it, the "
-                  "contents will be synchronized to your account. Would you like "
-                  "to continue?"))
+                _("The MEOCloud folder already exists. If you want to use it, "
+                  "the contents will be synchronized to your account. Would "
+                  "you like to continue?"))
             response = dialog.run()
             dialog.destroy()
 
@@ -271,7 +272,8 @@ def move_folder_async(src, dst, callback=None):
 
 
 def get_all_paths():
-    cloud_home = Preferences().get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
+    cloud_home = Preferences().get('Advanced', 'Folder',
+                                   CLOUD_HOME_DEFAULT_PATH)
 
     query_files = []
 

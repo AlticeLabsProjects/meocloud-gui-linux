@@ -337,7 +337,6 @@ class Application(Gtk.Application):
                                                        notif_icon)
                 notification.show()
 
-
                 cmd = "kill {0} && {1} &".format(
                     os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
                 os.system(cmd)
