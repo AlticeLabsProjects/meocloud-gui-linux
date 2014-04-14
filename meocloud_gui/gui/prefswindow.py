@@ -92,7 +92,10 @@ class PrefsWindow(Gtk.Window):
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
                                            'meocloud.desktop')
-        start_at_login.set_active(os.path.isfile(start_at_login_path))
+        if embed:
+            start_at_login.set_active(True)
+        else:
+            start_at_login.set_active(os.path.isfile(start_at_login_path))
         start_at_login.connect("toggled", self.toggle_start_at_login)
         general_box.pack_start(start_at_login, False, True, 10)
 

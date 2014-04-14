@@ -135,9 +135,9 @@ class CoreListenerHandler(UI.Iface):
             meocloud_gui.utils.create_bookmark()
             self.app.restart_core()
         else:
-            GLib.idle_add(self.setup.pages.next_page)
             meocloud_gui.utils.create_startup_file(self.app.app_path)
             meocloud_gui.utils.create_bookmark()
+            GLib.idle_add(self.setup.pages.next_page)
             self.app.restart_core(True)
 
         GLib.idle_add(lambda: self.setup.present())
