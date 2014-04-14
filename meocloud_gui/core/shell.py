@@ -109,9 +109,6 @@ class Shell(object):
             else:
                 utils.touch(self.cloud_home)
 
-            print self.syncing
-            print self.ignored
-
     def _send(self, data):
         self.s.sendall(data)
 
