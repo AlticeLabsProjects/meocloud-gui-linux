@@ -18,7 +18,7 @@ import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
-                                    UI_CONFIG_PATH)
+                                    UI_CONFIG_PATH, VERSION)
 
 from meocloud_gui import codes
 
@@ -74,6 +74,8 @@ class Application(Gtk.Application):
         self.dbus_service = DBusService(codes.CORE_INITIALIZING, self.app_path)
 
         self.use_headerbar = utils.use_headerbar()
+        self.update_app_timeout = GLib.timeout_add(60000,
+                                                   self.update_app_version)
 
     def on_activate(self, data=None):
         if not self.running:
@@ -168,6 +170,18 @@ class Application(Gtk.Application):
                 self.restart_core()
 
                 self.hold()
+
+    def update_app_version(self):
+        version_file = open(
+            os.path.join(self.app_path, "meocloud_gui/VERSION"), "r")
+
+        if version_file.read().strip() != VERSION:
+            cmd = "kill {0} && {1} &".format(
+                os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
+            os.system(cmd)
+            return False
+        else:
+            return True
 
     def report_bug(self, w):
         webbrowser.open("http://ajuda.cld.pt")
@@ -314,7 +328,6 @@ class Application(Gtk.Application):
 
                 cmd = "kill {0} && {1} &".format(
                     os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
-                print cmd
                 os.system(cmd)
             elif error_code == codes.ERROR_UNKNOWN:
                 pass
