@@ -15,6 +15,7 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     DEBUG_ON_PATH, DEBUG_OFF_PATH,
                                     DEV_MODE, BETA_MODE,
                                     PURGEMETA_PATH, PURGEALL_PATH)
+from meocloud_gui.protocol.shell.ttypes import FileStatus
 
 
 def init_logging():
@@ -267,6 +268,20 @@ def move_folder_async(src, dst, callback=None):
                 GLib.idle_add(lambda: callback(cloud_home, True))
 
     Thread(target=move_folder_thread, args=(src, dst, callback)).start()
+
+
+def get_all_paths():
+    cloud_home = Preferences().get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
+
+    query_files = []
+
+    for root, dirs, files in os.walk(cloud_home):
+        if root != "":
+            query_files.append(FileStatus(path=root))
+        for filename in files:
+            query_files.append(FileStatus(path=os.path.join(root, filename)))
+
+    return query_files
 
 
 def get_error_code(status_code):

@@ -1,5 +1,6 @@
 import socket
 import os
+from time import sleep
 from gi.repository import GLib
 from threading import Thread
 from meocloud_gui import thrift_utils
@@ -16,7 +17,10 @@ from meocloud_gui.protocol.shell.ttypes import (
     OpenMessage,
     ShareType,
     OpenType,
-    FileState)
+    FileState,
+    FileStatusMessage,
+    FileStatusType,
+    FileStatus)
 
 # Logging
 import logging
@@ -52,6 +56,26 @@ class Shell(object):
             self.syncing.remove(path)
             utils.touch(os.path.join(self.cloud_home, path[1:]))
 
+    def cache(self):
+        del self.syncing
+        self.syncing = []
+        del self.ignored
+        self.ignored = []
+
+        query_files = utils.get_all_paths()
+
+        for status_file in query_files:
+            status_file.path = status_file.path.replace("/home/ivo/MEOCloud",
+                                                        "")
+
+            if status_file.path != "":
+                data = Message(type=MessageType.FILE_STATUS,
+                               fileStatus=FileStatusMessage(
+                                   type=FileStatusType.REQUEST,
+                                   status=status_file))
+
+                self._send(thrift_utils.serialize_thrift_msg(data))
+
     def _listener(self):
         log.info('Shell: shell listener ready')
 
@@ -65,6 +89,10 @@ class Shell(object):
 
             if len(msg) > 0:
                 msg = msg[0]
+
+            if self.cloud_home in msg.fileStatus.status.path:
+                msg.fileStatus.status.path = \
+                    msg.fileStatus.status.path.replace(self.cloud_home, "")
 
             if msg.fileStatus.status.path != "/":
                 if msg.fileStatus.status.state == FileState.SYNCING:
@@ -80,6 +108,9 @@ class Shell(object):
                     GLib.idle_add(self.cb_file_changed)
             else:
                 utils.touch(self.cloud_home)
+
+            print self.syncing
+            print self.ignored
 
     def _send(self, data):
         self.s.sendall(data)
