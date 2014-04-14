@@ -76,6 +76,7 @@ class Application(Gtk.Application):
         self.use_headerbar = utils.use_headerbar()
         self.update_app_timeout = GLib.timeout_add(60000,
                                                    self.update_app_version)
+        self.update_sync_status_timeout = None
 
     def on_activate(self, data=None):
         if not self.running:
@@ -252,18 +253,20 @@ class Application(Gtk.Application):
             GLib.idle_add(lambda: self.hide_gui_elements())
             self.trayicon.set_icon("meocloud-ok")
             self.paused = True
+            self.update_sync_status_stop()
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
             GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
-            self.update_status(_("Syncing"))
+            self.update_sync_status_start()
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
             GLib.idle_add(lambda: self.show_gui_elements(True))
             self.trayicon.set_icon("meocloud-ok")
             self.paused = False
+            self.update_sync_status_stop()
             self.update_status(_("Synced"))
             self.update_menu_action(_("Pause"))
 
@@ -279,6 +282,7 @@ class Application(Gtk.Application):
             GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-pause")
             self.paused = True
+            self.update_sync_status_stop()
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_OFFLINE:
@@ -286,6 +290,7 @@ class Application(Gtk.Application):
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.offline = True
+            self.update_sync_status_stop()
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
 
@@ -302,6 +307,7 @@ class Application(Gtk.Application):
             GLib.idle_add(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
+            self.update_sync_status_stop()
             self.update_status(_("Error"))
             self.update_menu_action(_("Resume"))
 
@@ -343,6 +349,39 @@ class Application(Gtk.Application):
                 assert False
 
         utils.touch(cloud_home)
+
+    def update_sync_status(self):
+        syncstatus = self.core_client.currentSyncStatus()
+
+        if syncstatus.downloadRate > 0 or syncstatus.pendingDownloads > 0:
+            self.update_status(
+                _("Downloading {0} file(s) at {1}/s").format(
+                    syncstatus.pendingDownloads,
+                    utils.convert_size(syncstatus.downloadRate)))
+        elif syncstatus.uploadRate > 0 or syncstatus.pendingUploads > 0:
+            self.update_status(
+                _("Uploading {0} file(s) at {1}/s").format(
+                    syncstatus.pendingUploads,
+                    utils.convert_size(syncstatus.uploadRate)))
+        elif syncstatus.pendingIndexes > 0:
+            self.update_status(
+                _("Indexing {0} files").format(
+                    syncstatus.pendingIndexes))
+        else:
+            self.update_status(_("Syncing"))
+
+        return True
+
+    def update_sync_status_stop(self):
+        if self.update_sync_status_timeout is not None:
+            GLib.source_remove(self.update_sync_status_timeout)
+            self.update_sync_status_timeout = None
+
+    def update_sync_status_start(self):
+        if self.update_sync_status_timeout is None:
+            self.update_sync_status()
+            self.update_sync_status_timeout = \
+                GLib.timeout_add(5000, self.update_sync_status)
 
     def hide_gui_elements(self):
         self.menuitem_prefs.hide()
