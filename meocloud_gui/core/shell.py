@@ -65,8 +65,7 @@ class Shell(object):
         query_files = utils.get_all_paths()
 
         for status_file in query_files:
-            status_file.path = status_file.path.replace("/home/ivo/MEOCloud",
-                                                        "")
+            status_file.path = status_file.path.replace(self.cloud_home, "")
 
             if status_file.path != "":
                 data = Message(type=MessageType.FILE_STATUS,
