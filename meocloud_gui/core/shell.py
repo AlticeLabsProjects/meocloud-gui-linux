@@ -109,7 +109,8 @@ class Shell(object):
             else:
                 utils.touch(self.cloud_home)
 
-            if not self.cached and msg.fileStatus.status.state == FileState.READY:
+            if (not self.cached and
+                    msg.fileStatus.status.state == FileState.READY):
                 data = Message(type=MessageType.FILE_STATUS,
                                fileStatus=FileStatusMessage(
                                    type=FileStatusType.REQUEST,
