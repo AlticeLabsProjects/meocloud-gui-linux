@@ -309,15 +309,18 @@ class PrefsWindow(Gtk.Window):
             self.app.restart_core()
         else:
             try:
-                self.app.core_client.networkSettingsChanged(
-                    api.get_network_settings(
-                        prefs, upload=int(self.throttle["Upload"]),
-                        download=int(self.throttle["Download"])))
+                self.update_network()
             except:
                 pass
 
         self.app.prefs_window = None
         Gtk.Window.destroy(self)
+
+    def update_network(self):
+        self.app.core_client.networkSettingsChanged(
+            api.get_network_settings(
+                Preferences(), upload=int(self.throttle["Upload"]),
+                download=int(self.throttle["Download"])))
 
     def toggle_display_notifications(self, w):
         if str(self.display_notif) == "True":
@@ -433,6 +436,8 @@ class PrefsWindow(Gtk.Window):
             self.throttle[throttle] = str(val)
             w.set_sensitive(True)
 
+        self.update_network()
+
     def throttle_value_changed(self, w, throttle):
         try:
             val = int(w.get_text())
@@ -440,6 +445,7 @@ class PrefsWindow(Gtk.Window):
             val = 128
 
         self.throttle[throttle] = str(val)
+        self.update_network()
 
     def proxy_automatic_value_changed(self, w):
         self.restart_core = True
