@@ -59,8 +59,6 @@ class Shell(object):
     def cache(self):
         del self.syncing
         self.syncing = []
-        del self.ignored
-        self.ignored = []
 
         query_files = utils.get_all_paths()
 
@@ -80,7 +78,7 @@ class Shell(object):
 
         while True:
             try:
-                msg = self.s.recvfrom(2048)[0]
+                msg = self.s.recvfrom(4096)[0]
                 msg = thrift_utils.deserialize(Message(), msg)
             except EOFError:
                 log.info('Shell._listener: lost connection to socket')
