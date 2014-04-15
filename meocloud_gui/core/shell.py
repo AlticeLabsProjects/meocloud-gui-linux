@@ -42,6 +42,8 @@ class Shell(object):
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
 
+        self.cached = False
+
         log.info('Shell: starting the shell listener thread')
         self._thread = Thread(target=self._listener)
         self._thread.setDaemon(isDaemon)
@@ -95,7 +97,8 @@ class Shell(object):
                 if msg.fileStatus.status.state == FileState.SYNCING:
                     self.syncing.append(msg.fileStatus.status.path)
                 elif msg.fileStatus.status.state == FileState.IGNORED:
-                    self.ignored.append(msg.fileStatus.status.path)
+                    if not msg.fileStatus.status.path in self.ignored:
+                        self.ignored.append(msg.fileStatus.status.path)
                 elif msg.fileStatus.status.path in self.syncing:
                     self.syncing.remove(msg.fileStatus.status.path)
                 utils.touch(os.path.join(self.cloud_home,
@@ -105,6 +108,18 @@ class Shell(object):
                     GLib.idle_add(self.cb_file_changed)
             else:
                 utils.touch(self.cloud_home)
+
+            if not self.cached and msg.fileStatus.status.state == FileState.READY:
+                data = Message(type=MessageType.FILE_STATUS,
+                               fileStatus=FileStatusMessage(
+                                   type=FileStatusType.REQUEST,
+                                   status=FileStatus(path="/.cloudcontrol")))
+
+                self._send(thrift_utils.serialize_thrift_msg(data))
+
+            if not self.cached and "/.cloudcontrol" in self.ignored:
+                self.cached = True
+                Thread(target=self.cache).start()
 
     def _send(self, data):
         self.s.sendall(data)

@@ -49,6 +49,10 @@ class DBusService(dbus.service.Object):
                 is_syncing = path.replace(cloud_home, '') in self.shell.syncing
                 is_ignored = path.replace(cloud_home, '') in self.shell.ignored
 
+                if not is_ignored:
+                    is_ignored = path.startswith(tuple(
+                        (s + "/" for s in self.shell.ignored)))
+
             return path.startswith(cloud_home + "/"), is_syncing, is_ignored
 
     @dbus.service.method('pt.meocloud.dbus')
@@ -77,7 +81,12 @@ class DBusService(dbus.service.Object):
             if self.shell is None:
                 is_ignored = False
             else:
+                path = path.replace(cloud_home, '')
                 is_ignored = path.replace(cloud_home, '') in self.shell.ignored
+
+                if not is_ignored:
+                    is_ignored = path.startswith(tuple(
+                        (s + "/" for s in self.shell.ignored)))
 
             return is_ignored
 
