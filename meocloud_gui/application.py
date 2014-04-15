@@ -144,11 +144,12 @@ class Application(Gtk.Application):
                 menuitem_about = Gtk.MenuItem(_("About"))
                 menuitem_bug = Gtk.MenuItem(_("Report a Bug"))
                 menuitem_quit = Gtk.MenuItem(_("Quit"))
+                self.storage_separator = Gtk.SeparatorMenuItem()
 
                 self.trayicon.add_menu_item(menuitem_folder)
                 self.trayicon.add_menu_item(menuitem_site)
                 self.trayicon.add_menu_item(self.menuitem_recent)
-                self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
+                self.trayicon.add_menu_item(self.storage_separator)
                 self.trayicon.add_menu_item(self.menuitem_storage)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
                 self.trayicon.add_menu_item(self.menuitem_status)
@@ -389,12 +390,14 @@ class Application(Gtk.Application):
                 GLib.timeout_add(5000, self.update_sync_status)
 
     def hide_gui_elements(self):
+        self.storage_separator.hide()
         self.menuitem_prefs.hide()
         self.menuitem_storage.hide()
 
     def show_gui_elements(self, storage=False):
         self.menuitem_prefs.show()
         if storage:
+            self.storage_separator.show()
             self.menuitem_storage.show()
 
     def update_status(self, status):
