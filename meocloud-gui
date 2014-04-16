@@ -8,6 +8,10 @@ import sys
 
 sys.path.insert(0, "/opt/meocloud/libs/")
 
+if not os.path.isfile("/opt/meocloud/core/meocloudd"):
+    print "Core not found. Aborting."
+    sys.exit(1)
+
 # warn about unavailable libraries
 try:
     import keyring
