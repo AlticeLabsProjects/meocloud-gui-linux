@@ -15,31 +15,31 @@ if not os.path.isfile("/opt/meocloud/core/meocloudd"):
 # warn about unavailable libraries
 try:
     import keyring
-except:
+except ImportError:
     print "Keyring unavailable. Please install python-keyring."
     sys.exit(1)
 
 try:
     import thrift
-except:
+except ImportError:
     print "Thrift unavailable. Please install python-thrift."
     sys.exit(1)
 
 try:
     from dbus.mainloop.glib import DBusGMainLoop
-except:
+except ImportError:
     print "D-Bus unavailable. Please install dbus-python."
     sys.exit(1)
 
 try:
     from gi.repository import Gtk, GLib, Gdk
-except:
+except ImportError:
     print "GTK is required. Please install GTK+ 3 with the GIR bindings."
     sys.exit(1)
 
 try:
     from gi.repository import Notify
-except:
+except ImportError:
     print "Notify is required. Please install the Notify GIR bindings."
     sys.exit(1)
 
