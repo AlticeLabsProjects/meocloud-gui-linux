@@ -18,7 +18,7 @@ import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
-                                    UI_CONFIG_PATH, VERSION)
+                                    CONFIG_PATH, UI_CONFIG_PATH, VERSION)
 
 from meocloud_gui import codes
 
@@ -108,6 +108,37 @@ class Application(Gtk.Application):
                     Gdk.threads_enter()
                     missing.run()
                     Gdk.threads_leave()
+
+            # cli migration
+            try:
+                import yaml
+                migrate_from_cli = \
+                    os.path.isfile(os.path.join(
+                        CONFIG_PATH, "ui/ui_config.yaml"))
+            except:
+                migrate_from_cli = False
+
+            if migrate_from_cli:
+                stream = open(
+                    os.path.join(CONFIG_PATH, "ui/ui_config.yaml"), 'r')
+                cli_config = yaml.load(stream)
+
+                cli_rc4_key = '8025c571541a64bccd00135f87dec11a83a8c5de69c94ec6b642dbdc6a2aebdd'
+                account_dict = cli_config['account']
+                account_dict['authKey'] = utils.decrypt(account_dict['authKey'], cli_rc4_key)
+                account_dict['clientID'] = utils.decrypt(account_dict['clientID'], cli_rc4_key)
+
+                keyring.set_password("meocloud", "clientID",
+                                     account_dict['clientID'])
+                keyring.set_password("meocloud", "authKey",
+                                     account_dict['authKey'])
+                prefs.put('Account', 'email', account_dict['email'])
+                prefs.put('Account', 'name', account_dict['name'])
+                prefs.put('Account', 'deviceName', account_dict['deviceName'])
+                prefs.put('Advanced', 'Folder', cli_config['cloud_home'])
+
+                utils.purge_meta()
+                os.remove(os.path.join(CONFIG_PATH, "ui/ui_config.yaml"))
 
             if not self.missing_quit:
                 utils.create_required_folders()
