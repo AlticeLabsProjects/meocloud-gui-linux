@@ -53,7 +53,6 @@ class Application(Gtk.Application):
         self.core_client = None
         self.core_listener = None
         self.shell = None
-        self.shell_cache_next = False
         self.core = None
         self.ignored_directories = []
         self.dark_icons = False
@@ -276,13 +275,12 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
 
-        #if status.state == codes.CORE_READY and self.shell_cache_next:
-        #    Thread(target=self.shell.cache).start()
-        #    self.shell_cache_next = False
-
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
             self.shell = Shell.start(self.file_changed)
+            for ignored_dir in self.ignored_directories:
+                if not ignored_dir in self.shell.ignored:
+                    self.shell.ignored.append(ignored_dir)
             self.shell.subscribe_path('/')
             self.dbus_service.shell = self.shell
             self.dbus_service.update_prefs()

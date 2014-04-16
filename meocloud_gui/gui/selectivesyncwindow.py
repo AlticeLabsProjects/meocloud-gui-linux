@@ -1,5 +1,6 @@
 import os.path
 import os
+from threading import Thread
 from gi.repository import Gtk
 from meocloud_gui.gui.spinnerbox import SpinnerBox
 
@@ -155,6 +156,14 @@ class SelectiveSyncWindow(Gtk.Window):
         for directory in self.app.ignored_directories:
             f.write(directory + "\n")
         f.close()
+
+        self.app.shell.ignored = []
+
+        for ignored_dir in self.app.ignored_directories:
+            if not ignored_dir in self.app.shell.ignored:
+                self.app.shell.ignored.append(ignored_dir)
+
+        Thread(target=self.app.shell.cache).start()
 
         log.info('SelectiveSyncWindow.save_ignored_directories: '
                  'ignored directories saved')
