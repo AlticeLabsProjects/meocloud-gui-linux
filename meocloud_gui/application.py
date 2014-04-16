@@ -123,10 +123,13 @@ class Application(Gtk.Application):
                     os.path.join(CONFIG_PATH, "ui/ui_config.yaml"), 'r')
                 cli_config = yaml.load(stream)
 
-                cli_rc4_key = '8025c571541a64bccd00135f87dec11a83a8c5de69c94ec6b642dbdc6a2aebdd'
+                cli_rc4_key = '8025c571541a64bccd00135f87dec11a' \
+                              '83a8c5de69c94ec6b642dbdc6a2aebdd'
                 account_dict = cli_config['account']
-                account_dict['authKey'] = utils.decrypt(account_dict['authKey'], cli_rc4_key)
-                account_dict['clientID'] = utils.decrypt(account_dict['clientID'], cli_rc4_key)
+                account_dict['authKey'] = utils.decrypt(
+                    account_dict['authKey'], cli_rc4_key)
+                account_dict['clientID'] = utils.decrypt(
+                    account_dict['clientID'], cli_rc4_key)
 
                 keyring.set_password("meocloud", "clientID",
                                      account_dict['clientID'])
