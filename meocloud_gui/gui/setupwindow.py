@@ -32,7 +32,7 @@ class SetupWindow(Gtk.Window):
             self.headerbar.set_show_close_button(True)
             self.set_titlebar(self.headerbar)
             self.add(self.pages)
-        except:
+        except AttributeError:
             self.headerbar = None
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             welcome_label = Gtk.Label(

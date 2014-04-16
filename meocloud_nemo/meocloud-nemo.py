@@ -76,21 +76,21 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             try:
                 self.service = bus.get_object('pt.meocloud.dbus',
                                               '/pt/meocloud/dbus')
+            except dbus.exceptions.DBusException:
+                return
 
-                self.status = self.service.get_dbus_method(
-                    'Status', 'pt.meocloud.dbus')
-                self.file_in_cloud = self.service.get_dbus_method(
-                    'FileInCloud', 'pt.meocloud.dbus')
-                self.get_cloud_home = self.service.get_dbus_method(
-                    'GetCloudHome', 'pt.meocloud.dbus')
-                self.share_link = self.service.get_dbus_method(
-                    'ShareLink', 'pt.meocloud.dbus')
-                self.share_folder = self.service.get_dbus_method(
-                    'ShareFolder', 'pt.meocloud.dbus')
-                self.open_in_browser = self.service.get_dbus_method(
-                    'OpenInBrowser', 'pt.meocloud.dbus')
-            except:
-                pass
+            self.status = self.service.get_dbus_method(
+                'Status', 'pt.meocloud.dbus')
+            self.file_in_cloud = self.service.get_dbus_method(
+                'FileInCloud', 'pt.meocloud.dbus')
+            self.get_cloud_home = self.service.get_dbus_method(
+                'GetCloudHome', 'pt.meocloud.dbus')
+            self.share_link = self.service.get_dbus_method(
+                'ShareLink', 'pt.meocloud.dbus')
+            self.share_folder = self.service.get_dbus_method(
+                'ShareFolder', 'pt.meocloud.dbus')
+            self.open_in_browser = self.service.get_dbus_method(
+                'OpenInBrowser', 'pt.meocloud.dbus')
 
     def get_local_path(self, path):
         return urllib.unquote(path)[7:]
@@ -139,7 +139,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                         item.add_emblem("emblem-important")
                     elif in_cloud:
                         item.add_emblem("emblem-default")
-            except:
+            except (AttributeError, ValueError, dbus.exceptions.DBusException):
                 self.service = None
                 pass
 
@@ -160,7 +160,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                 in_cloud, syncing, ignored = self.file_in_cloud(uri)
                 if not in_cloud:
                     return None,
-            except:
+            except (AttributeError, ValueError, dbus.exceptions.DBusException):
                 self.service = None
                 return None,
         else:

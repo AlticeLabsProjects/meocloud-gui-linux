@@ -17,7 +17,7 @@ class Preferences(object):
                 return default
             else:
                 return val
-        except:
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return default
 
     def put(self, section, option, val):

@@ -83,8 +83,8 @@ class SelectiveSyncWindow(Gtk.Window):
 
         # only works with Gtk >= 3.8
         try:
-            treeview.set_activate_on_single_click(True)
-        except:
+            treeview.set_activates_on_single_click(True)
+        except AttributeError:
             log.warning('SelectiveSyncWindow.add_column: Gtk older than 3.8, '
                         'falling back')
 
@@ -157,13 +157,14 @@ class SelectiveSyncWindow(Gtk.Window):
             f.write(directory + "\n")
         f.close()
 
-        self.app.shell.ignored = []
+        if self.app.shell is not None:
+            self.app.shell.ignored = []
 
-        for ignored_dir in self.app.ignored_directories:
-            if not ignored_dir in self.app.shell.ignored:
-                self.app.shell.ignored.append(ignored_dir)
+            for ignored_dir in self.app.ignored_directories:
+                if not ignored_dir in self.app.shell.ignored:
+                    self.app.shell.ignored.append(ignored_dir)
 
-        Thread(target=self.app.shell.cache).start()
+            Thread(target=self.app.shell.cache).start()
 
         log.info('SelectiveSyncWindow.save_ignored_directories: '
                  'ignored directories saved')

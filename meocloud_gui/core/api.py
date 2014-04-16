@@ -109,7 +109,7 @@ def get_network_settings(ui_config, download=None, upload=None):
 
                 try:
                     network_settings.proxyPort = int(port)
-                except:
+                except ValueError:
                     network_settings.proxyPort = 3128
 
                 network_settings.proxyUser = user

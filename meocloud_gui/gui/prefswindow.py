@@ -37,7 +37,7 @@ class PrefsWindow(Gtk.Window):
                 hor_box.pack_start(Gtk.Label(), True, True, 0)
 
                 self.box.pack_start(hor_box, False, False, 10)
-            except:
+            except AttributeError:
                 pass
         else:
             try:
@@ -48,7 +48,7 @@ class PrefsWindow(Gtk.Window):
                 headerbar.set_custom_title(stack)
                 headerbar.set_show_close_button(True)
                 self.set_titlebar(headerbar)
-            except:
+            except AttributeError:
                 pass
 
         prefs = Preferences()
@@ -310,7 +310,7 @@ class PrefsWindow(Gtk.Window):
         else:
             try:
                 self.update_network()
-            except:
+            except ValueError:
                 pass
 
         self.app.prefs_window = None
@@ -430,7 +430,7 @@ class PrefsWindow(Gtk.Window):
         else:
             try:
                 val = int(w.get_text())
-            except:
+            except ValueError:
                 val = 128
 
             self.throttle[throttle] = str(val)
@@ -441,7 +441,7 @@ class PrefsWindow(Gtk.Window):
     def throttle_value_changed(self, w, throttle):
         try:
             val = int(w.get_text())
-        except:
+        except ValueError:
             val = 128
 
         self.throttle[throttle] = str(val)

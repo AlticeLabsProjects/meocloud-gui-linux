@@ -114,7 +114,7 @@ class Application(Gtk.Application):
                 migrate_from_cli = \
                     os.path.isfile(os.path.join(
                         CONFIG_PATH, "ui/ui_config.yaml"))
-            except:
+            except ImportError:
                 migrate_from_cli = False
 
             if migrate_from_cli:

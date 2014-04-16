@@ -22,7 +22,7 @@ class Pages (Gtk.Notebook):
                 Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
             self.max_stack = 0
             self.current_stack = 0
-        except:
+        except AttributeError:
             log.warning('Pages: Gtk older than 3.8, falling back')
             self.stack = None
 

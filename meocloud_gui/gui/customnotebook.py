@@ -7,7 +7,7 @@ log = logging.getLogger(LOGGER_NAME)
 
 try:
     base_class = Gtk.Stack
-except:
+except AttributeError:
     base_class = Gtk.Notebook
 
 
