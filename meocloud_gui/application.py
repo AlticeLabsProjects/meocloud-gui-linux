@@ -335,7 +335,7 @@ class Application(Gtk.Application):
             notif_icon = os.path.join(
                 self.app_path, "icons/meocloud.svg")
             notif_title = _("Network Error")
-            notif_string = _("Please check your Internet connection '"
+            notif_string = _("Please check your Internet connection "
                              "or proxy settings.")
             notification = Notify.Notification.new(notif_title,
                                                    notif_string,
