@@ -89,6 +89,9 @@ class Shell(object):
             if len(msg) > 0:
                 msg = msg[0]
 
+            if not hasattr(msg, 'fileStatus'):
+                break
+
             if self.cloud_home in msg.fileStatus.status.path:
                 msg.fileStatus.status.path = \
                     msg.fileStatus.status.path.replace(self.cloud_home, "")
