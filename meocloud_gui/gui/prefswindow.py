@@ -95,6 +95,13 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(self.icon_black, False, True, 0)
         general_box.pack_start(self.icon_white, False, True, 0)
 
+        if self.icon_type == "black":
+            self.icon_black.set_active(True)
+        elif self.icon_type == "white":
+            self.icon_white.set_active(True)
+        else:
+            self.icon_normal.set_active(True)
+
         # display notifications
         self.display_notif = prefs.get("General",
                                        "Notifications", "True") == "True"
