@@ -532,8 +532,8 @@ class Application(Gtk.Application):
             self.listener_thread.stop()
         if self.watchdog_thread is not None and not self.watchdog_thread.stopped():
             self.watchdog_thread.stop()
-        if self.shell is not None and not self.shell._thread.stopped():
-            self.shell._thread.stop()
+        if self.shell is not None and not self.shell.thread.stopped():
+            self.shell.thread.stop()
         self.shell = None
 
         if self.core is not None:
