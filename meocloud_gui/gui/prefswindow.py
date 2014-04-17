@@ -77,18 +77,18 @@ class PrefsWindow(Gtk.Window):
         icons_label.set_margin_top(5)
         self.icon_type = prefs.get("General", "Icons", "")
 
-        self.icon_normal = Gtk.RadioButton.new_with_label(None,
-            _("Use default icons"))
-        self.icon_normal.connect("toggled", lambda w: self.toggle_icons(w,
-                                                                    ""))
+        self.icon_normal = Gtk.RadioButton.new_with_label(
+            None, _("Use default icons"))
+        self.icon_normal.connect(
+            "toggled", lambda w: self.toggle_icons(w, ""))
         self.icon_black = Gtk.RadioButton.new_with_label_from_widget(
             self.icon_normal, _("Use dark icons"))
         self.icon_black.connect("toggled", lambda w:
-                                     self.toggle_icons(w, "black"))
+                                self.toggle_icons(w, "black"))
         self.icon_white = Gtk.RadioButton.new_with_label_from_widget(
             self.icon_normal, _("Use white icons"))
         self.icon_white.connect("toggled", lambda w:
-                                  self.toggle_icons(w, "white"))
+                                self.toggle_icons(w, "white"))
 
         general_box.pack_start(icons_label, False, True, 0)
         general_box.pack_start(self.icon_normal, False, True, 0)

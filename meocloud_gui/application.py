@@ -528,9 +528,11 @@ class Application(Gtk.Application):
         log.info('Application.restart_core: core restart completed')
 
     def stop_threads(self):
-        if self.listener_thread is not None and not self.listener_thread.stopped():
+        if (self.listener_thread is not None and
+                not self.listener_thread.stopped()):
             self.listener_thread.stop()
-        if self.watchdog_thread is not None and not self.watchdog_thread.stopped():
+        if (self.watchdog_thread is not None and
+                not self.watchdog_thread.stopped()):
             self.watchdog_thread.stop()
         if self.shell is not None and not self.shell.thread.stopped():
             self.shell.thread.stop()
