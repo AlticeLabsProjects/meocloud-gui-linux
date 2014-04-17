@@ -69,6 +69,32 @@ class PrefsWindow(Gtk.Window):
         advanced_box.set_margin_left(10)
         advanced_box.set_margin_right(10)
 
+        # icon type
+        icons_label = Gtk.Label("<b>Icons</b>")
+        icons_label.set_use_markup(True)
+        icons_label.set_alignment(0, 0)
+        icons_label.set_margin_bottom(5)
+        icons_label.set_margin_top(5)
+        self.icon_type = prefs.get("General", "Icons", "")
+
+        self.icon_normal = Gtk.RadioButton.new_with_label(None,
+            _("Use default icons"))
+        self.icon_normal.connect("toggled", lambda w: self.toggle_icons(w,
+                                                                    ""))
+        self.icon_black = Gtk.RadioButton.new_with_label_from_widget(
+            self.icon_normal, _("Use dark icons"))
+        self.icon_black.connect("toggled", lambda w:
+                                     self.toggle_icons(w, "black"))
+        self.icon_white = Gtk.RadioButton.new_with_label_from_widget(
+            self.icon_normal, _("Use white icons"))
+        self.icon_white.connect("toggled", lambda w:
+                                  self.toggle_icons(w, "white"))
+
+        general_box.pack_start(icons_label, False, True, 0)
+        general_box.pack_start(self.icon_normal, False, True, 0)
+        general_box.pack_start(self.icon_black, False, True, 0)
+        general_box.pack_start(self.icon_white, False, True, 0)
+
         # display notifications
         self.display_notif = prefs.get("General",
                                        "Notifications", "True") == "True"
@@ -77,14 +103,6 @@ class PrefsWindow(Gtk.Window):
         display_notifications.connect("toggled",
                                       self.toggle_display_notifications)
         general_box.pack_start(display_notifications, False, True, 10)
-
-        # use dark icons
-        self.icon_type = prefs.get("General", "Icons", "")
-        display_darkicons = Gtk.CheckButton(_("Use dark icons"))
-        display_darkicons.set_active(self.icon_type == "black")
-        display_darkicons.connect("toggled",
-                                  self.toggle_icons)
-        general_box.pack_start(display_darkicons, False, True, 0)
 
         # start at login
         start_at_login = Gtk.CheckButton(_("Start MEO Cloud at login"))
@@ -327,12 +345,8 @@ class PrefsWindow(Gtk.Window):
         else:
             self.display_notif = "True"
 
-    def toggle_icons(self, w):
-        if str(self.icon_type) == "black":
-            self.icon_type = ""
-        else:
-            self.icon_type = "black"
-
+    def toggle_icons(self, w, type=""):
+        self.icon_type = type
         self.app.icon_type = self.icon_type
         self.app.update_menu(None, True)
 
