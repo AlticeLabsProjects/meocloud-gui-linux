@@ -5,6 +5,7 @@ from gi.repository import GLib
 from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
+from meocloud_gui.stoppablethread import StoppableThread
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH,
                                     LOGGER_NAME)
@@ -45,9 +46,8 @@ class Shell(object):
         self.cached = False
 
         log.info('Shell: starting the shell listener thread')
-        self._thread = Thread(target=self._listener)
-        self._thread.setDaemon(isDaemon)
-        self._thread.start()
+        self.thread = StoppableThread(target=self._listener)
+        self.thread.start()
 
     @staticmethod
     def start(cb_file_changed):
@@ -78,7 +78,7 @@ class Shell(object):
     def _listener(self):
         log.info('Shell: shell listener ready')
 
-        while True:
+        while not self.thread.stopped():
             try:
                 msg = self.s.recvfrom(4096)[0]
                 msg = thrift_utils.deserialize(Message(), msg)

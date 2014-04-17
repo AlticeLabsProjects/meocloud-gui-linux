@@ -5,6 +5,7 @@ from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
+from meocloud_gui.stoppablethread import StoppableThread
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
 from meocloud_gui.gui.aboutdialog import AboutDialog
@@ -516,8 +517,9 @@ class Application(Gtk.Application):
         self.stop_threads()
 
         # Start the core
-        self.listener_thread = Thread(target=self.core_listener.start)
-        self.watchdog_thread = Thread(target=self.core.watchdog)
+        self.listener_thread = StoppableThread(target=self.core_listener.start)
+        self.watchdog_thread = StoppableThread(target=self.core.watchdog)
+        self.core.thread = self.watchdog_thread
         self.listener_thread.start()
         self.watchdog_thread.start()
 
@@ -526,12 +528,12 @@ class Application(Gtk.Application):
         log.info('Application.restart_core: core restart completed')
 
     def stop_threads(self):
-        if self.listener_thread is not None and self.listener_thread.isAlive:
-            self.listener_thread._Thread__stop()
-        if self.watchdog_thread is not None and self.watchdog_thread.isAlive:
-            self.watchdog_thread._Thread__stop()
-        if self.shell is not None and self.shell._thread.isAlive:
-            self.shell._thread._Thread__stop()
+        if self.listener_thread is not None and not self.listener_thread.stopped():
+            self.listener_thread.stop()
+        if self.watchdog_thread is not None and not self.watchdog_thread.stopped():
+            self.watchdog_thread.stop()
+        if self.shell is not None and not self.shell._thread.stopped():
+            self.shell._thread.stop()
         self.shell = None
 
         if self.core is not None:

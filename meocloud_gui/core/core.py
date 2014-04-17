@@ -27,6 +27,7 @@ class Core(object):
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_SHELL_SOCKET_PATH'] = SHELL_LISTENER_SOCKET_ADDRESS
+        self.thread = None
 
         try:
             if sys.getfilesystemencoding().lower() != 'utf-8':
@@ -63,7 +64,7 @@ class Core(object):
     def watchdog(self):
         # Watchdog wait for event core_start_ready before starting
         log.debug('Core: watchdog will now start')
-        while True:
+        while not self.thread.stopped():
             sleep(1)
             # TODO Use ping to core_client
             # TODO Try to use self.process to check if running
