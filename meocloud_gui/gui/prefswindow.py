@@ -79,10 +79,9 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(display_notifications, False, True, 10)
 
         # use dark icons
-        self.display_dark = prefs.get("General",
-                                      "DarkIcons", "False") == "True"
+        self.icon_type = prefs.get("General", "Icons", "")
         display_darkicons = Gtk.CheckButton(_("Use dark icons"))
-        display_darkicons.set_active(self.display_dark)
+        display_darkicons.set_active(self.icon_type == "black")
         display_darkicons.connect("toggled",
                                   self.toggle_icons)
         general_box.pack_start(display_darkicons, False, True, 0)
@@ -293,7 +292,7 @@ class PrefsWindow(Gtk.Window):
         prefs = Preferences()
 
         prefs.put("General", "Notifications", self.display_notif)
-        prefs.put("General", "DarkIcons", self.display_dark)
+        prefs.put("General", "Icons", self.icon_type)
 
         prefs.put("Network", "ThrottleUpload", self.throttle["Upload"])
         prefs.put("Network", "ThrottleDownload", self.throttle["Download"])
@@ -329,12 +328,12 @@ class PrefsWindow(Gtk.Window):
             self.display_notif = "True"
 
     def toggle_icons(self, w):
-        if str(self.display_dark) == "True":
-            self.display_dark = "False"
+        if str(self.icon_type) == "black":
+            self.icon_type = ""
         else:
-            self.display_dark = "True"
+            self.icon_type = "black"
 
-        self.app.dark_icons = (self.display_dark == "True")
+        self.app.icon_type = self.icon_type
         self.app.update_menu(None, True)
 
     def toggle_start_at_login(self, w):

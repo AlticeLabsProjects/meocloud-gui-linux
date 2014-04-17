@@ -27,8 +27,8 @@ class TrayIcon (GObject.Object):
     def set_icon(self, name):
         self.last_icon = name
 
-        if self.app.dark_icons:
-            name += "-black"
+        if self.app.icon_type != "":
+            name += "-" + self.app.icon_type
 
         self.icon_name = name
 

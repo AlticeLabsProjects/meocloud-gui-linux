@@ -23,8 +23,8 @@ class Indicator (GObject.Object):
         self.ind.set_menu(self.menu)
 
     def set_icon(self, name):
-        if self.app.dark_icons:
-            name += "-black"
+        if self.app.icon_type != "":
+            name += "-" + self.app.icon_type
 
         self.icon_name = name
 

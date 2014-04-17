@@ -55,7 +55,7 @@ class Application(Gtk.Application):
         self.shell = None
         self.core = None
         self.ignored_directories = []
-        self.dark_icons = False
+        self.icon_type = ""
 
         self.recentfiles_menu = None
         self.menuitem_recent = None
@@ -83,8 +83,7 @@ class Application(Gtk.Application):
             self.running = True
             prefs = Preferences()
 
-            self.dark_icons = prefs.get(
-                "General", "DarkIcons", "False") == "True"
+            self.icon_type = prefs.get("General", "Icons", "")
             self.trayicon.set_icon("meocloud-ok")
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
