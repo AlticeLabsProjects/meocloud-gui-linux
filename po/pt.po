@@ -223,7 +223,8 @@ msgstr "O seu computador foi ligado com sucesso à MEO Cloud."
 msgid ""
 "The MEOCloud folder already exists. If you want to use it, the contents will "
 "be synchronized to your account. Would you like to continue?"
-msgstr ""
+msgstr "A pasta MEOCloud já existe. Se quiser utilizá-la, os conteúdos serão "
+"sincronizados para a sua conta. Quer continuar?"
 
 #: ../meocloud_gui/core/core_listener.py:157
 msgid "Link copied to clipboard."
@@ -289,7 +290,7 @@ msgstr "Rede"
 
 #: ../meocloud_gui/application.py:338
 msgid "Please check your Internet connection or proxy settings."
-msgstr ""
+msgstr "Por favor verifique a sua ligação de Internet ou as suas definições de proxy."
 
 #: ../meocloud_gui/application.py:349
 msgid "Error"
@@ -301,15 +302,15 @@ msgstr "Não conseguimos encontrar a sua pasta MEO Cloud."
 
 #: ../meocloud_gui/application.py:395
 msgid "Downloading {0} file(s) at {1}/s"
-msgstr ""
+msgstr "A descarregar {0} ficheiro(s) a {1}/s"
 
 #: ../meocloud_gui/application.py:400
 msgid "Uploading {0} file(s) at {1}/s"
-msgstr ""
+msgstr "A enviar {0} ficheiro(s) a {1}/s"
 
 #: ../meocloud_gui/application.py:405
 msgid "Indexing {0} files"
-msgstr ""
+msgstr "A indexar {0} ficheiros"
 
 #: ../meocloud_gui/application.py:408
 msgid "Syncing"
