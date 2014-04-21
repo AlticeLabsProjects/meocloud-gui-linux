@@ -18,6 +18,7 @@ if use_headerbar:
 else:
     base_class = Gtk.Notebook
 
+
 class CustomNotebook (base_class):
     __gtype_name__ = 'CustomNotebook'
 
