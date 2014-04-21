@@ -39,7 +39,7 @@ msgstr "Preferências"
 #: ../meocloud_gui/gui/prefswindow.py:85
 #, fuzzy
 msgid "Use default icons"
-msgstr "Utilizar ícones escuros"
+msgstr "Utilizar ícones normais"
 
 #: ../meocloud_gui/gui/prefswindow.py:89
 msgid "Use dark icons"
@@ -48,7 +48,7 @@ msgstr "Utilizar ícones escuros"
 #: ../meocloud_gui/gui/prefswindow.py:93
 #, fuzzy
 msgid "Use white icons"
-msgstr "Utilizar ícones escuros"
+msgstr "Utilizar ícones brancos"
 
 #: ../meocloud_gui/gui/prefswindow.py:112
 msgid "Display notifications"
@@ -129,7 +129,7 @@ msgstr "Avançado"
 
 #: ../meocloud_gui/gui/prefswindow.py:308
 msgid "Close"
-msgstr ""
+msgstr "Fechar"
 
 #: ../meocloud_gui/gui/prefswindow.py:392
 #: ../meocloud_gui/gui/missingdialog.py:43
