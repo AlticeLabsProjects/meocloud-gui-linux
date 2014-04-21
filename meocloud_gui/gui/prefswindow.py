@@ -4,7 +4,6 @@ from gi.repository import Gtk, GLib
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.progressdialog import ProgressDialog
 from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
-from meocloud_gui.gui.customnotebook import CustomNotebook
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
@@ -21,9 +20,14 @@ class PrefsWindow(Gtk.Window):
 
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
+        # (ugly) hack to keep a decent look everywhere... or at least try.
+        global use_headerbar
+        use_headerbar = app.use_headerbar
+        customnotebook = __import__("meocloud_gui.gui.customnotebook")
+        from customnotebook import CustomNotebook
         self.notebook = CustomNotebook()
 
-        if embed or not app.use_headerbar:
+        if embed and app.use_headerbar:
             try:
                 stack = Gtk.StackSwitcher()
                 stack.set_stack(self.notebook)
@@ -39,7 +43,7 @@ class PrefsWindow(Gtk.Window):
                 self.box.pack_start(hor_box, False, False, 10)
             except AttributeError:
                 pass
-        else:
+        elif app.use_headerbar:
             try:
                 headerbar = Gtk.HeaderBar()
                 stack = Gtk.StackSwitcher()

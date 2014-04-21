@@ -5,11 +5,18 @@ from meocloud_gui.constants import LOGGER_NAME
 import logging
 log = logging.getLogger(LOGGER_NAME)
 
-try:
-    base_class = Gtk.Stack
-except AttributeError:
-    base_class = Gtk.Notebook
+# the other part of the (ugly) hack
+import inspect
+frm = inspect.stack()[1]
+use_headerbar = inspect.getmodule(frm[0]).use_headerbar
 
+if use_headerbar:
+    try:
+        base_class = Gtk.Stack
+    except AttributeError:
+        base_class = Gtk.Notebook
+else:
+    base_class = Gtk.Notebook
 
 class CustomNotebook (base_class):
     __gtype_name__ = 'CustomNotebook'
