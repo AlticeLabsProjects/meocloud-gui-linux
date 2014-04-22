@@ -45,6 +45,8 @@ class TrayIcon (GObject.Object):
 
     def cycle_sync_icon(self):
         if self.syncing < 1:
+            GLib.source_remove(self.timeout)
+            self.timeout = None
             return False
 
         icon_name = "meocloud-sync-" + str(self.syncing)
