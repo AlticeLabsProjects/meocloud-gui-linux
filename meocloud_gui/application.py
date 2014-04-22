@@ -50,6 +50,7 @@ class Application(Gtk.Application):
         self.running = False
         self.paused = False
         self.offline = False
+        self.force_preferences_visible = False
         self.requires_authorization = True
         self.core_client = None
         self.core_listener = None
@@ -87,6 +88,9 @@ class Application(Gtk.Application):
 
             self.icon_type = prefs.get("General", "Icons", "")
             self.trayicon.set_icon("meocloud-ok")
+
+            self.force_preferences_visible = \
+                prefs.get("Network", "Proxy", "None") != "None"
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 log.info('Application.on_activate: prefs.ini missing')
@@ -426,7 +430,10 @@ class Application(Gtk.Application):
 
     def hide_gui_elements(self):
         self.storage_separator.hide()
-        self.menuitem_prefs.hide()
+        if self.force_preferences_visible:
+            self.menuitem_prefs.show()
+        else:
+            self.menuitem_prefs.hide()
         self.menuitem_storage.hide()
 
     def show_gui_elements(self, storage=False):

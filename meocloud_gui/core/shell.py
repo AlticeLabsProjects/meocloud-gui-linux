@@ -82,7 +82,7 @@ class Shell(object):
             try:
                 msg = self.s.recvfrom(4096)[0]
                 msg = thrift_utils.deserialize(Message(), msg)
-            except EOFError:
+            except (EOFError, TypeError):
                 log.info('Shell._listener: lost connection to socket')
                 break
 
