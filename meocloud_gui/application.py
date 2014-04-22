@@ -64,6 +64,7 @@ class Application(Gtk.Application):
         self.menuitem_status = None
         self.menuitem_changestatus = None
         self.menuitem_prefs = None
+        self.storage_separator = None
 
         self.sync_thread = None
         self.menu_thread = None
