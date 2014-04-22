@@ -206,6 +206,8 @@ class Application(Gtk.Application):
                 self.restart_core()
 
                 self.hold()
+        elif self.shell is not None:
+            self.show_prefs(None)
 
     def update_app_version(self):
         version_file = open(
