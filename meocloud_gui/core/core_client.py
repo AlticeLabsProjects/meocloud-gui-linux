@@ -2,6 +2,7 @@ from meocloud_gui.constants import DAEMON_LISTENER_SOCKET_ADDRESS, LOGGER_NAME
 from meocloud_gui.constants import CONNECTION_REQUIRED_TIMEOUT
 from meocloud_gui.protocol.daemon_core import Core
 from meocloud_gui.thrift_utils import ThriftClient, wrap_client_call
+from meocloud_gui.preferences import Preferences
 
 import logging
 log = logging.getLogger(LOGGER_NAME)
@@ -27,10 +28,12 @@ class CoreClient(ThriftClient, Core.Iface):
 
     @wrap_client_call()
     def pause(self):
+        Preferences().put("State", "Paused", "True")
         return self.client.pause()
 
     @wrap_client_call()
     def unpause(self):
+        Preferences().put("State", "Paused", "False")
         return self.client.unpause()
 
     @wrap_client_call()

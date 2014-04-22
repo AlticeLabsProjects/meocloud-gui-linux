@@ -1,6 +1,7 @@
 import os
 import keyring
 import webbrowser
+from time import sleep
 from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
@@ -49,6 +50,7 @@ class Application(Gtk.Application):
         self.missing_quit = False
         self.running = False
         self.paused = False
+        self.force_pause = False
         self.offline = False
         self.force_preferences_visible = False
         self.requires_authorization = True
@@ -89,6 +91,7 @@ class Application(Gtk.Application):
             self.icon_type = prefs.get("General", "Icons", "")
             self.trayicon.set_icon("meocloud-ok")
 
+            self.force_pause = prefs.get("State", "Paused", "False") == "True"
             self.force_preferences_visible = \
                 prefs.get("Network", "Proxy", "None") != "None"
 
@@ -281,6 +284,10 @@ class Application(Gtk.Application):
 
         if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
+
+        if status.state == codes.CORE_SYNCING and self.force_pause:
+            self.core_client.pause()
+            self.force_pause = False
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
