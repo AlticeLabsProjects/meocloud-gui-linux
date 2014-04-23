@@ -102,7 +102,7 @@ if __name__ == "__main__":
     if os.path.exists(trans_src) and not os.path.exists(trans_dst):
         if os.path.lexists(trans_dst):
             if os.path.islink(trans_dst):
-                 os.unlink(trans_dst)
+                os.unlink(trans_dst)
             else:
                 shutil.rmtree(trans_dst)
 
