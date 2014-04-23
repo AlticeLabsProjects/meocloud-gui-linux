@@ -46,11 +46,12 @@ class DBusService(dbus.service.Object):
                 is_syncing = False
                 is_ignored = False
             else:
-                is_syncing = path.replace(cloud_home, '') in self.shell.syncing
-                is_ignored = path.replace(cloud_home, '') in self.shell.ignored
+                short_path = path.replace(cloud_home, '')
+                is_syncing = short_path in self.shell.syncing
+                is_ignored = short_path in self.shell.ignored
 
                 if not is_ignored:
-                    is_ignored = path.startswith(tuple(
+                    is_ignored = short_path.startswith(tuple(
                         (s + "/" for s in self.shell.ignored)))
 
             return path.startswith(cloud_home + "/"), is_syncing, is_ignored
