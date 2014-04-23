@@ -5,6 +5,7 @@ import os
 import os.path
 import filecmp
 import sys
+import shutil
 
 sys.path.insert(0, "/opt/meocloud/libs/")
 
@@ -100,7 +101,10 @@ if __name__ == "__main__":
 
     if os.path.exists(trans_src) and not os.path.exists(trans_dst):
         if os.path.lexists(trans_dst):
-            os.unlink(trans_dst)
+            if os.path.islink(trans_dst):
+                 os.unlink(trans_dst)
+            else:
+                shutil.rmtree(trans_dst)
 
         os.symlink(trans_src, trans_dst)
 
