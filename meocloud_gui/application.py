@@ -298,7 +298,7 @@ class Application(Gtk.Application):
             self.shell.subscribe_path('/')
             self.dbus_service.shell = self.shell
             self.dbus_service.update_prefs()
-            Thread(target=self.shell.cache).start()
+            StoppableThread(target=self.shell.cache).start()
 
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
