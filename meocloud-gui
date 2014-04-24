@@ -7,6 +7,12 @@ import filecmp
 import sys
 import shutil
 
+try:
+    import setproctitle
+    setproctitle.setproctitle("meocloud-gui")
+except ImportError:
+    pass
+
 sys.path.insert(0, "/opt/meocloud/libs/")
 
 if not os.path.isfile("/opt/meocloud/core/meocloudd"):
