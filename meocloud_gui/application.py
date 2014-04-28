@@ -107,6 +107,10 @@ class Application(Gtk.Application):
                                                'ignored_directories')):
                     os.remove(os.path.join(UI_CONFIG_PATH,
                                            'ignored_directories'))
+                if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                               'shared_directories')):
+                    os.remove(os.path.join(UI_CONFIG_PATH,
+                                           'shared_directories'))
             else:
                 if not os.path.exists(prefs.get("Advanced", "Folder",
                                                 CLOUD_HOME_DEFAULT_PATH)):
@@ -498,6 +502,9 @@ class Application(Gtk.Application):
         if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                        'ignored_directories')):
             os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories'))
+        if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                       'shared_directories')):
+            os.remove(os.path.join(UI_CONFIG_PATH, 'shared_directories'))
         utils.purge_all()
 
         self.ignored_directories = []

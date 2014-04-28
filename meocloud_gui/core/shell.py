@@ -38,6 +38,20 @@ class Shell(object):
         self.cb_file_changed = cb_file_changed
         self.syncing = []
         self.ignored = []
+        self.shared = None
+
+        try:
+            self.shared = []
+
+            if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                           'shared_directories')):
+                f = open(os.path.join(UI_CONFIG_PATH,
+                                      'shared_directories'), "r")
+                for line in f.readlines():
+                    self.shared.append(line.rstrip('\n'))
+                f.close()
+        except (OSError, IOError):
+            self.shared = []
 
         prefs = Preferences()
         self.cloud_home = prefs.get('Advanced', 'Folder',

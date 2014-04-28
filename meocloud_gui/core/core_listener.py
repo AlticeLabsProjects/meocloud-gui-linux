@@ -165,9 +165,29 @@ class CoreListenerHandler(UI.Iface):
                 note.code == codes.OPEN_IN_BROWSER):
             webbrowser.open(note.parameters[2])
         elif note.code == codes.SHARED_FOLDER_ADDED:
-            print note[1]
+            if not note.parameters[0] in self.app.shell.shared:
+                if self.app.shell.shared is not None:
+                    self.app.shell.shared.append(note.parameters[0])
+
+                    try:
+                        f = open(os.path.join(UI_CONFIG_PATH, 'shared_directories'), "w")
+                        for directory in self.app.shell.shared:
+                            f.write(directory + "\n")
+                        f.close()
+                    except:
+                        print "erro"
         elif note.code == codes.SHARED_FOLDER_UNSHARED:
-            print note[1]
+            if note.parameters[0] in self.app.shell.shared:
+                if self.app.shell.shared is not None:
+                    self.app.shell.shared.remove(note.parameters[0])
+
+                    try:
+                        f = open(os.path.join(UI_CONFIG_PATH, 'shared_directories'), "w")
+                        for directory in self.app.shell.shared:
+                            f.write(directory + "\n")
+                        f.close()
+                    except:
+                        print "erro"
 
         self.app.update_menu(None, self.ignore_sync)
 
