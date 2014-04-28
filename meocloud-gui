@@ -115,7 +115,7 @@ if __name__ == "__main__":
         os.symlink(trans_src, trans_dst)
 
     if os.path.lexists(nautilus_dst):
-        if (os.path.isfile(nautilus_py) and
+        if (not os.path.isfile(nautilus_dst) or
                 not filecmp.cmp(nautilus_py, nautilus_dst)):
             os.unlink(nautilus_dst)
             os.symlink(nautilus_py, nautilus_dst)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         os.symlink(nautilus_py, nautilus_dst)
 
     if os.path.lexists(nemo_dst):
-        if (os.path.isfile(nemo_py) and
+        if (not os.path.isfile(nemo_dst) or
                 not filecmp.cmp(nemo_py, nemo_dst)):
             os.unlink(nemo_dst)
             os.symlink(nemo_py, nemo_dst)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
         os.symlink(nemo_py, nemo_dst)
 
     if os.path.lexists(caja_dst):
-        if (os.path.isfile(caja_py) and
+        if (not os.path.isfile(caja_dst) or
                 not filecmp.cmp(caja_py, caja_dst)):
             os.unlink(caja_dst)
             os.symlink(caja_py, caja_dst)
