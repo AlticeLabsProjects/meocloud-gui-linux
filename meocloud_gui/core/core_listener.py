@@ -164,6 +164,10 @@ class CoreListenerHandler(UI.Iface):
         elif (note.code == codes.SHARE_FOLDER or
                 note.code == codes.OPEN_IN_BROWSER):
             webbrowser.open(note.parameters[2])
+        elif note.code == codes.SHARED_FOLDER_ADDED:
+            print note[1]
+        elif note.code == codes.SHARED_FOLDER_UNSHARED:
+            print note[1]
 
         self.app.update_menu(None, self.ignore_sync)
 
