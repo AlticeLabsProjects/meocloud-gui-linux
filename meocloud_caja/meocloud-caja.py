@@ -58,7 +58,7 @@ class DBusService(dbus.service.Object):
 
 
 class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
-                       GObject.GObject):
+                   GObject.GObject):
     def __init__(self):
         init_localization()
         self.service = None
@@ -131,7 +131,8 @@ class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
                     elif status == CORE_ERROR or status == CORE_OFFLINE:
                         item.add_emblem("emblem-important")
                 else:
-                    in_cloud, syncing, ignored, shared = self.file_in_cloud(uri)
+                    in_cloud, syncing, ignored, shared = \
+                        self.file_in_cloud(uri)
 
                     if in_cloud and syncing:
                         item.add_emblem("emblem-synchronizing")
@@ -169,14 +170,14 @@ class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
             return None,
 
         top_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
-                                             'MEO Cloud', '', '')
+                                         'MEO Cloud', '', '')
 
         submenu = Caja.Menu()
         top_menuitem.set_submenu(submenu)
 
         if os.path.isfile(uri):
             link_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                                  _('Copy Link'), '', '')
+                                              _('Copy Link'), '', '')
             link_menuitem.connect("activate", lambda w: self.share_link(uri))
             submenu.append_item(link_menuitem)
         else:

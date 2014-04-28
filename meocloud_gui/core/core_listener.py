@@ -170,7 +170,8 @@ class CoreListenerHandler(UI.Iface):
                     self.app.shell.shared.append(note.parameters[0])
 
                     try:
-                        f = open(os.path.join(UI_CONFIG_PATH, 'shared_directories'), "w")
+                        f = open(os.path.join(UI_CONFIG_PATH,
+                                              'shared_directories'), "w")
                         for directory in self.app.shell.shared:
                             f.write(directory + "\n")
                         f.close()
@@ -182,7 +183,8 @@ class CoreListenerHandler(UI.Iface):
                     self.app.shell.shared.remove(note.parameters[0])
 
                     try:
-                        f = open(os.path.join(UI_CONFIG_PATH, 'shared_directories'), "w")
+                        f = open(os.path.join(UI_CONFIG_PATH,
+                                              'shared_directories'), "w")
                         for directory in self.app.shell.shared:
                             f.write(directory + "\n")
                         f.close()
