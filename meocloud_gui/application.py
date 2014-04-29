@@ -415,6 +415,9 @@ class Application(Gtk.Application):
         utils.touch(cloud_home)
 
     def update_sync_status(self):
+        if self.update_sync_status_timeout is None:
+            return False
+
         try:
             syncstatus = self.core_client.currentSyncStatus()
         except ListenerConnectionFailedException:
