@@ -2,7 +2,7 @@ import os
 import sys
 import signal
 from time import sleep
-from subprocess import Popen, check_output
+from subprocess import call, check_output
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     DAEMON_LISTENER_SOCKET_ADDRESS,
@@ -41,12 +41,12 @@ class Core(object):
             log.exception('Something went wrong while trying to fix set the '
                           'LC_ALL env variable')
 
-    def start(self):
+    def run(self):
         """
-        Starts core without verifying if it is already running
+        Runs core without verifying if it is already running
         """
         log.info('Core: Starting core')
-        self.process = Popen([self.core_binary_path], env=self.core_env)
+        self.process = call([self.core_binary_path], env=self.core_env)
 
     def stop_by_pid(self):
         pid = test_already_running(CORE_PID_PATH, CORE_BINARY_FILENAME)
@@ -56,8 +56,16 @@ class Core(object):
 
     def stop(self):
         if self.process is not None:
-            self.process.kill()
+            pid = self.process.pid()
+            self.process.terminate()
             self.process = None
+
+            try:
+                os.kill(pid, 0)
+                self.process.kill()
+                log.debug('Core: Killed core running with pid {0}'.format(pid))
+            except OSError:
+                pass
         else:
             self.stop_by_pid()
 
@@ -65,8 +73,9 @@ class Core(object):
         # Watchdog wait for event core_start_ready before starting
         log.debug('Core: watchdog will now start')
         while not self.thread.stopped():
+            print "teste"
             sleep(1)
             # TODO Use ping to core_client
             # TODO Try to use self.process to check if running
             if not test_already_running(CORE_PID_PATH, CORE_BINARY_FILENAME):
-                self.start()
+                self.run()
