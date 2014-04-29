@@ -114,9 +114,7 @@ class CoreListenerHandler(UI.Iface):
             if response == Gtk.ResponseType.OK:
                 cloud_home = os.path.join(dialog.get_filename())
                 dialog.destroy()
-                print cloud_home
                 self.ui_config.put('Advanced', 'Folder', cloud_home)
-                print "set"
             else:
                 dialog.destroy()
                 return
