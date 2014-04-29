@@ -73,7 +73,6 @@ class Core(object):
         # Watchdog wait for event core_start_ready before starting
         log.debug('Core: watchdog will now start')
         while not self.thread.stopped():
-            print "teste"
             sleep(1)
             # TODO Use ping to core_client
             # TODO Try to use self.process to check if running
