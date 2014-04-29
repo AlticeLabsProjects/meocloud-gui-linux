@@ -92,54 +92,58 @@ class Shell(object):
     def _listener(self):
         log.info('Shell: shell listener ready')
 
-        while not self.thread.stopped():
-            try:
-                msg = self.s.recvfrom(4096)[0]
-                msg = thrift_utils.deserialize(Message(), msg)
-            except (EOFError, TypeError):
-                log.info('Shell._listener: lost connection to socket')
-                break
+        try:
+            while not self.thread.stopped():
+                try:
+                    msg = self.s.recvfrom(4096)[0]
+                    msg = thrift_utils.deserialize(Message(), msg)
+                except (EOFError, TypeError):
+                    log.info('Shell._listener: lost connection to socket')
+                    break
 
-            if len(msg) > 0:
-                msg = msg[0]
+                if len(msg) > 0:
+                    msg = msg[0]
 
-            if not hasattr(msg, 'fileStatus'):
-                break
-            if msg.fileStatus is None:
-                break
+                if not hasattr(msg, 'fileStatus'):
+                    break
+                if msg.fileStatus is None:
+                    break
 
-            if self.cloud_home in msg.fileStatus.status.path:
-                msg.fileStatus.status.path = \
-                    msg.fileStatus.status.path.replace(self.cloud_home, "")
+                if self.cloud_home in msg.fileStatus.status.path:
+                    msg.fileStatus.status.path = \
+                        msg.fileStatus.status.path.replace(self.cloud_home, "")
 
-            if msg.fileStatus.status.path != "/":
-                if msg.fileStatus.status.state == FileState.SYNCING:
-                    self.syncing.append(msg.fileStatus.status.path)
-                elif msg.fileStatus.status.state == FileState.IGNORED:
-                    if not msg.fileStatus.status.path in self.ignored:
-                        self.ignored.append(msg.fileStatus.status.path)
-                elif msg.fileStatus.status.path in self.syncing:
-                    self.syncing.remove(msg.fileStatus.status.path)
-                utils.touch(os.path.join(self.cloud_home,
-                                         msg.fileStatus.status.path[1:]))
+                if msg.fileStatus.status.path != "/":
+                    if msg.fileStatus.status.state == FileState.SYNCING:
+                        self.syncing.append(msg.fileStatus.status.path)
+                    elif msg.fileStatus.status.state == FileState.IGNORED:
+                        if not msg.fileStatus.status.path in self.ignored:
+                            self.ignored.append(msg.fileStatus.status.path)
+                    elif msg.fileStatus.status.path in self.syncing:
+                        self.syncing.remove(msg.fileStatus.status.path)
+                    utils.touch(os.path.join(self.cloud_home,
+                                             msg.fileStatus.status.path[1:]))
 
-                if self.cb_file_changed is not None:
-                    GLib.idle_add(self.cb_file_changed)
-            else:
-                utils.touch(self.cloud_home)
+                    if self.cb_file_changed is not None:
+                        GLib.idle_add(self.cb_file_changed)
+                else:
+                    utils.touch(self.cloud_home)
 
-            if (not self.cached and
-                    msg.fileStatus.status.state == FileState.READY):
-                data = Message(type=MessageType.FILE_STATUS,
-                               fileStatus=FileStatusMessage(
-                                   type=FileStatusType.REQUEST,
-                                   status=FileStatus(path="/.cloudcontrol")))
+                if (not self.cached and
+                        msg.fileStatus.status.state == FileState.READY):
+                    data = Message(type=MessageType.FILE_STATUS,
+                                   fileStatus=FileStatusMessage(
+                                       type=FileStatusType.REQUEST,
+                                       status=FileStatus(path="/.cloudcontrol")))
 
-                self._send(thrift_utils.serialize_thrift_msg(data))
+                    self._send(thrift_utils.serialize_thrift_msg(data))
 
-            if not self.cached and "/.cloudcontrol" in self.ignored:
-                self.cached = True
-                Thread(target=self.cache).start()
+                if not self.cached and "/.cloudcontrol" in self.ignored:
+                    self.cached = True
+                    Thread(target=self.cache).start()
+        except Exception:
+            log.exception(
+                'Shell._listener: An uncatched error occurred!')
 
     def _send(self, data):
         self.s.sendall(data)

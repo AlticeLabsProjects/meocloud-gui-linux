@@ -49,24 +49,6 @@ class CoreListenerHandler(UI.Iface):
 
         Notify.init('MEOCloud')
 
-    def start_sync(self):
-        self.app.core_client.setIgnoredDirectories(
-            self.app.ignored_directories)
-
-        cloud_home = self.ui_config.get('Advanced', 'Folder',
-                                        CLOUD_HOME_DEFAULT_PATH)
-        if not cloud_home:
-            log.warning('CoreListener.start_sync: no cloud_home in config,'
-                        ' will unlink and shutdown')
-            api.unlink(self.core_client, self.ui_config)
-        else:
-            if not os.path.isdir(cloud_home):
-                log.warning('CoreListener.start_sync: cloud_home was found '
-                            'in config with value {0} but it is not '
-                            'there'.format(cloud_home))
-            else:
-                self.core_client.startSync(cloud_home)
-
     ### THRIFT METHODS ###
 
     def account(self):
@@ -95,34 +77,35 @@ class CoreListenerHandler(UI.Iface):
         self.setup.show_all()
 
     def beginAuthorizationBrowser(self, w):
-        dialog = Gtk.MessageDialog(
-            None, 0, Gtk.MessageType.QUESTION,
-            Gtk.ButtonsType.YES_NO,
-            _("Would you like to select a different MEO Cloud folder?"))
-        response = dialog.run()
-        dialog.destroy()
-
-        if response == Gtk.ResponseType.YES:
-            dialog = Gtk.FileChooserDialog(
-                _("Please choose a folder"), self.setup,
-                Gtk.FileChooserAction.SELECT_FOLDER,
-                (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                    _("Select"), Gtk.ResponseType.OK))
-            dialog.set_default_size(800, 400)
+        if not self.setup.setup_easy.get_active():
+            dialog = Gtk.MessageDialog(
+                None, 0, Gtk.MessageType.QUESTION,
+                Gtk.ButtonsType.YES_NO,
+                _("Would you like to select a different MEO Cloud folder?"))
             response = dialog.run()
+            dialog.destroy()
 
-            if response == Gtk.ResponseType.OK:
-                cloud_home = os.path.join(dialog.get_filename())
-                dialog.destroy()
-                self.ui_config.put('Advanced', 'Folder', cloud_home)
-            else:
-                dialog.destroy()
-                return
-        else:
-            try:
-                meocloud_gui.utils.clean_cloud_path()
-            except (OSError, IOError, AssertionError):
-                return
+            if response == Gtk.ResponseType.YES:
+                dialog = Gtk.FileChooserDialog(
+                    _("Please choose a folder"), self.setup,
+                    Gtk.FileChooserAction.SELECT_FOLDER,
+                    (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                        _("Select"), Gtk.ResponseType.OK))
+                dialog.set_default_size(800, 400)
+                response = dialog.run()
+
+                if response == Gtk.ResponseType.OK:
+                    cloud_home = os.path.join(dialog.get_filename())
+                    dialog.destroy()
+                    self.ui_config.put('Advanced', 'Folder', cloud_home)
+                else:
+                    dialog.destroy()
+                    return
+
+        try:
+            meocloud_gui.utils.clean_cloud_path()
+        except (OSError, IOError, AssertionError):
+            return
 
         self.setup.start_waiting()
 
