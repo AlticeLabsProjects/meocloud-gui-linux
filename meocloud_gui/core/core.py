@@ -2,7 +2,7 @@ import os
 import sys
 import signal
 from time import sleep
-from subprocess import call, check_output
+from subprocess import Popen, check_output
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     DAEMON_LISTENER_SOCKET_ADDRESS,
@@ -46,7 +46,7 @@ class Core(object):
         Runs core without verifying if it is already running
         """
         log.info('Core: Starting core')
-        self.process = call([self.core_binary_path], env=self.core_env)
+        self.process = Popen([self.core_binary_path], env=self.core_env)
 
     def stop_by_pid(self):
         pid = test_already_running(CORE_PID_PATH, CORE_BINARY_FILENAME)
@@ -56,9 +56,8 @@ class Core(object):
 
     def stop(self):
         if self.process is not None:
-            pid = self.process.pid()
+            pid = self.process.pid
             self.process.terminate()
-            self.process = None
 
             try:
                 os.kill(pid, 0)
@@ -66,15 +65,33 @@ class Core(object):
                 log.debug('Core: Killed core running with pid {0}'.format(pid))
             except OSError:
                 pass
+
+            self.process = None
         else:
             self.stop_by_pid()
 
     def watchdog(self):
         # Watchdog wait for event core_start_ready before starting
         log.debug('Core: watchdog will now start')
+        count = 0
+
         while not self.thread.stopped():
             sleep(1)
             # TODO Use ping to core_client
             # TODO Try to use self.process to check if running
+            if count > 10:
+                log.error(
+                    'Core: Watchdog giving up after 10 retries')
+
             if not test_already_running(CORE_PID_PATH, CORE_BINARY_FILENAME):
-                self.run()
+                count += 1
+
+                try:
+                    self.run()
+                except:
+                    self.process = None
+                    log.error(
+                        'Core: Watchdog failed to run core')
+
+                if self.process is not None:
+                    self.process.wait()
