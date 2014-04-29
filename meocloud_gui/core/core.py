@@ -76,9 +76,6 @@ class Core(object):
         count = 0
 
         while not self.thread.stopped():
-            sleep(1)
-            # TODO Use ping to core_client
-            # TODO Try to use self.process to check if running
             if count > 10:
                 log.error(
                     'Core: Watchdog giving up after 10 retries')
@@ -88,10 +85,14 @@ class Core(object):
 
                 try:
                     self.run()
-                except:
+                    self.core_client.ignore_logs = False
+                except OSError:
                     self.process = None
+                    self.core_client.ignore_logs = True
                     log.error(
-                        'Core: Watchdog failed to run core')
+                        'Core: watchdog error while starting core')
 
                 if self.process is not None:
                     self.process.wait()
+
+                self.core_client.ignore_logs = True

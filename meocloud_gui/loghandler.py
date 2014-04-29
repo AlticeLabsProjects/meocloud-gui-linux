@@ -9,7 +9,7 @@ class LogHandler(logging.Handler):
         self.core_client = core_client
 
     def emit(self, record):
-        if self.core_client is not None:
+        if self.core_client is not None and not self.core_client.ignore_logs:
             try:
                 if record.levelname == "INFO":
                     self.core_client.log(
