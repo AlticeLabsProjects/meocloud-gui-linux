@@ -97,7 +97,7 @@ class CoreListenerHandler(UI.Iface):
     def beginAuthorizationBrowser(self, w):
         try:
             meocloud_gui.utils.clean_cloud_path()
-        except (OSError, IOError):
+        except (OSError, IOError, AssertionError):
             return
 
         self.setup.start_waiting()
