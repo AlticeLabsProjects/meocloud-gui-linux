@@ -105,6 +105,8 @@ class Shell(object):
 
             if not hasattr(msg, 'fileStatus'):
                 break
+            if msg.fileStatus is None:
+                break
 
             if self.cloud_home in msg.fileStatus.status.path:
                 msg.fileStatus.status.path = \
