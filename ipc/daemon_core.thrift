@@ -80,6 +80,12 @@ struct Account {
 	5: string deviceName,
 }
 
+
+struct ShellHelperInfo {
+    1: string token,
+    2: i64 port
+}
+
 service Core {
 	Status currentStatus();
 	SyncStatus currentSyncStatus();
@@ -99,6 +105,7 @@ service Core {
 	string webLoginURL();
 	bool ping();
 	string version();
+	void log( 1: NotificationLevel level, 2: string msg );
 }
 
 service UI {

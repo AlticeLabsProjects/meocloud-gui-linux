@@ -19,7 +19,7 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
 from meocloud_gui.protocol.shell.ttypes import FileStatus
 
 
-def init_logging():
+def init_logging(log_handler):
     debug_off = os.path.isfile(DEBUG_OFF_PATH)
 
     if debug_off:
@@ -38,6 +38,7 @@ def init_logging():
                                                             backupCount=1)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+        logger.addHandler(log_handler)
         logger.setLevel(logging.DEBUG)
         # touch
         with open(DEBUG_ON_PATH, 'a'):

@@ -22,6 +22,7 @@ from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
 from meocloud_gui.strings import NOTIFICATIONS
+from meocloud_gui.exceptions import ListenerConnectionFailedException
 import meocloud_gui.utils
 
 from meocloud_gui import codes
@@ -35,7 +36,18 @@ class CoreListener(ThriftListener):
     def __init__(self, socket, core_client, ui_config, app, ignore_sync):
         handler = CoreListenerHandler(core_client, ui_config, app, ignore_sync)
         processor = UI.Processor(handler)
+        self.core_client = core_client
         super(CoreListener, self).__init__('CoreListener', socket, processor)
+
+    def start(self):
+        log.info('{0}: Starting to serve...'.format(self.name))
+        try:
+            self.listener_server.serve()
+        except ListenerConnectionFailedException:
+            pass
+        except Exception, e:
+            log.exception(
+                '{0}: An uncatched error occurred!'.format(self.name))
 
 
 class CoreListenerHandler(UI.Iface):

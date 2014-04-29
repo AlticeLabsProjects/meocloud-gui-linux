@@ -141,7 +141,7 @@ class Shell(object):
                 if not self.cached and "/.cloudcontrol" in self.ignored:
                     self.cached = True
                     Thread(target=self.cache).start()
-        except Exception:
+        except Exception, e:
             log.exception(
                 'Shell._listener: An uncatched error occurred!')
 

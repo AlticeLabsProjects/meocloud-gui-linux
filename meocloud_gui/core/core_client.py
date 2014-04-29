@@ -83,3 +83,8 @@ class CoreClient(ThriftClient, Core.Iface):
     @wrap_client_call()
     def version(self):
         return self.client.version()
+
+    @wrap_client_call()
+    def log(self, level, msg):
+        return self.client.log(level, msg)
+

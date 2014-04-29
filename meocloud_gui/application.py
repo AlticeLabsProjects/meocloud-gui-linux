@@ -6,6 +6,7 @@ from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
+from meocloud_gui.loghandler import LogHandler
 from meocloud_gui.stoppablethread import StoppableThread
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.missingdialog import MissingDialog
@@ -156,7 +157,8 @@ class Application(Gtk.Application):
 
             if not self.missing_quit:
                 utils.create_required_folders()
-                utils.init_logging()
+                self.log_handler = LogHandler(self.core_client)
+                utils.init_logging(self.log_handler)
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'ignored_directories')):
@@ -303,6 +305,11 @@ class Application(Gtk.Application):
             self.dbus_service.shell = self.shell
             self.dbus_service.update_prefs()
             StoppableThread(target=self.shell.cache).start()
+
+        if ((status.state == codes.CORE_SYNCING or
+                status.state == codes.CORE_READY) and
+                self.log_handler.core_client is None):
+            self.log_handler.core_client = self.core_client
 
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
@@ -547,11 +554,13 @@ class Application(Gtk.Application):
         self.listener_thread.start()
         self.watchdog_thread.start()
 
-        # Restart DBus
+        # Restart DBus and update logging
         self.dbus_service.update_prefs()
         log.info('Application.restart_core: core restart completed')
 
     def stop_threads(self):
+        self.log_handler.core_client = None
+
         if (self.listener_thread is not None and
                 not self.listener_thread.stopped()):
             self.listener_thread.stop()

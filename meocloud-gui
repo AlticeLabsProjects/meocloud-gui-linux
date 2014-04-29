@@ -6,6 +6,7 @@ import os.path
 import filecmp
 import sys
 import shutil
+import signal
 
 try:
     import setproctitle
@@ -141,5 +142,6 @@ if __name__ == "__main__":
     init_localization()
     GLib.threads_init()
     Gdk.threads_init()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = Application(os.path.dirname(own_path))
     app.run(None)
