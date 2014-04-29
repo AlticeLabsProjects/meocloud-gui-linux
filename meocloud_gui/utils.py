@@ -151,13 +151,14 @@ def clean_bookmark():
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    f = open(file_path, 'r')
-    text = f.read()
-    f.close()
+    if os.path.isfile(file_path):
+        f = open(file_path, 'r')
+        text = f.read()
+        f.close()
 
-    f = open(file_path, 'w')
-    f.write(text.replace("" + cloud_home + " MEOCloud", ""))
-    f.close()
+        f = open(file_path, 'w')
+        f.write(text.replace("" + cloud_home + " MEOCloud", ""))
+        f.close()
 
 
 def create_bookmark():
@@ -175,8 +176,13 @@ def create_bookmark():
     try:
         if os.path.isfile(file_path):
             with open(file_path, 'r') as f:
-                if cloud_home in f.read():
+                text = f.read()
+                if cloud_home in text:
                     return
+                elif " MEOCloud" in text:
+                    file(cloud_home, 'w').writelines(
+                        [l for l in file(cloud_home).readlines()
+                         if ' MEOCloud' not in l])
 
             f = open(file_path, 'a')
             f.write("\n" + cloud_home + " MEOCloud\n")

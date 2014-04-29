@@ -6,6 +6,7 @@ from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
+from meocloud_gui.exceptions import ListenerConnectionFailedException
 from meocloud_gui.loghandler import LogHandler
 from meocloud_gui.stoppablethread import StoppableThread
 from meocloud_gui.gui.prefswindow import PrefsWindow
@@ -414,7 +415,10 @@ class Application(Gtk.Application):
         utils.touch(cloud_home)
 
     def update_sync_status(self):
-        syncstatus = self.core_client.currentSyncStatus()
+        try:
+            syncstatus = self.core_client.currentSyncStatus()
+        except ListenerConnectionFailedException:
+            return False
 
         if syncstatus.downloadRate > 0 or syncstatus.pendingDownloads > 0:
             self.update_status(
