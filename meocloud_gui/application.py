@@ -421,6 +421,7 @@ class Application(Gtk.Application):
         try:
             syncstatus = self.core_client.currentSyncStatus()
         except ListenerConnectionFailedException:
+            self.update_status(_("Syncing"))
             return False
 
         if syncstatus.downloadRate > 0 or syncstatus.pendingDownloads > 0:
