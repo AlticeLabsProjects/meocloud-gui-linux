@@ -121,7 +121,6 @@ class ThriftListener(object):
                 '{0}: An uncatched error occurred!'.format(self.name))
 
 
-
 class ThriftClient(object):
     def __init__(self, socket, client_class):
         self.socket = None

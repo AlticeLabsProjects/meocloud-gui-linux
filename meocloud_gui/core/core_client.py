@@ -88,4 +88,3 @@ class CoreClient(ThriftClient, Core.Iface):
     @wrap_client_call()
     def log(self, level, msg):
         return self.client.log(level, msg)
-

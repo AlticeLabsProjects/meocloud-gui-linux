@@ -349,8 +349,8 @@ class Application(Gtk.Application):
                 self.shell.clean_syncing()
 
             recently_changed = self.core_client.recentlyChangedFilePaths()
-            self.trayicon.wrapper(lambda: self.update_recent_files(recently_changed,
-                                                           cloud_home))
+            self.trayicon.wrapper(
+                lambda: self.update_recent_files(recently_changed, cloud_home))
         elif status.state == codes.CORE_PAUSED:
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-pause")

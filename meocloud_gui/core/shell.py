@@ -134,7 +134,8 @@ class Shell(object):
                     data = Message(type=MessageType.FILE_STATUS,
                                    fileStatus=FileStatusMessage(
                                        type=FileStatusType.REQUEST,
-                                       status=FileStatus(path="/.cloudcontrol")))
+                                       status=FileStatus(
+                                           path="/.cloudcontrol")))
 
                     self._send(thrift_utils.serialize_thrift_msg(data))
 
