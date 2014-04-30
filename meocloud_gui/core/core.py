@@ -58,14 +58,22 @@ class Core(object):
     def stop(self):
         if self.process is not None:
             pid = self.process.pid
-            self.process.terminate()
+            failed = 0
+
+            try:
+                self.process.terminate()
+            except OSError:
+                failed += 1
 
             try:
                 os.kill(pid, 0)
                 self.process.kill()
                 log.debug('Core: Killed core running with pid {0}'.format(pid))
             except OSError:
-                pass
+                failed += 1
+
+            if failed > 1:
+                os.system("killall meocloudd")
 
             self.process = None
         else:
