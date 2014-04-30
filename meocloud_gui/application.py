@@ -152,10 +152,14 @@ class Application(Gtk.Application):
                                      account_dict['clientID'])
                 keyring.set_password("meocloud", "authKey",
                                      account_dict['authKey'])
-                prefs.put('Account', 'email', account_dict['email'])
-                prefs.put('Account', 'name', account_dict['name'])
-                prefs.put('Account', 'deviceName', account_dict['deviceName'])
-                prefs.put('Advanced', 'Folder', cli_config['cloud_home'])
+                prefs.put('Account', 'email',
+                          unicode(account_dict['email']).encode("utf-8"))
+                prefs.put('Account', 'name',
+                          unicode(account_dict['name']).encode("utf-8"))
+                prefs.put('Account', 'deviceName',
+                          unicode(account_dict['deviceName']).encode("utf-8"))
+                prefs.put('Advanced', 'Folder',
+                          unicode(cli_config['cloud_home']).encode("utf-8"))
 
                 utils.purge_meta()
                 os.remove(os.path.join(CONFIG_PATH, "ui/ui_config.yaml"))
