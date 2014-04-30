@@ -194,8 +194,10 @@ class CoreListenerHandler(UI.Iface):
                         for directory in self.app.shell.shared:
                             f.write(directory + "\n")
                         f.close()
-                    except:
-                        print "erro"
+                    except (OSError, IOError):
+                        log.warning(
+                            'CoreListener.notifySystem: unable to save '
+                            'shared directories list')
         elif note.code == codes.SHARED_FOLDER_UNSHARED:
             if note.parameters[0] in self.app.shell.shared:
                 if self.app.shell.shared is not None:
@@ -207,8 +209,10 @@ class CoreListenerHandler(UI.Iface):
                         for directory in self.app.shell.shared:
                             f.write(directory + "\n")
                         f.close()
-                    except:
-                        print "erro"
+                    except (OSError, IOError):
+                        log.warning(
+                            'CoreListener.notifySystem: unable to save '
+                            'shared directories list')
 
         self.app.update_menu(None, self.ignore_sync)
 
