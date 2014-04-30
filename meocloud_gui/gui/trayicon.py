@@ -1,5 +1,5 @@
 import os
-from gi.repository import GObject, Gtk, GLib
+from gi.repository import GObject, Gtk, GLib, Gdk
 
 
 class TrayIcon (GObject.Object):
@@ -19,8 +19,13 @@ class TrayIcon (GObject.Object):
 
         self.menu = Gtk.Menu()
 
+    def wrapper_run(self, func):
+        Gdk.threads_enter()
+        func()
+        Gdk.threads_leave()
+
     def wrapper(self, func):
-        GLib.idle_add(func)
+        GLib.idle_add(lambda: self.wrapper_run(func))
 
     def size_changed(self, icon, size):
         if self.last_icon is not None:

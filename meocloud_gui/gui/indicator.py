@@ -1,5 +1,5 @@
 import os
-from gi.repository import GObject, Gtk, GLib
+from gi.repository import GObject, Gtk, GLib, Gdk
 from gi.repository import AppIndicator3 as appindicator
 
 
@@ -22,9 +22,13 @@ class Indicator (GObject.Object):
 
         self.ind.set_menu(self.menu)
 
+    def wrapper_run(self, func):
+        Gdk.threads_enter()
+        func()
+        Gdk.threads_leave()
+
     def wrapper(self, func):
-        GLib.idle_add(func)
-        GLib.idle_add(lambda: self.menu.show_all())
+        GLib.idle_add(lambda: self.wrapper_run(func))
 
     def set_icon(self, name):
         if self.app.icon_type != "":
