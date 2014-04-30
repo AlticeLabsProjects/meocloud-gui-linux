@@ -31,9 +31,13 @@ import logging
 log = logging.getLogger(LOGGER_NAME)
 
 try:
+    from gi import Repository
+    if not Repository.get_default().enumerate_versions('AppIndicator3'):
+        assert False
     from meocloud_gui.gui.indicator import Indicator as TrayIcon
+
     log.info('Application: using Indicator')
-except ImportError:
+except (ImportError, AssertionError):
     from meocloud_gui.gui.trayicon import TrayIcon
     log.info('Application: using TrayIcon')
 
@@ -315,20 +319,20 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
-            GLib.idle_add(lambda: self.hide_gui_elements())
+            self.trayicon.wrapper(lambda: self.hide_gui_elements())
             self.trayicon.set_icon("meocloud-ok")
             self.paused = True
             self.update_sync_status_stop()
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
-            GLib.idle_add(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
             self.update_sync_status_start()
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
-            GLib.idle_add(lambda: self.show_gui_elements(True))
+            self.trayicon.wrapper(lambda: self.show_gui_elements(True))
             self.trayicon.set_icon("meocloud-ok")
             self.paused = False
             self.update_sync_status_stop()
@@ -341,17 +345,17 @@ class Application(Gtk.Application):
                 self.shell.clean_syncing()
 
             recently_changed = self.core_client.recentlyChangedFilePaths()
-            GLib.idle_add(lambda: self.update_recent_files(recently_changed,
+            self.trayicon.wrapper(lambda: self.update_recent_files(recently_changed,
                                                            cloud_home))
         elif status.state == codes.CORE_PAUSED:
-            GLib.idle_add(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-pause")
             self.paused = True
             self.update_sync_status_stop()
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_OFFLINE:
-            GLib.idle_add(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.offline = True
@@ -369,7 +373,7 @@ class Application(Gtk.Application):
                                                    notif_icon)
             notification.show()
         elif status.state == codes.CORE_ERROR:
-            GLib.idle_add(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.update_sync_status_stop()
@@ -469,10 +473,12 @@ class Application(Gtk.Application):
             self.menuitem_storage.show()
 
     def update_status(self, status):
-        GLib.idle_add(lambda: self.menuitem_status.set_label(status))
+        self.trayicon.wrapper(
+            lambda: self.menuitem_status.set_label(status))
 
     def update_menu_action(self, action):
-        GLib.idle_add(lambda: self.menuitem_changestatus.set_label(action))
+        self.trayicon.wrapper(
+            lambda: self.menuitem_changestatus.set_label(action))
 
     def toggle_status(self, w):
         if self.offline:
@@ -526,8 +532,8 @@ class Application(Gtk.Application):
         self.requires_authorization = True
         self.update_status(_("Unauthorized"))
         self.update_menu_action(_("Authorize"))
-        GLib.idle_add(lambda: self.clean_recent_files())
-        GLib.idle_add(lambda: self.hide_gui_elements())
+        self.trayicon.wrapper(lambda: self.clean_recent_files())
+        self.trayicon.wrapper(lambda: self.hide_gui_elements())
         log.info('Application.on_logout_thread: completing logout')
         self.restart_core()
 
@@ -543,7 +549,7 @@ class Application(Gtk.Application):
         log.info('Application.restart_core: initiating core restart')
         prefs = Preferences()
 
-        GLib.idle_add(lambda: self.hide_gui_elements())
+        self.trayicon.wrapper(lambda: self.hide_gui_elements())
         self.trayicon.set_icon("meocloud-ok")
 
         self.core_client = CoreClient()

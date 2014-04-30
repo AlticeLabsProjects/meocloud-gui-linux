@@ -22,6 +22,9 @@ class Indicator (GObject.Object):
 
         self.ind.set_menu(self.menu)
 
+    def wrapper(self, func):
+        func()
+
     def set_icon(self, name):
         if self.app.icon_type != "":
             name += "-" + self.app.icon_type
@@ -36,9 +39,9 @@ class Indicator (GObject.Object):
                 GLib.source_remove(self.timeout)
             self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
-        GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path,
-                                                             "icons/" + name +
-                                                             ".svg")))
+        self.ind.set_icon(os.path.join(self.app.app_path,
+                                       "icons/" + name +
+                                       ".svg"))
 
     def cycle_sync_icon(self):
         if self.syncing < 1:

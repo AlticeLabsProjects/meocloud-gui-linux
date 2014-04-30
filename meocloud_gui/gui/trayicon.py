@@ -19,6 +19,9 @@ class TrayIcon (GObject.Object):
 
         self.menu = Gtk.Menu()
 
+    def wrapper(self, func):
+        GLib.idle_add(func)
+
     def size_changed(self, icon, size):
         if self.last_icon is not None:
             self.set_icon(self.last_icon)
