@@ -46,7 +46,8 @@ class Core(object):
         Runs core without verifying if it is already running
         """
         log.info('Core: Starting core')
-        self.process = Popen([self.core_binary_path], env=self.core_env)
+        self.process = Popen([self.core_binary_path], env=self.core_env,
+                             preexec_fn=lambda: os.setpgrp())
 
     def stop_by_pid(self):
         pid = test_already_running(CORE_PID_PATH, CORE_BINARY_FILENAME)
