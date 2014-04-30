@@ -23,7 +23,8 @@ class Indicator (GObject.Object):
         self.ind.set_menu(self.menu)
 
     def wrapper(self, func):
-        func()
+        GLib.idle_add(func)
+        GLib.idle_add(lambda: self.menu.show_all())
 
     def set_icon(self, name):
         if self.app.icon_type != "":
