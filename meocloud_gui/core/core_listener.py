@@ -90,29 +90,8 @@ class CoreListenerHandler(UI.Iface):
 
     def beginAuthorizationBrowser(self, w):
         if not self.setup.setup_easy.get_active():
-            dialog = Gtk.MessageDialog(
-                None, 0, Gtk.MessageType.QUESTION,
-                Gtk.ButtonsType.YES_NO,
-                _("Would you like to select a different MEO Cloud folder?"))
-            response = dialog.run()
-            dialog.destroy()
-
-            if response == Gtk.ResponseType.YES:
-                dialog = Gtk.FileChooserDialog(
-                    _("Please choose a folder"), self.setup,
-                    Gtk.FileChooserAction.SELECT_FOLDER,
-                    (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                        _("Select"), Gtk.ResponseType.OK))
-                dialog.set_default_size(800, 400)
-                response = dialog.run()
-
-                if response == Gtk.ResponseType.OK:
-                    cloud_home = os.path.join(dialog.get_filename())
-                    dialog.destroy()
-                    self.ui_config.put('Advanced', 'Folder', cloud_home)
-                else:
-                    dialog.destroy()
-                    return
+            self.ui_config.put('Advanced', 'Folder',
+                               self.setup.cloud_home_select.get_label())
 
         try:
             meocloud_gui.utils.clean_cloud_path()

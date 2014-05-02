@@ -1,12 +1,14 @@
+import os
 import socket
 from gi.repository import Gtk
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.spinnerbox import SpinnerBox
-from meocloud_gui.constants import LOGGER_NAME
+from meocloud_gui.constants import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
 
 # Logging
 import logging
+
 log = logging.getLogger(LOGGER_NAME)
 
 
@@ -78,17 +80,31 @@ class SetupWindow(Gtk.Window):
 
         # Second page (device info)
 
+        second_page_box_outv = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL)
+        second_page_box_outh = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL)
+        second_page_box_outv.pack_start(second_page_box_outh, True, True, 0)
         second_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        second_page_box_outh.pack_start(Gtk.Label(), True, True, 0)
+        second_page_box_outh.pack_start(second_page_box, False, False, 0)
+        second_page_box_outh.pack_start(Gtk.Label(), True, True, 0)
         second_page_box.pack_start(Gtk.Label(), True, True, 0)
-        self.pages.append_page(second_page_box, Gtk.Label())
+        self.pages.append_page(second_page_box_outv, Gtk.Label())
         device_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.device_entry = Gtk.Entry()
         self.device_entry.set_text(socket.gethostname())
-        device_box.pack_start(Gtk.Label(""), True, True, 0)
         device_box.pack_start(Gtk.Label(_("Device name: ")), False, False, 0)
-        device_box.pack_start(self.device_entry, False, False, 0)
-        device_box.pack_start(Gtk.Label(""), True, True, 0)
+        device_box.pack_start(self.device_entry, True, True, 0)
         second_page_box.pack_start(device_box, False, False, 10)
+
+        self.cloud_home_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.cloud_home_box.pack_start(
+            Gtk.Label(_("Folder: ")), False, False, 0)
+        self.cloud_home_select = Gtk.Button(CLOUD_HOME_DEFAULT_PATH)
+        self.cloud_home_select.connect("clicked", self.on_cloud_home_select)
+        self.cloud_home_box.pack_start(self.cloud_home_select, True, True, 0)
+        second_page_box.pack_start(self.cloud_home_box, False, False, 10)
 
         second_page_back_button = Gtk.Button(_("Back"))
         second_page_back_button.connect("clicked", self.on_first_page)
@@ -101,7 +117,8 @@ class SetupWindow(Gtk.Window):
         second_page_box_horizontal.pack_start(self.login_button, False,
                                               False, 0)
         second_page_box.pack_start(Gtk.Label(), True, True, 0)
-        second_page_box.pack_end(second_page_box_horizontal, False, False, 10)
+        second_page_box_outv.pack_end(
+            second_page_box_horizontal, False, False, 10)
 
         # Spinner page
 
@@ -161,6 +178,13 @@ class SetupWindow(Gtk.Window):
 
     def on_second_page(self, widget):
         log.info('SetupWindow.on_second_page: changing to second page')
+
+        if self.setup_easy.get_active():
+            self.cloud_home_box.hide()
+        else:
+            self.cloud_home_select.set_label(CLOUD_HOME_DEFAULT_PATH)
+            self.cloud_home_box.show_all()
+
         self.pages.next_page()
 
     def start_waiting(self):
@@ -181,6 +205,23 @@ class SetupWindow(Gtk.Window):
         self.prefs_window.restart_core = True
         self.prefs_window.destroy()
         self.destroy()
+
+    def on_cloud_home_select(self, w):
+        dialog = Gtk.FileChooserDialog(
+            _("Please choose a folder"), self,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                _("Select"), Gtk.ResponseType.OK))
+        dialog.set_default_size(800, 400)
+        response = dialog.run()
+
+        if response == Gtk.ResponseType.OK:
+            cloud_home = os.path.join(dialog.get_filename())
+            dialog.destroy()
+            self.cloud_home_select.set_label(cloud_home)
+        else:
+            dialog.destroy()
+            return
 
     def destroy(self):
         log.info('SetupWindow.destroy: closing setup')
