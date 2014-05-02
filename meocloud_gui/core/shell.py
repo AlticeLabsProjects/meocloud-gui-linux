@@ -30,10 +30,13 @@ log = logging.getLogger(LOGGER_NAME)
 
 class Shell(object):
     def __init__(self, isDaemon, cb_file_changed=None):
-        self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-        self.s.connect(os.path.join(UI_CONFIG_PATH,
-                                    'meocloud_shell_listener.socket'))
+            self.s.connect(os.path.join(UI_CONFIG_PATH,
+                                        'meocloud_shell_listener.socket'))
+        except socket.error:
+            log.exception("Shell: exception while connecting to socket")
 
         self.cb_file_changed = cb_file_changed
         self.syncing = []
