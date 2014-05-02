@@ -95,6 +95,21 @@ class DBusService(dbus.service.Object):
             return is_ignored
 
     @dbus.service.method('pt.meocloud.dbus')
+    def FileShared(self, path):
+        cloud_home = self.cloud_home
+        path = unicode(path).encode('utf-8')
+
+        if os.path.samefile(path, cloud_home):
+            return False
+        else:
+            if self.shell is None:
+                is_shared = False
+            else:
+                is_shared = path.replace(cloud_home, '') in self.shell.shared
+
+            return is_shared
+
+    @dbus.service.method('pt.meocloud.dbus')
     def ShareFolder(self, path):
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
