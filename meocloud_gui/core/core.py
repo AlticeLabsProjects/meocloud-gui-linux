@@ -88,6 +88,7 @@ class Core(object):
             if count > 10:
                 log.error(
                     'Core: Watchdog giving up after 10 retries')
+                return
 
             if not test_already_running(CORE_PID_PATH, CORE_BINARY_FILENAME):
                 count += 1
