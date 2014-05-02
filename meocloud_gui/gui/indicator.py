@@ -25,6 +25,7 @@ class Indicator (GObject.Object):
     def wrapper_run(self, func):
         Gdk.threads_enter()
         func()
+        self.ind.set_menu(self.menu)
         Gdk.threads_leave()
 
     def wrapper(self, func):
