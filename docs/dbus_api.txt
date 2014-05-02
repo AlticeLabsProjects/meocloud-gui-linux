@@ -80,10 +80,16 @@ Methods     int Status()
             string GetCloudHome()
             
                 Returns the path to the user's MEO Cloud folder.
+
+                string cloud_home:
+                    path to the user's MEO Cloud folder
                 
             string GetAppPath()
             
                 Returns the path to the MEO Cloud application's folder.
+
+                string app_path:
+                    path to the MEO Cloud application
                 
 
 Shell D-Bus Interface
