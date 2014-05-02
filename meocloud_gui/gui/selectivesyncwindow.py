@@ -8,6 +8,8 @@ from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
 
 # Logging
 import logging
+from meocloud_gui.stoppablethread import StoppableThread
+
 log = logging.getLogger(LOGGER_NAME)
 
 
@@ -147,6 +149,7 @@ class SelectiveSyncWindow(Gtk.Window):
             self.ignored_directories.append(liststore[path][2])
 
     def save_ignored_directories(self, w):
+        self.ignore_panic = True
         self.app.ignored_directories = self.ignored_directories
 
         self.app.core_client.setIgnoredDirectories(
@@ -164,7 +167,7 @@ class SelectiveSyncWindow(Gtk.Window):
                 if not ignored_dir in self.app.shell.ignored:
                     self.app.shell.ignored.append(ignored_dir)
 
-            Thread(target=self.app.shell.cache).start()
+            StoppableThread(target=self.app.shell.cache).start()
 
         log.info('SelectiveSyncWindow.save_ignored_directories: '
                  'ignored directories saved')

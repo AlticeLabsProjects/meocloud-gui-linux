@@ -73,21 +73,24 @@ class Shell(object):
             utils.touch(os.path.join(self.cloud_home, path[1:]))
 
     def cache(self):
-        del self.syncing
-        self.syncing = []
+        try:
+            del self.syncing
+            self.syncing = []
 
-        query_files = utils.get_all_paths()
+            query_files = utils.get_all_paths()
 
-        for status_file in query_files:
-            status_file.path = status_file.path.replace(self.cloud_home, "")
+            for status_file in query_files:
+                status_file.path = status_file.path.replace(self.cloud_home, "")
 
-            if status_file.path != "":
-                data = Message(type=MessageType.FILE_STATUS,
-                               fileStatus=FileStatusMessage(
-                                   type=FileStatusType.REQUEST,
-                                   status=status_file))
+                if status_file.path != "":
+                    data = Message(type=MessageType.FILE_STATUS,
+                                   fileStatus=FileStatusMessage(
+                                       type=FileStatusType.REQUEST,
+                                       status=status_file))
 
-                self._send(thrift_utils.serialize_thrift_msg(data))
+                    self._send(thrift_utils.serialize_thrift_msg(data))
+        except Exception:
+            log.exception("Shell.cache: exception while caching ignored dirs")
 
     def _listener(self):
         log.info('Shell: shell listener ready')
