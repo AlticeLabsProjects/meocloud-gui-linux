@@ -41,13 +41,29 @@ Methods     int Status()
                     true if the file is syncing
                 bool is_ignored:
                     true if the file is ignored for some reason
-            
+                bool is_shared:
+                    true if the GUI knows the file has been shared
+
+            bool FileSyncing(string path)
+
+                Returns if the file is syncing.
+
+                bool is_syncing:
+                    true if the file is being synchronized
+
             bool FileIgnored(string path)
             
                 Returns if the file is ignored.
                 
                 bool is_ignored:
                     true if the file is ignored by the core
+
+            bool FileShared(string path)
+
+                Returns if the file has been shared
+
+                bool is_ignored:
+                    true if the GUI knows the file has been shared
             
             void ShareFolder(string path)
             
