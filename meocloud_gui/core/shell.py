@@ -109,7 +109,8 @@ class Shell(object):
                 query_files = utils.get_all_paths()
 
                 for status_file in query_files:
-                    status_file.path = status_file.path.replace(self.cloud_home, "")
+                    status_file.path = status_file.path.replace(
+                        self.cloud_home, "")
 
                     if status_file.path != "":
                         data = Message(type=MessageType.FILE_STATUS,
@@ -119,7 +120,8 @@ class Shell(object):
 
                         self._send(thrift_utils.serialize_thrift_msg(data))
             except Exception:
-                log.exception("Shell.cache: exception while caching ignored dirs")
+                log.exception(
+                    "Shell.cache: exception while caching ignored dirs")
 
     def _listener(self):
         log.info('Shell: shell listener ready')
