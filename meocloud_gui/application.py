@@ -338,11 +338,11 @@ class Application(Gtk.Application):
 
             if sync_code & codes.SYNC_LISTING_CHANGES:
                 self.update_status(_("Listing changes"))
-            if sync_code & codes.SYNC_INDEXING:
+            elif sync_code & codes.SYNC_INDEXING:
                 self.update_status(_("Indexing files"))
-            if sync_code & codes.SYNC_UPLOADING:
+            elif sync_code & codes.SYNC_UPLOADING:
                 self.update_status(_("Uploading files"))
-            if sync_code & codes.SYNC_DOWNLOADING:
+            elif sync_code & codes.SYNC_DOWNLOADING:
                 self.update_status(_("Downloading files"))
             else:
                 self.update_status(_("Syncing"))
@@ -466,11 +466,11 @@ class Application(Gtk.Application):
 
             if sync_code & codes.SYNC_LISTING_CHANGES:
                 self.update_status(_("Listing changes"))
-            if sync_code & codes.SYNC_INDEXING:
+            elif sync_code & codes.SYNC_INDEXING:
                 self.update_status(_("Indexing files"))
-            if sync_code & codes.SYNC_UPLOADING:
+            elif sync_code & codes.SYNC_UPLOADING:
                 self.update_status(_("Uploading files"))
-            if sync_code & codes.SYNC_DOWNLOADING:
+            elif sync_code & codes.SYNC_DOWNLOADING:
                 self.update_status(_("Downloading files"))
             else:
                 self.update_status(_("Syncing"))
