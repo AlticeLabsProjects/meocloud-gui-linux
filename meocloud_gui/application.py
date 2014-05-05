@@ -333,6 +333,7 @@ class Application(Gtk.Application):
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
+            self.update_status(_("Syncing"))
             self.update_sync_status_start()
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
