@@ -34,6 +34,8 @@ class Shell(object):
         self.syncing = []
         self.ignored = []
         self.shared = None
+        self.disconnected = False
+        self.failed = 0
 
         try:
             self.shared = []
@@ -63,10 +65,31 @@ class Shell(object):
             self.s.connect(os.path.join(UI_CONFIG_PATH,
                                         'meocloud_shell_listener.socket'))
         except socket.error:
-            log.exception("Shell: exception while connecting to socket")
+            self.failed += 1
+            GLib.timeout_add(1000, self.retry)
             return
 
         self.thread.start()
+
+    def retry(self):
+        try:
+            self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+
+            self.s.connect(os.path.join(UI_CONFIG_PATH,
+                                        'meocloud_shell_listener.socket'))
+        except socket.error:
+            if self.failed > 10:
+                log.exception("Shell: reached max retries for shell socket")
+                return False
+            else:
+                self.failed += 1
+                return True
+
+        self.failed = 0
+        self.thread.start()
+        self.cache()
+
+        return False
 
     @staticmethod
     def start(cb_file_changed):
@@ -78,24 +101,25 @@ class Shell(object):
             utils.touch(os.path.join(self.cloud_home, path[1:]))
 
     def cache(self):
-        try:
-            del self.syncing
-            self.syncing = []
+        if self.failed == 0:
+            try:
+                del self.syncing
+                self.syncing = []
 
-            query_files = utils.get_all_paths()
+                query_files = utils.get_all_paths()
 
-            for status_file in query_files:
-                status_file.path = status_file.path.replace(self.cloud_home, "")
+                for status_file in query_files:
+                    status_file.path = status_file.path.replace(self.cloud_home, "")
 
-                if status_file.path != "":
-                    data = Message(type=MessageType.FILE_STATUS,
-                                   fileStatus=FileStatusMessage(
-                                       type=FileStatusType.REQUEST,
-                                       status=status_file))
+                    if status_file.path != "":
+                        data = Message(type=MessageType.FILE_STATUS,
+                                       fileStatus=FileStatusMessage(
+                                           type=FileStatusType.REQUEST,
+                                           status=status_file))
 
-                    self._send(thrift_utils.serialize_thrift_msg(data))
-        except Exception:
-            log.exception("Shell.cache: exception while caching ignored dirs")
+                        self._send(thrift_utils.serialize_thrift_msg(data))
+            except Exception:
+                log.exception("Shell.cache: exception while caching ignored dirs")
 
     def _listener(self):
         log.info('Shell: shell listener ready')
