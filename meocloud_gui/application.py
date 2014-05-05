@@ -336,13 +336,13 @@ class Application(Gtk.Application):
 
             sync_code = utils.get_sync_code(status.statusCode)
 
-            if sync_code == codes.SYNC_LISTING_CHANGES:
+            if sync_code & codes.SYNC_LISTING_CHANGES:
                 self.update_status(_("Listing changes"))
-            if sync_code == codes.SYNC_INDEXING:
+            if sync_code & codes.SYNC_INDEXING:
                 self.update_status(_("Indexing files"))
-            if sync_code == codes.SYNC_UPLOADING:
+            if sync_code & codes.SYNC_UPLOADING:
                 self.update_status(_("Uploading files"))
-            if sync_code == codes.SYNC_DOWNLOADING:
+            if sync_code & codes.SYNC_DOWNLOADING:
                 self.update_status(_("Downloading files"))
             else:
                 self.update_status(_("Syncing"))
@@ -446,31 +446,31 @@ class Application(Gtk.Application):
             self.update_status(_("Syncing"))
             return False
 
-        if syncstatus.downloadRate > 0 or syncstatus.pendingDownloads > 0:
+        if syncstatus.downloadRate > 0 and syncstatus.pendingDownloads > 0:
             self.update_status(
                 _("Downloading {0} file(s) at {1}/s").format(
                     syncstatus.pendingDownloads,
                     utils.convert_size(syncstatus.downloadRate)))
-        elif syncstatus.uploadRate > 0 or syncstatus.pendingUploads > 0:
+        elif syncstatus.uploadRate > 0 and syncstatus.pendingUploads > 0:
             self.update_status(
                 _("Uploading {0} file(s) at {1}/s").format(
                     syncstatus.pendingUploads,
                     utils.convert_size(syncstatus.uploadRate)))
         elif syncstatus.pendingIndexes > 0:
             self.update_status(
-                _("Indexing {0} files").format(
+                _("Indexing {0} file(s)").format(
                     syncstatus.pendingIndexes))
         else:
             status = self.core_client.currentStatus()
             sync_code = utils.get_sync_code(status.statusCode)
 
-            if sync_code == codes.SYNC_LISTING_CHANGES:
+            if sync_code & codes.SYNC_LISTING_CHANGES:
                 self.update_status(_("Listing changes"))
-            if sync_code == codes.SYNC_INDEXING:
+            if sync_code & codes.SYNC_INDEXING:
                 self.update_status(_("Indexing files"))
-            if sync_code == codes.SYNC_UPLOADING:
+            if sync_code & codes.SYNC_UPLOADING:
                 self.update_status(_("Uploading files"))
-            if sync_code == codes.SYNC_DOWNLOADING:
+            if sync_code & codes.SYNC_DOWNLOADING:
                 self.update_status(_("Downloading files"))
             else:
                 self.update_status(_("Syncing"))
