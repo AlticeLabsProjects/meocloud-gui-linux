@@ -296,6 +296,11 @@ def get_error_code(status_code):
     return status_code >> 24
 
 
+def get_sync_code(status_code):
+    # least significant byte
+    return status_code & 0xff
+
+
 def use_headerbar():
     if os.path.isfile("/etc/lsb-release"):
         lsb_f = open("/etc/lsb-release", "r")

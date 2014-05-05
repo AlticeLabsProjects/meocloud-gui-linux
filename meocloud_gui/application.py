@@ -333,7 +333,20 @@ class Application(Gtk.Application):
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
-            self.update_status(_("Syncing"))
+
+            sync_code = utils.get_sync_code(status.statusCode)
+
+            if sync_code == codes.SYNC_LISTING_CHANGES:
+                self.update_status(_("Listing changes"))
+            if sync_code == codes.SYNC_INDEXING:
+                self.update_status(_("Indexing files"))
+            if sync_code == codes.SYNC_UPLOADING:
+                self.update_status(_("Uploading files"))
+            if sync_code == codes.SYNC_DOWNLOADING:
+                self.update_status(_("Downloading files"))
+            else:
+                self.update_status(_("Syncing"))
+
             self.update_sync_status_start()
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
@@ -448,7 +461,19 @@ class Application(Gtk.Application):
                 _("Indexing {0} files").format(
                     syncstatus.pendingIndexes))
         else:
-            self.update_status(_("Syncing"))
+            status = self.core_client.currentStatus()
+            sync_code = utils.get_sync_code(status.statusCode)
+
+            if sync_code == codes.SYNC_LISTING_CHANGES:
+                self.update_status(_("Listing changes"))
+            if sync_code == codes.SYNC_INDEXING:
+                self.update_status(_("Indexing files"))
+            if sync_code == codes.SYNC_UPLOADING:
+                self.update_status(_("Uploading files"))
+            if sync_code == codes.SYNC_DOWNLOADING:
+                self.update_status(_("Downloading files"))
+            else:
+                self.update_status(_("Syncing"))
 
         return True
 
