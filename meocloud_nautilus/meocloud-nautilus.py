@@ -160,7 +160,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             uri = self.get_local_path(uri)
 
             try:
-                in_cloud, syncing, ignored = self.file_in_cloud(uri)
+                in_cloud, syncing, ignored, shared = self.file_in_cloud(uri)
                 if not in_cloud:
                     return None,
             except (AttributeError, ValueError, dbus.exceptions.DBusException):
