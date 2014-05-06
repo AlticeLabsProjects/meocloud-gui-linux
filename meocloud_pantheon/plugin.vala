@@ -139,6 +139,15 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
         Gtk.Menu submenu = new Gtk.Menu ();
 
+        var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
+        copy_link.activate.connect ((w) => {
+            try {
+                this.core.share_link (path);
+            } catch (Error e) {
+            }
+        });
+        submenu.add (copy_link);
+
         var open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
         open_in_browser.activate.connect ((w) => {
             try {
@@ -159,15 +168,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                 }
             });
             submenu.add (share_folder);
-        } else {
-            var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
-            copy_link.activate.connect ((w) => {
-                try {
-                    this.core.share_link (path);
-                } catch (Error e) {
-                }
-            });
-            submenu.add (copy_link);
         }
 
         submenu.show_all ();

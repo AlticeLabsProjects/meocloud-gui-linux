@@ -245,12 +245,11 @@ QList<QAction *>DolphinMEOCloudPlugin::getActions(QString path, bool isDir)
     KActionMenu *menuAction = new KActionMenu(this);
     menuAction->setText("MEO Cloud");
 
+    menuAction->addAction(m_shareFileLinkAction);
     menuAction->addAction(m_openInBrowserAction);
 
     if (isDir) {
         menuAction->addAction(m_shareFolderAction);
-    } else {
-        menuAction->addAction(m_shareFileLinkAction);
     }
 
     actions.append(menuAction);

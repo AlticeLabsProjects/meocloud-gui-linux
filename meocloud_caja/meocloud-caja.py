@@ -175,12 +175,12 @@ class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
         submenu = Caja.Menu()
         top_menuitem.set_submenu(submenu)
 
-        if os.path.isfile(uri):
-            link_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::Copy',
+        link_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::Copy',
                                               _('Copy Link'), '', '')
-            link_menuitem.connect("activate", lambda w: self.share_link(uri))
-            submenu.append_item(link_menuitem)
-        else:
+        link_menuitem.connect("activate", lambda w: self.share_link(uri))
+        submenu.append_item(link_menuitem)
+
+        if not os.path.isfile(uri):
             share_menuitem = Caja.MenuItem.new(
                 'MEOCloudMenuProvider::Share', _('Share Folder'), '', '')
             share_menuitem.connect("activate", lambda w:

@@ -175,12 +175,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         submenu = Nautilus.Menu()
         top_menuitem.set_submenu(submenu)
 
-        if os.path.isfile(uri):
-            link_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                                  _('Copy Link'), '', '')
-            link_menuitem.connect("activate", lambda w: self.share_link(uri))
-            submenu.append_item(link_menuitem)
-        else:
+        link_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::Copy',
+                                              _('Copy Link'), '', '')
+        link_menuitem.connect("activate", lambda w: self.share_link(uri))
+        submenu.append_item(link_menuitem)
+
+        if not os.path.isfile(uri):
             share_menuitem = Nautilus.MenuItem.new(
                 'MEOCloudMenuProvider::Share', _('Share Folder'), '', '')
             share_menuitem.connect("activate", lambda w:
