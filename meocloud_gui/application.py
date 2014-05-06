@@ -70,7 +70,7 @@ class Application(Gtk.Application):
         self.recentfiles_menu = None
         self.menuitem_recent = None
         self.menuitem_storage = None
-        self.menuitem_status = None
+        self.menuitem_status = []
         self.menuitem_changestatus = None
         self.menuitem_prefs = None
         self.storage_separator = None
@@ -193,8 +193,14 @@ class Application(Gtk.Application):
                 self.menuitem_recent.set_submenu(self.recentfiles_menu)
                 self.menuitem_storage = Gtk.MenuItem("-")
                 self.menuitem_storage.set_sensitive(False)
-                self.menuitem_status = Gtk.MenuItem(_("Unauthorized"))
-                self.menuitem_status.set_sensitive(False)
+                self.menuitem_status.append(Gtk.MenuItem(_("Unauthorized")))
+                self.menuitem_status.append(Gtk.MenuItem("-"))
+                self.menuitem_status.append(Gtk.MenuItem("-"))
+                self.menuitem_status.append(Gtk.MenuItem("-"))
+                self.menuitem_status[0].set_sensitive(False)
+                self.menuitem_status[1].set_sensitive(False)
+                self.menuitem_status[2].set_sensitive(False)
+                self.menuitem_status[3].set_sensitive(False)
                 self.menuitem_changestatus = Gtk.MenuItem(_("Authorize"))
                 self.menuitem_prefs = Gtk.MenuItem(_("Preferences"))
                 menuitem_about = Gtk.MenuItem(_("About"))
@@ -208,13 +214,20 @@ class Application(Gtk.Application):
                 self.trayicon.add_menu_item(self.storage_separator)
                 self.trayicon.add_menu_item(self.menuitem_storage)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
-                self.trayicon.add_menu_item(self.menuitem_status)
+                self.trayicon.add_menu_item(self.menuitem_status[0])
+                self.trayicon.add_menu_item(self.menuitem_status[1])
+                self.trayicon.add_menu_item(self.menuitem_status[2])
+                self.trayicon.add_menu_item(self.menuitem_status[3])
                 self.trayicon.add_menu_item(self.menuitem_changestatus)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
                 self.trayicon.add_menu_item(self.menuitem_prefs, True)
                 self.trayicon.add_menu_item(menuitem_bug)
                 self.trayicon.add_menu_item(menuitem_about)
                 self.trayicon.add_menu_item(menuitem_quit)
+
+                self.menuitem_status[1].hide()
+                self.menuitem_status[2].hide()
+                self.menuitem_status[3].hide()
 
                 menuitem_folder.connect("activate", self.open_folder)
                 menuitem_site.connect("activate", self.open_website)
@@ -313,12 +326,17 @@ class Application(Gtk.Application):
             self.shell.subscribe_path('/')
             self.dbus_service.shell = self.shell
             self.dbus_service.update_prefs()
-            StoppableThread(target=self.shell.cache).start()
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and
                 self.log_handler.core_client is None):
             self.log_handler.core_client = self.core_client
+
+        if status.state != codes.CORE_SYNCING:
+            self.trayicon.wrapper(lambda: self.menuitem_status[0].show())
+            self.trayicon.wrapper(lambda: self.menuitem_status[1].hide())
+            self.trayicon.wrapper(lambda: self.menuitem_status[2].hide())
+            self.trayicon.wrapper(lambda: self.menuitem_status[3].hide())
 
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
@@ -335,17 +353,7 @@ class Application(Gtk.Application):
             self.paused = False
 
             sync_code = utils.get_sync_code(status.statusCode)
-
-            if sync_code & codes.SYNC_LISTING_CHANGES:
-                self.update_status(_("Listing changes"))
-            elif sync_code & codes.SYNC_INDEXING:
-                self.update_status(_("Indexing files"))
-            elif sync_code & codes.SYNC_UPLOADING:
-                self.update_status(_("Uploading files"))
-            elif sync_code & codes.SYNC_DOWNLOADING:
-                self.update_status(_("Downloading files"))
-            else:
-                self.update_status(_("Syncing"))
+            self.menu_from_sync_code(sync_code)
 
             self.update_sync_status_start()
             self.update_menu_action(_("Pause"))
@@ -442,40 +450,58 @@ class Application(Gtk.Application):
 
         try:
             syncstatus = self.core_client.currentSyncStatus()
+            status = self.core_client.currentStatus()
         except ListenerConnectionFailedException:
-            self.update_status(_("Syncing"))
+            self.update_status(_("Syncing"), 0)
+            self.trayicon.wrapper(lambda: self.menuitem_status[0].show())
             return False
+
+        sync_code = utils.get_sync_code(status.statusCode)
+        self.menu_from_sync_code(sync_code)
 
         if syncstatus.downloadRate > 0 and syncstatus.pendingDownloads > 0:
             self.update_status(
-                _("Downloading {0} file(s) at {1}/s").format(
+                _("Downloading {0} file(s) at {1}/s ({2})").format(
                     syncstatus.pendingDownloads,
-                    utils.convert_size(syncstatus.downloadRate)))
+                    utils.convert_size(syncstatus.downloadRate),
+                    utils.convert_time(syncstatus.downloadETASecs)), 1)
         elif syncstatus.uploadRate > 0 and syncstatus.pendingUploads > 0:
             self.update_status(
-                _("Uploading {0} file(s) at {1}/s").format(
+                _("Uploading {0} file(s) at {1}/s ({2})").format(
                     syncstatus.pendingUploads,
-                    utils.convert_size(syncstatus.uploadRate)))
+                    utils.convert_size(syncstatus.uploadRate),
+                    utils.convert_time(syncstatus.uploadETASecs)), 2)
         elif syncstatus.pendingIndexes > 0:
             self.update_status(
                 _("Indexing {0} file(s)").format(
-                    syncstatus.pendingIndexes))
-        else:
-            status = self.core_client.currentStatus()
-            sync_code = utils.get_sync_code(status.statusCode)
-
-            if sync_code & codes.SYNC_LISTING_CHANGES:
-                self.update_status(_("Listing changes"))
-            elif sync_code & codes.SYNC_INDEXING:
-                self.update_status(_("Indexing files"))
-            elif sync_code & codes.SYNC_UPLOADING:
-                self.update_status(_("Uploading files"))
-            elif sync_code & codes.SYNC_DOWNLOADING:
-                self.update_status(_("Downloading files"))
-            else:
-                self.update_status(_("Syncing"))
+                    syncstatus.pendingIndexes), 3)
 
         return True
+
+    def menu_from_sync_code(self, sync_code):
+        if sync_code & codes.SYNC_LISTING_CHANGES:
+            self.update_status(_("Listing remote changes"), 0)
+            self.trayicon.wrapper(lambda: self.menuitem_status[0].show())
+        else:
+            self.trayicon.wrapper(lambda: self.menuitem_status[0].hide())
+
+        if sync_code & codes.SYNC_DOWNLOADING:
+            self.update_status(_("Downloading files"), 1)
+            self.trayicon.wrapper(lambda: self.menuitem_status[1].show())
+        else:
+            self.trayicon.wrapper(lambda: self.menuitem_status[1].hide())
+
+        if sync_code & codes.SYNC_UPLOADING:
+            self.update_status(_("Uploading files"), 2)
+            self.trayicon.wrapper(lambda: self.menuitem_status[2].show())
+        else:
+            self.trayicon.wrapper(lambda: self.menuitem_status[2].hide())
+
+        if sync_code & codes.SYNC_INDEXING:
+            self.update_status(_("Indexing files"), 3)
+            self.trayicon.wrapper(lambda: self.menuitem_status[3].show())
+        else:
+            self.trayicon.wrapper(lambda: self.menuitem_status[3].hide())
 
     def update_sync_status_stop(self):
         if self.update_sync_status_timeout is not None:
@@ -502,9 +528,9 @@ class Application(Gtk.Application):
             self.storage_separator.show()
             self.menuitem_storage.show()
 
-    def update_status(self, status):
+    def update_status(self, status, num=0):
         self.trayicon.wrapper(
-            lambda: self.menuitem_status.set_label(status))
+            lambda: self.menuitem_status[num].set_label(status))
 
     def update_menu_action(self, action):
         self.trayicon.wrapper(

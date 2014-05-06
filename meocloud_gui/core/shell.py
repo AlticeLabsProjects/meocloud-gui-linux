@@ -32,7 +32,8 @@ class Shell(object):
     def __init__(self, isDaemon, cb_file_changed=None):
         self.cb_file_changed = cb_file_changed
         self.syncing = []
-        self.ignored = []
+        self.cached = []
+        self.ignored = ['/.cloudcontrol']
         self.shared = None
         self.disconnected = False
         self.failed = 0
@@ -54,8 +55,6 @@ class Shell(object):
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
 
-        self.cached = False
-
         log.info('Shell: starting the shell listener thread')
         self.thread = StoppableThread(target=self._listener)
 
@@ -70,6 +69,14 @@ class Shell(object):
             return
 
         self.thread.start()
+
+    def update_file_status(self, path):
+        data = Message(type=MessageType.FILE_STATUS,
+                       fileStatus=FileStatusMessage(
+                           type=FileStatusType.REQUEST,
+                           status=FileStatus(path=path)))
+
+        self._send(thrift_utils.serialize_thrift_msg(data))
 
     def retry(self):
         try:
@@ -87,7 +94,6 @@ class Shell(object):
 
         self.failed = 0
         self.thread.start()
-        self.cache()
 
         return False
 
@@ -99,29 +105,6 @@ class Shell(object):
         for path in self.syncing:
             self.syncing.remove(path)
             utils.touch(os.path.join(self.cloud_home, path[1:]))
-
-    def cache(self):
-        if self.failed == 0:
-            try:
-                del self.syncing
-                self.syncing = []
-
-                query_files = utils.get_all_paths()
-
-                for status_file in query_files:
-                    status_file.path = status_file.path.replace(
-                        self.cloud_home, "")
-
-                    if status_file.path != "":
-                        data = Message(type=MessageType.FILE_STATUS,
-                                       fileStatus=FileStatusMessage(
-                                           type=FileStatusType.REQUEST,
-                                           status=status_file))
-
-                        self._send(thrift_utils.serialize_thrift_msg(data))
-            except Exception:
-                log.exception(
-                    "Shell.cache: exception while caching ignored dirs")
 
     def _listener(self):
         log.info('Shell: shell listener ready')
@@ -148,6 +131,8 @@ class Shell(object):
                         msg.fileStatus.status.path.replace(self.cloud_home, "")
 
                 if msg.fileStatus.status.path != "/":
+                    self.cached.append(msg.fileStatus.status.path)
+
                     if msg.fileStatus.status.state == FileState.SYNCING:
                         self.syncing.append(msg.fileStatus.status.path)
                     elif msg.fileStatus.status.state == FileState.IGNORED:
@@ -162,20 +147,6 @@ class Shell(object):
                         GLib.idle_add(self.cb_file_changed)
                 else:
                     utils.touch(self.cloud_home)
-
-                if (not self.cached and
-                        msg.fileStatus.status.state == FileState.READY):
-                    data = Message(type=MessageType.FILE_STATUS,
-                                   fileStatus=FileStatusMessage(
-                                       type=FileStatusType.REQUEST,
-                                       status=FileStatus(
-                                           path="/.cloudcontrol")))
-
-                    self._send(thrift_utils.serialize_thrift_msg(data))
-
-                if not self.cached and "/.cloudcontrol" in self.ignored:
-                    self.cached = True
-                    Thread(target=self.cache).start()
         except Exception, e:
             log.exception(
                 'Shell._listener: An uncatched error occurred!')

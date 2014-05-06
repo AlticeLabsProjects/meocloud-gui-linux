@@ -40,8 +40,8 @@ class DBusService(dbus.service.Object):
         path = unicode(path).encode('utf-8')
 
         if os.path.samefile(path, cloud_home):
-            return False, False
-        else:
+            return False, False, False, False
+        elif path.startswith(cloud_home + "/"):
             if self.shell is None:
                 is_syncing = False
                 is_ignored = False
@@ -52,12 +52,17 @@ class DBusService(dbus.service.Object):
                 is_ignored = short_path in self.shell.ignored
                 is_shared = short_path in self.shell.shared
 
+                if short_path not in self.shell.cached:
+                    self.shell.update_file_status(short_path)
+
                 if not is_ignored:
                     is_ignored = short_path.startswith(tuple(
                         (s + "/" for s in self.shell.ignored)))
 
-            return path.startswith(cloud_home + "/"), is_syncing, \
+            return True, is_syncing, \
                 is_ignored, is_shared
+        else:
+            return False, False, False, False
 
     @dbus.service.method('pt.meocloud.dbus')
     def FileSyncing(self, path):
@@ -70,7 +75,11 @@ class DBusService(dbus.service.Object):
             if self.shell is None:
                 is_syncing = False
             else:
-                is_syncing = path.replace(cloud_home, '') in self.shell.syncing
+                short_path = path.replace(cloud_home, '')
+                is_syncing = short_path in self.shell.syncing
+
+                if short_path not in self.shell.cached:
+                    self.shell.update_file_status(short_path)
 
             return is_syncing
 

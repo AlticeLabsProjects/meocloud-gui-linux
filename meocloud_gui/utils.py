@@ -247,6 +247,12 @@ def convert_size(size):
         return '0 B'
 
 
+def convert_time(secs):
+    mins, secs = divmod(secs, 60)
+    hours, mins = divmod(mins, 60)
+    return '%02d:%02d:%02d' % (hours, mins, secs)
+
+
 def move_folder_async(src, dst, callback=None):
     def move_folder_thread(src, dst, callback):
         if os.listdir(dst) == []:
@@ -274,21 +280,6 @@ def move_folder_async(src, dst, callback=None):
                 GLib.idle_add(lambda: callback(cloud_home, True))
 
     Thread(target=move_folder_thread, args=(src, dst, callback)).start()
-
-
-def get_all_paths():
-    cloud_home = Preferences().get('Advanced', 'Folder',
-                                   CLOUD_HOME_DEFAULT_PATH)
-
-    query_files = []
-
-    for root, dirs, files in os.walk(cloud_home):
-        if root != "":
-            query_files.append(FileStatus(path=root))
-        for filename in files:
-            query_files.append(FileStatus(path=os.path.join(root, filename)))
-
-    return query_files
 
 
 def get_error_code(status_code):
