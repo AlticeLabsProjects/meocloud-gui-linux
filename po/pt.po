@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-06 11:12+0100\n"
+"POT-Creation-Date: 2014-05-06 16:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -286,7 +286,7 @@ msgstr "Em pausa"
 
 #: ../meocloud_gui/application.py:389
 msgid "Offline"
-msgstr ""
+msgstr "Sem acesso à Internet"
 
 #: ../meocloud_gui/application.py:394
 msgid "Network Error"
@@ -310,34 +310,41 @@ msgid "Syncing"
 msgstr "A sincronizar"
 
 #: ../meocloud_gui/application.py:464
-msgid "Downloading {0} file(s) at {1}/s ({2})"
-msgstr "A descarregar {0} ficheiro(s) a {1}/s ({2})"
+#, fuzzy, python-brace-format
+msgid "Downloading {0} file(s) at {1}/s... ({2})"
+msgstr "A descarregar {0} ficheiro(s) a {1}/s... ({2})"
 
 #: ../meocloud_gui/application.py:470
-msgid "Uploading {0} file(s) at {1}/s ({2})"
-msgstr "A enviar {0} ficheiro(s) a {1}/s ({2})"
+#, fuzzy, python-brace-format
+msgid "Uploading {0} file(s) at {1}/s... ({2})"
+msgstr "A enviar {0} ficheiro(s) a {1}/s... ({2})"
 
 #: ../meocloud_gui/application.py:476
-msgid "Indexing {0} file(s)"
-msgstr "A indexar {0} ficheiros"
+#, fuzzy, python-brace-format
+msgid "Indexing {0} file(s)..."
+msgstr "A indexar {0} ficheiros..."
 
 #: ../meocloud_gui/application.py:483
-msgid "Listing remote changes"
-msgstr "A listar alterações remotas"
+#, fuzzy
+msgid "Listing remote changes..."
+msgstr "A listar alterações remotas..."
 
 #: ../meocloud_gui/application.py:489
-msgid "Downloading files"
-msgstr "A descarregar ficheiros"
+#, fuzzy
+msgid "Downloading files..."
+msgstr "A descarregar ficheiros..."
 
 #: ../meocloud_gui/application.py:495
-msgid "Uploading files"
-msgstr "A enviar ficheiros"
+#, fuzzy
+msgid "Uploading files..."
+msgstr "A enviar ficheiros..."
 
 #: ../meocloud_gui/application.py:501
-msgid "Indexing files"
-msgstr "A indexar ficheiros"
+#, fuzzy
+msgid "Indexing files..."
+msgstr "A indexar ficheiros..."
 
 #: ../meocloud_gui/application.py:560
-#, python-brace-format
-msgid "{0} used of {1}"
-msgstr "{0} usados de {1}"
+#, fuzzy, python-brace-format
+msgid "{0} of {1} used"
+msgstr "{0} de {1} ocupado"

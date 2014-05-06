@@ -461,44 +461,44 @@ class Application(Gtk.Application):
 
         if syncstatus.downloadRate > 0 and syncstatus.pendingDownloads > 0:
             self.update_status(
-                _("Downloading {0} file(s) at {1}/s ({2})").format(
+                _("Downloading {0} file(s) at {1}/s... ({2})").format(
                     syncstatus.pendingDownloads,
                     utils.convert_size(syncstatus.downloadRate),
                     utils.convert_time(syncstatus.downloadETASecs)), 1)
         elif syncstatus.uploadRate > 0 and syncstatus.pendingUploads > 0:
             self.update_status(
-                _("Uploading {0} file(s) at {1}/s ({2})").format(
+                _("Uploading {0} file(s) at {1}/s... ({2})").format(
                     syncstatus.pendingUploads,
                     utils.convert_size(syncstatus.uploadRate),
                     utils.convert_time(syncstatus.uploadETASecs)), 2)
         elif syncstatus.pendingIndexes > 0:
             self.update_status(
-                _("Indexing {0} file(s)").format(
+                _("Indexing {0} file(s)...").format(
                     syncstatus.pendingIndexes), 3)
 
         return True
 
     def menu_from_sync_code(self, sync_code):
         if sync_code & codes.SYNC_LISTING_CHANGES:
-            self.update_status(_("Listing remote changes"), 0)
+            self.update_status(_("Listing remote changes..."), 0)
             self.trayicon.wrapper(lambda: self.menuitem_status[0].show())
         else:
             self.trayicon.wrapper(lambda: self.menuitem_status[0].hide())
 
         if sync_code & codes.SYNC_DOWNLOADING:
-            self.update_status(_("Downloading files"), 1)
+            self.update_status(_("Downloading files..."), 1)
             self.trayicon.wrapper(lambda: self.menuitem_status[1].show())
         else:
             self.trayicon.wrapper(lambda: self.menuitem_status[1].hide())
 
         if sync_code & codes.SYNC_UPLOADING:
-            self.update_status(_("Uploading files"), 2)
+            self.update_status(_("Uploading files..."), 2)
             self.trayicon.wrapper(lambda: self.menuitem_status[2].show())
         else:
             self.trayicon.wrapper(lambda: self.menuitem_status[2].hide())
 
         if sync_code & codes.SYNC_INDEXING:
-            self.update_status(_("Indexing files"), 3)
+            self.update_status(_("Indexing files..."), 3)
             self.trayicon.wrapper(lambda: self.menuitem_status[3].show())
         else:
             self.trayicon.wrapper(lambda: self.menuitem_status[3].hide())
@@ -557,7 +557,7 @@ class Application(Gtk.Application):
         total = utils.convert_size(total)
 
         self.menuitem_storage.set_label(
-            _("{0} used of {1}").format(str(used_percentage), str(total)))
+            _("{0} of {1} used").format(str(used_percentage), str(total)))
 
     def show_prefs(self, w):
         if not self.prefs_window:

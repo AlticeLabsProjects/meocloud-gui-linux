@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-06 11:12+0100\n"
+"POT-Creation-Date: 2014-05-06 16:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,36 +309,36 @@ msgstr ""
 
 #: ../meocloud_gui/application.py:464
 #, python-brace-format
-msgid "Downloading {0} file(s) at {1}/s ({2})"
+msgid "Downloading {0} file(s) at {1}/s... ({2})"
 msgstr ""
 
 #: ../meocloud_gui/application.py:470
 #, python-brace-format
-msgid "Uploading {0} file(s) at {1}/s ({2})"
+msgid "Uploading {0} file(s) at {1}/s... ({2})"
 msgstr ""
 
 #: ../meocloud_gui/application.py:476
 #, python-brace-format
-msgid "Indexing {0} file(s)"
+msgid "Indexing {0} file(s)..."
 msgstr ""
 
 #: ../meocloud_gui/application.py:483
-msgid "Listing remote changes"
+msgid "Listing remote changes..."
 msgstr ""
 
 #: ../meocloud_gui/application.py:489
-msgid "Downloading files"
+msgid "Downloading files..."
 msgstr ""
 
 #: ../meocloud_gui/application.py:495
-msgid "Uploading files"
+msgid "Uploading files..."
 msgstr ""
 
 #: ../meocloud_gui/application.py:501
-msgid "Indexing files"
+msgid "Indexing files..."
 msgstr ""
 
 #: ../meocloud_gui/application.py:560
 #, python-brace-format
-msgid "{0} used of {1}"
+msgid "{0} of {1} used"
 msgstr ""
