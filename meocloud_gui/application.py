@@ -380,6 +380,11 @@ class Application(Gtk.Application):
             self.update_sync_status_stop()
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
+        elif status.state == codes.CORE_SELECTIVE_SYNC:
+            self.trayicon.wrapper(lambda: self.show_gui_elements())
+            self.trayicon.set_icon("meocloud-sync-1")
+            self.paused = False
+            self.update_menu_action(_("Applying selective sync settings..."))
         elif status.state == codes.CORE_OFFLINE:
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
