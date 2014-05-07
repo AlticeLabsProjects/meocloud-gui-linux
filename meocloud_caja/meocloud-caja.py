@@ -176,7 +176,7 @@ class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
         top_menuitem.set_submenu(submenu)
 
         link_menuitem = Caja.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                              _('Copy Link'), '', '')
+                                          _('Copy Link'), '', '')
         link_menuitem.connect("activate", lambda w: self.share_link(uri))
         submenu.append_item(link_menuitem)
 

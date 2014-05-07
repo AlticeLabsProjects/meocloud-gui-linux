@@ -318,7 +318,8 @@ class Application(Gtk.Application):
             self.core_client.pause()
             self.force_pause = False
 
-        if self.in_selective_sync and status.state != codes.CORE_SELECTIVE_SYNC:
+        if (self.in_selective_sync and
+                status.state != codes.CORE_SELECTIVE_SYNC):
             self.in_selective_sync = False
             if self.prefs_window is not None:
                 GLib.idle_add(
