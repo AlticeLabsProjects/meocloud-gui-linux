@@ -102,7 +102,9 @@ class SelectiveSyncWindow(Gtk.Window):
         treeview.append_column(column_text)
 
         self.hbox.remove(self.spinner)
-        self.hbox.pack_start(treeview, True, True, 0)
+        scrolled_tree = Gtk.ScrolledWindow()
+        scrolled_tree.add_with_viewport(treeview)
+        self.hbox.pack_start(scrolled_tree, True, True, 0)
 
         for folder in folders:
             if folder in self.ignored_directories:
