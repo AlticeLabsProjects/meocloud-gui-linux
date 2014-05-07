@@ -85,7 +85,7 @@ class SelectiveSyncWindow(Gtk.Window):
 
         # only works with Gtk >= 3.8
         try:
-            treeview.set_activates_on_single_click(True)
+            treeview.set_activate_on_single_click(True)
         except AttributeError:
             log.warning('SelectiveSyncWindow.add_column: Gtk older than 3.8, '
                         'falling back')
