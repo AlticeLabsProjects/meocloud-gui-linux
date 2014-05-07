@@ -112,7 +112,7 @@ class SelectiveSyncWindow(Gtk.Window):
             else:
                 liststore.append([os.path.basename(folder), True, folder])
 
-        self.columns.append(treeview)
+        self.columns.append(scrolled_tree)
         self.show_all()
         log.info('SelectiveSyncWindow.add_column: column ready')
 
