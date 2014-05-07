@@ -169,8 +169,6 @@ class SelectiveSyncWindow(Gtk.Window):
                 if not ignored_dir in self.app.shell.ignored:
                     self.app.shell.ignored.append(ignored_dir)
 
-            StoppableThread(target=self.app.shell.cache).start()
-
         log.info('SelectiveSyncWindow.save_ignored_directories: '
                  'ignored directories saved')
         self.destroy()

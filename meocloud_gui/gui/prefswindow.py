@@ -286,10 +286,10 @@ class PrefsWindow(Gtk.Window):
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
                                    _("Choose Folder")))
         folder_button.connect("clicked", self.on_choose_folder)
-        selective_button = Gtk.Button(_("Selective Sync"))
-        selective_button.connect("clicked", self.on_selective_sync)
+        self.selective_button = Gtk.Button(_("Selective Sync"))
+        self.selective_button.connect("clicked", self.on_selective_sync)
         advanced_box.pack_start(folder_button, False, True, 10)
-        advanced_box.pack_start(selective_button, False, True, 0)
+        advanced_box.pack_start(self.selective_button, False, True, 0)
 
         # change the contents according to where the preferences will be
         if embed:

@@ -56,6 +56,7 @@ class Application(Gtk.Application):
         self.missing_quit = False
         self.running = False
         self.paused = False
+        self.in_selective_sync = False
         self.force_pause = False
         self.offline = False
         self.force_preferences_visible = False
@@ -317,6 +318,13 @@ class Application(Gtk.Application):
             self.core_client.pause()
             self.force_pause = False
 
+        if self.in_selective_sync and status.state != codes.CORE_SELECTIVE_SYNC:
+            self.in_selective_sync = False
+            if self.prefs_window is not None:
+                GLib.idle_add(
+                    lambda: self.prefs_window.selective_button.set_sensitive(
+                        True))
+
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
             self.shell = Shell.start(self.file_changed)
@@ -381,6 +389,11 @@ class Application(Gtk.Application):
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SELECTIVE_SYNC:
+            self.in_selective_sync = True
+            if self.prefs_window is not None:
+                GLib.idle_add(
+                    lambda: self.prefs_window.selective_button.set_sensitive(
+                        False))
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
