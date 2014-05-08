@@ -16,7 +16,8 @@ from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
+from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH, CLIENT_ID,
+                                    AUTH_KEY)
 from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
@@ -117,9 +118,9 @@ class CoreListenerHandler(UI.Iface):
             'deviceName': account.deviceName
         }
 
-        GLib.idle_add(lambda: keyring.set_password("meocloud", "clientID",
+        GLib.idle_add(lambda: keyring.set_password("meocloud", CLIENT_ID,
                                                    account_dict['clientID']))
-        GLib.idle_add(lambda: keyring.set_password("meocloud", "authKey",
+        GLib.idle_add(lambda: keyring.set_password("meocloud", AUTH_KEY,
                                                    account_dict['authKey']))
         self.ui_config.put('Account', 'email', account_dict['email'])
         self.ui_config.put('Account', 'name', account_dict['name'])

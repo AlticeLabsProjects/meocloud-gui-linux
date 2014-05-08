@@ -20,7 +20,8 @@ import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
-                                    CONFIG_PATH, UI_CONFIG_PATH, VERSION)
+                                    CONFIG_PATH, UI_CONFIG_PATH, VERSION,
+                                    CLIENT_ID, AUTH_KEY)
 
 from meocloud_gui import codes
 
@@ -107,10 +108,10 @@ class Application(Gtk.Application):
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 log.info('Application.on_activate: prefs.ini missing')
 
-                if keyring.get_password('meocloud', 'clientID') is not None:
-                    keyring.delete_password('meocloud', 'clientID')
-                if keyring.get_password('meocloud', 'authKey') is not None:
-                    keyring.delete_password('meocloud', 'authKey')
+                if keyring.get_password('meocloud', CLIENT_ID) is not None:
+                    keyring.delete_password('meocloud', CLIENT_ID)
+                if keyring.get_password('meocloud', AUTH_KEY) is not None:
+                    keyring.delete_password('meocloud', AUTH_KEY)
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'ignored_directories')):

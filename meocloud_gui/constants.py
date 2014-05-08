@@ -9,11 +9,16 @@ HOME_PATH = os.path.expanduser('~')
 CONFIG_PATH = os.path.join(HOME_PATH, '.meocloud')
 CLOUD_HOME_DEFAULT_PATH = os.path.join(HOME_PATH, 'MEOCloud')
 
+CLIENT_ID = "clientID"
+AUTH_KEY = "authKey"
+
 DEV_MODE = os.getenv('CLD_DEV', False)
 DEV_SUFFIX = '-dev'
 if DEV_MODE:
     CONFIG_PATH += DEV_SUFFIX
     CLOUD_HOME_DEFAULT_PATH += DEV_SUFFIX
+    CLIENT_ID += DEV_SUFFIX
+    AUTH_KEY += DEV_SUFFIX
 
 # TODO Find a way to set this during the build process
 BETA_MODE = True

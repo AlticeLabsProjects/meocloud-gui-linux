@@ -4,6 +4,7 @@ import keyring
 
 # GLib and Gdk
 from gi.repository import GLib, Gdk
+from meocloud_gui.constants import CLIENT_ID, AUTH_KEY
 
 from meocloud_gui.protocol.daemon_core.ttypes import NetworkSettings, Account
 from meocloud_gui.utils import get_proxy, get_ratelimits
@@ -22,9 +23,9 @@ def get_account_dict(ui_config):
             Gdk.threads_enter()
             try:
                 account_dict['clientID'] = keyring.get_password('meocloud',
-                                                                'clientID')
+                                                                CLIENT_ID)
                 account_dict['authKey'] = keyring.get_password('meocloud',
-                                                               'authKey')
+                                                               AUTH_KEY)
                 account_dict['email'] = ui_config.get('Account', 'email',
                                                            None)
                 account_dict['name'] = ui_config.get('Account', 'name',
@@ -52,8 +53,8 @@ def unlink(core_client, ui_config):
     account_dict = get_account_dict(ui_config)
     if account_dict['clientID'] and account_dict['authKey']:
         account = Account(**account_dict)
-        GLib.idle_add(lambda: keyring.delete_password('meocloud', 'clientID'))
-        GLib.idle_add(lambda: keyring.delete_password('meocloud', 'authKey'))
+        GLib.idle_add(lambda: keyring.delete_password('meocloud', CLIENT_ID))
+        GLib.idle_add(lambda: keyring.delete_password('meocloud', AUTH_KEY))
         ui_config.put('Account', 'email', '')
         ui_config.put('Account', 'name', '')
         ui_config.put('Account', 'deviceName', '')
