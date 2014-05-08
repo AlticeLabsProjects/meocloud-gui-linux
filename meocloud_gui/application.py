@@ -48,6 +48,8 @@ class Application(Gtk.Application):
 
         self.app_path = app_path
         self.prefs_window = None
+
+        # for some reason this only works in __init__
         self.trayicon = TrayIcon(self)
         self.trayicon.show()
 
@@ -55,7 +57,6 @@ class Application(Gtk.Application):
         self.running = False
         self.paused = False
         self.in_selective_sync = False
-        self.force_pause = False
         self.offline = False
         self.force_preferences_visible = False
         self.requires_authorization = True
@@ -84,7 +85,10 @@ class Application(Gtk.Application):
         DBusGMainLoop(set_as_default=True)
         self.dbus_service = DBusService(codes.CORE_INITIALIZING, self.app_path)
 
+        # are we running GNOME or elementary OS?
         self.use_headerbar = utils.use_headerbar()
+
+        # check if app has been updated every hour
         self.update_app_timeout = GLib.timeout_add(60000,
                                                    self.update_app_version)
         self.update_sync_status_timeout = None
@@ -97,7 +101,6 @@ class Application(Gtk.Application):
             self.icon_type = prefs.get("General", "Icons", "")
             self.trayicon.set_icon("meocloud-ok")
 
-            self.force_pause = prefs.get("State", "Paused", "False") == "True"
             self.force_preferences_visible = \
                 prefs.get("Network", "Proxy", "None") != "None"
 
@@ -295,14 +298,15 @@ class Application(Gtk.Application):
     def file_changed(self):
         if self.prefs_window is not None:
             if self.prefs_window.selective_sync is not None:
+                # if a folder changed and selective sync is being configured,
+                # make sure we tell the selective sync preferences about it
                 GLib.idle_add(self.prefs_window.selective_sync.panic)
 
-    def update_menu(self, status=None, ignore_sync=False):
+    def update_menu(self, ignore_sync=False):
         if self.requires_authorization:
             self.requires_authorization = False
 
-        if status is None:
-            status = self.core_client.currentStatus()
+        status = self.core_client.currentStatus()
         self.update_storage(status.usedQuota, status.totalQuota)
 
         cloud_home = Preferences().get('Advanced', 'Folder',
@@ -312,10 +316,6 @@ class Application(Gtk.Application):
 
         if (status.state == codes.CORE_WAITING) and (not ignore_sync):
             self.core_client.startSync(cloud_home)
-
-        if status.state == codes.CORE_SYNCING and self.force_pause:
-            self.core_client.pause()
-            self.force_pause = False
 
         if (self.in_selective_sync and
                 status.state != codes.CORE_SELECTIVE_SYNC):
@@ -382,9 +382,9 @@ class Application(Gtk.Application):
             self.trayicon.wrapper(
                 lambda: self.update_recent_files(recently_changed, cloud_home))
         elif status.state == codes.CORE_PAUSED:
+            self.paused = True
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-pause")
-            self.paused = True
             self.update_sync_status_stop()
             self.update_status(_("Paused"))
             self.update_menu_action(_("Resume"))
@@ -435,6 +435,7 @@ class Application(Gtk.Application):
                 log.warning('CoreListener: Root folder is gone, '
                             'will now shutdown')
 
+                # send a notification about the issue
                 notif_icon = os.path.join(
                     self.app_path, "icons/meocloud.svg")
                 notif_title = _('MEO Cloud Folder Missing')
@@ -444,6 +445,7 @@ class Application(Gtk.Application):
                                                        notif_icon)
                 notification.show()
 
+                # restart the app so we can deal with the missing folder
                 cmd = "kill {0} && {1} &".format(
                     os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
                 os.system(cmd)

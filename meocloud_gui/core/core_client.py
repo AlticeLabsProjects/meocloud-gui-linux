@@ -29,12 +29,10 @@ class CoreClient(ThriftClient, Core.Iface):
 
     @wrap_client_call()
     def pause(self):
-        Preferences().put("State", "Paused", "True")
         return self.client.pause()
 
     @wrap_client_call()
     def unpause(self):
-        Preferences().put("State", "Paused", "False")
         return self.client.unpause()
 
     @wrap_client_call()

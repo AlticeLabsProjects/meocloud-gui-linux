@@ -59,6 +59,8 @@ class SelectiveSyncWindow(Gtk.Window):
             self.ignore_panic = False
 
     def panic(self):
+        # folders were moved while we are configuring selective sync.
+        # close everything so we don't risk breaking stuff
         if not self.ignore_panic:
             log.info('SelectiveSyncWindow.panic: something changed. panic '
                      'before the user breaks something')

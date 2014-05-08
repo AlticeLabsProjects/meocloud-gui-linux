@@ -359,7 +359,7 @@ class PrefsWindow(Gtk.Window):
     def toggle_icons(self, w, type=""):
         self.icon_type = type
         self.app.icon_type = self.icon_type
-        self.app.update_menu(None, True)
+        self.app.update_menu(True)
 
     def toggle_start_at_login(self, w):
         folder_path = os.path.join(os.path.expanduser('~'),

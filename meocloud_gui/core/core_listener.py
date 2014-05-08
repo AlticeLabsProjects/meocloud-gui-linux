@@ -192,7 +192,7 @@ class CoreListenerHandler(UI.Iface):
                             'CoreListener.notifySystem: unable to save '
                             'shared directories list')
 
-        self.app.update_menu(None, self.ignore_sync)
+        self.app.update_menu(self.ignore_sync)
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
