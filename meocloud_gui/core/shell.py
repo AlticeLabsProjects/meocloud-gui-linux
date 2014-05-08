@@ -1,8 +1,6 @@
 import socket
 import os
-from time import sleep
 from gi.repository import GLib
-from threading import Thread
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
 from meocloud_gui.stoppablethread import StoppableThread

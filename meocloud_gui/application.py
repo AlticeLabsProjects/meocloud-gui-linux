@@ -1,8 +1,6 @@
 import os
 import keyring
 import webbrowser
-from time import sleep
-from threading import Thread
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
@@ -588,7 +586,7 @@ class Application(Gtk.Application):
     def on_logout(self, w):
         log.info('Application.on_logout: initiating logout')
         self.prefs_window.destroy()
-        Thread(target=self.on_logout_thread).start()
+        StoppableThread(target=self.on_logout_thread).start()
 
     def on_logout_thread(self):
         meocloud_gui.core.api.unlink(self.core_client, Preferences())

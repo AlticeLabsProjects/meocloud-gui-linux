@@ -1,6 +1,5 @@
 import os.path
 import os
-from threading import Thread
 from gi.repository import Gtk
 from meocloud_gui.gui.spinnerbox import SpinnerBox
 
