@@ -81,13 +81,14 @@ class Shell(object):
     def retry(self):
         while self.failed < 10:
             sleep(1)
-            log.warning("Shell: retrying")
+            log.debug("Shell: retrying")
 
             try:
                 self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self.s.connect(os.path.join(UI_CONFIG_PATH,
                                             'meocloud_shell_listener.socket'))
                 self.thread.start()
+                return
             except socket.error:
                 self.failed += 1
                 log.warning("Shell: failed to connect")
