@@ -69,6 +69,15 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         self.get_dbus()
 
+        self.sync_icon_name = "emblem-synchronizing"
+
+        try:
+            import platform
+            if platform.dist() == ('Ubuntu', '12.04', 'precise'):
+                self.sync_icon_name = "emblem-synchronizing-symbolic"
+        except:
+            pass
+
     def get_dbus(self):
         if self.service is None:
             bus = dbus.SessionBus()
@@ -123,9 +132,9 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                     if (status == CORE_INITIALIZING or
                             status == CORE_AUTHORIZING or
                             status == CORE_WAITING):
-                        item.add_emblem("emblem-synchronizing")
+                        item.add_emblem(self.sync_icon_name)
                     elif status == CORE_SYNCING:
-                        item.add_emblem("emblem-synchronizing")
+                        item.add_emblem(self.sync_icon_name)
                     elif status == CORE_READY:
                         item.add_emblem("emblem-default")
                     elif status == CORE_ERROR or status == CORE_OFFLINE:
@@ -135,7 +144,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                         self.file_in_cloud(uri)
 
                     if in_cloud and syncing:
-                        item.add_emblem("emblem-synchronizing")
+                        item.add_emblem(self.sync_icon_name)
                     elif in_cloud and ignored:
                         item.add_emblem("emblem-important")
                     elif in_cloud and shared:
