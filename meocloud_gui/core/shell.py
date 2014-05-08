@@ -65,7 +65,7 @@ class Shell(object):
         except socket.error:
             self.failed += 1
             log.warning("Shell: failed to connect")
-            StoppableThread(target=self.retry).start()
+            self.retry()
             return
 
         self.thread.start()
@@ -79,7 +79,7 @@ class Shell(object):
         self._send(thrift_utils.serialize_thrift_msg(data))
 
     def retry(self):
-        while self.failed < 10:
+        while self.failed < 5:
             sleep(1)
             log.debug("Shell: retrying")
 

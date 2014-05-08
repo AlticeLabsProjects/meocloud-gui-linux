@@ -123,21 +123,24 @@ class DBusService(dbus.service.Object):
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
-        self.shell.share_folder(path)
+        if self.shell is not None:
+            self.shell.share_folder(path)
 
     @dbus.service.method('pt.meocloud.dbus')
     def ShareLink(self, path):
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
-        self.shell.share_link(path)
+        if self.shell is not None:
+            self.shell.share_link(path)
 
     @dbus.service.method('pt.meocloud.dbus')
     def OpenInBrowser(self, path):
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
-        self.shell.open_in_browser(path)
+        if self.shell is not None:
+            self.shell.open_in_browser(path)
 
     @dbus.service.method('pt.meocloud.dbus')
     def GetCloudHome(self):
