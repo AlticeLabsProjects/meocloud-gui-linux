@@ -15,7 +15,6 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     DEBUG_ON_PATH, DEBUG_OFF_PATH,
                                     DEV_MODE, BETA_MODE,
                                     PURGEMETA_PATH, PURGEALL_PATH)
-from meocloud_gui.protocol.shell.ttypes import FileStatus
 from meocloud_gui.stoppablethread import StoppableThread
 
 
@@ -279,7 +278,8 @@ def move_folder_async(src, dst, callback=None):
             if callback is not None:
                 GLib.idle_add(lambda: callback(cloud_home, True))
 
-    StoppableThread(target=move_folder_thread, args=(src, dst, callback)).start()
+    StoppableThread(
+        target=move_folder_thread, args=(src, dst, callback)).start()
 
 
 def get_error_code(status_code):

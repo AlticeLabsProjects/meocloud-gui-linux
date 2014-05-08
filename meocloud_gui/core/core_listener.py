@@ -16,8 +16,7 @@ from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.constants import (LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
-                                    UI_CONFIG_PATH)
+from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
 from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
@@ -45,7 +44,7 @@ class CoreListener(ThriftListener):
             self.listener_server.serve()
         except ListenerConnectionFailedException:
             pass
-        except Exception, e:
+        except Exception:
             log.exception(
                 '{0}: An uncatched error occurred!'.format(self.name))
 
@@ -226,7 +225,7 @@ class CoreListenerHandler(UI.Iface):
         if self.app.prefs_window:
             GLib.idle_add(lambda:
                           self.app.prefs_window.selective_sync.add_column(
-                              listing, path))
+                              listing))
 
     def networkSettings(self):
         log.debug('CoreListener.networkSettings() <<<<')

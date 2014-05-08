@@ -16,7 +16,7 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class Core(object):
-    def __init__(self, core_client, app_path):
+    def __init__(self, core_client):
         log.debug('Core: Initializing...')
         super(Core, self).__init__()
         self.core_client = core_client

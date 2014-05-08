@@ -27,7 +27,7 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class Shell(object):
-    def __init__(self, isDaemon, cb_file_changed=None):
+    def __init__(self, cb_file_changed=None):
         self.cb_file_changed = cb_file_changed
         self.syncing = []
         self.cached = []
@@ -95,10 +95,6 @@ class Shell(object):
 
         return False
 
-    @staticmethod
-    def start(cb_file_changed):
-        return Shell(False, cb_file_changed)
-
     def clean_syncing(self):
         for path in self.syncing:
             self.syncing.remove(path)
@@ -145,7 +141,7 @@ class Shell(object):
                         GLib.idle_add(self.cb_file_changed)
                 else:
                     utils.touch(self.cloud_home)
-        except Exception, e:
+        except Exception:
             log.exception(
                 'Shell._listener: An uncatched error occurred!')
 

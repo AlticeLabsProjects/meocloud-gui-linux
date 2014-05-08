@@ -2,6 +2,7 @@ import os
 import errno
 import socket as socket_module
 from threading import BoundedSemaphore
+from thrift.protocol.TProtocol import TProtocolException
 from time import sleep
 
 from thrift.transport import TSocket, TTransport

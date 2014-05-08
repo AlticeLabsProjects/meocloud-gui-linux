@@ -61,6 +61,7 @@ class Application(Gtk.Application):
         self.requires_authorization = True
         self.core_client = None
         self.core_listener = None
+        self.log_handler = None
         self.shell = None
         self.core = None
         self.ignored_directories = []
@@ -326,7 +327,7 @@ class Application(Gtk.Application):
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
-            self.shell = Shell.start(self.file_changed)
+            self.shell = Shell(self.file_changed)
             for ignored_dir in self.ignored_directories:
                 if not ignored_dir in self.shell.ignored:
                     self.shell.ignored.append(ignored_dir)
@@ -629,7 +630,7 @@ class Application(Gtk.Application):
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
                                           self.core_client, prefs, self,
                                           ignore_sync)
-        self.core = Core(self.core_client, self.app_path)
+        self.core = Core(self.core_client)
 
         # Make sure core isn't running
         self.stop_threads()

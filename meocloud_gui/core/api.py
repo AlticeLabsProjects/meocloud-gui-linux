@@ -14,8 +14,7 @@ def get_account_dict(ui_config):
     account_dict = dict()
 
     class AccountCallback:
-        def __init__(self, ui_config):
-            self.ui_config = ui_config
+        def __init__(self):
             self.event = threading.Event()
             self.result = None
 
@@ -26,11 +25,11 @@ def get_account_dict(ui_config):
                                                                 'clientID')
                 account_dict['authKey'] = keyring.get_password('meocloud',
                                                                'authKey')
-                account_dict['email'] = self.ui_config.get('Account', 'email',
+                account_dict['email'] = ui_config.get('Account', 'email',
                                                            None)
-                account_dict['name'] = self.ui_config.get('Account', 'name',
+                account_dict['name'] = ui_config.get('Account', 'name',
                                                           None)
-                account_dict['deviceName'] = self.ui_config.get('Account',
+                account_dict['deviceName'] = ui_config.get('Account',
                                                                 'deviceName',
                                                                 None)
             finally:
@@ -41,7 +40,7 @@ def get_account_dict(ui_config):
 
     # Keyring must run in the main thread,
     # otherwise we segfault.
-    account_callback = AccountCallback(ui_config)
+    account_callback = AccountCallback()
     account_callback.event.clear()
     GLib.idle_add(account_callback)
     account_callback.event.wait()

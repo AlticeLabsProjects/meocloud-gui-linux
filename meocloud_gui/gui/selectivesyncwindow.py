@@ -7,7 +7,6 @@ from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
 
 # Logging
 import logging
-from meocloud_gui.stoppablethread import StoppableThread
 
 log = logging.getLogger(LOGGER_NAME)
 
@@ -66,7 +65,7 @@ class SelectiveSyncWindow(Gtk.Window):
             if self.app.prefs_window is not None:
                 self.app.prefs_window.on_selective_sync(None, True)
 
-    def add_column(self, folders, path='/'):
+    def add_column(self, folders):
         log.info('SelectiveSyncWindow.add_column: received data, '
                  'adding column')
         if not self.first_column:
