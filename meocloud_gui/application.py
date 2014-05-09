@@ -401,10 +401,12 @@ class Application(Gtk.Application):
             notif_title = _("Network Error")
             notif_string = _("Please check your Internet connection "
                              "or proxy settings.")
+            Gdk.threads_enter()
             notification = Notify.Notification.new(notif_title,
                                                    notif_string,
                                                    notif_icon)
             notification.show()
+            Gdk.threads_leave()
         elif status.state == codes.CORE_ERROR:
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
@@ -429,10 +431,12 @@ class Application(Gtk.Application):
                     self.app_path, "icons/meocloud.svg")
                 notif_title = _('MEO Cloud Folder Missing')
                 notif_string = _('Your MEO Cloud folder is missing.')
+                Gdk.threads_enter()
                 notification = Notify.Notification.new(notif_title,
                                                        notif_string,
                                                        notif_icon)
                 notification.show()
+                Gdk.threads_leave()
 
                 # restart the app so we can deal with the missing folder
                 cmd = "kill {0} && {1} &".format(
@@ -474,13 +478,23 @@ class Application(Gtk.Application):
                     syncstatus.pendingDownloads,
                     utils.convert_size(syncstatus.downloadRate),
                     utils.convert_time(syncstatus.downloadETASecs)), 1)
-        elif syncstatus.uploadRate > 0 and syncstatus.pendingUploads > 0:
+        elif syncstatus.pendingDownloads > 0:
+            self.update_status(
+                _("Downloading {0} file(s)...").format(
+                    syncstatus.pendingDownloads), 1)
+
+        if syncstatus.uploadRate > 0 and syncstatus.pendingUploads > 0:
             self.update_status(
                 _("Uploading {0} file(s) at {1}/s... ({2})").format(
                     syncstatus.pendingUploads,
                     utils.convert_size(syncstatus.uploadRate),
                     utils.convert_time(syncstatus.uploadETASecs)), 2)
-        elif syncstatus.pendingIndexes > 0:
+        elif syncstatus.pendingUploads > 0:
+            self.update_status(
+                _("Uploading {0} file(s)...").format(
+                    syncstatus.pendingUploads), 1)
+
+        if syncstatus.pendingIndexes > 0:
             self.update_status(
                 _("Indexing {0} file(s)...").format(
                     syncstatus.pendingIndexes), 3)

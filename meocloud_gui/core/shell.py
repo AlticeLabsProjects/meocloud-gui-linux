@@ -1,3 +1,4 @@
+from _socket import SHUT_RD
 import socket
 import os
 from time import sleep
@@ -98,6 +99,7 @@ class Shell(object):
         for path in self.syncing:
             self.syncing.remove(path)
             utils.touch(os.path.join(self.cloud_home, path[1:]))
+        self.syncing = []
 
     def _listener(self):
         log.info('Shell: shell listener ready')

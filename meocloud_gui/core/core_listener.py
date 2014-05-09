@@ -150,20 +150,77 @@ class CoreListenerHandler(UI.Iface):
                   note.parameters))
 
         if note.code == codes.SHARE_LINK:
-            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-            GLib.idle_add(lambda: clipboard.set_text(note.parameters[2], -1))
+            if note.parameters[0] == codes.STR_OK:
+                def set_clipboard(text):
+                    Gdk.threads_enter()
+                    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                    clipboard.set_text(text, -1)
+                    Gdk.threads_leave()
 
-            notification = Notify.Notification.new("MEO Cloud",
-                                                   _("Link copied to "
-                                                     "clipboard."),
-                                                   os.path.join(
-                                                       self.app.app_path,
-                                                       "icons/"
-                                                       "meocloud.svg"))
-            notification.show()
+                GLib.idle_add(lambda: set_clipboard(note.parameters[2]))
+
+                Gdk.threads_enter()
+                notification = Notify.Notification.new("MEO Cloud",
+                                                       _("Link copied to "
+                                                         "clipboard."),
+                                                       os.path.join(
+                                                           self.app.app_path,
+                                                           "icons/"
+                                                           "meocloud.svg"))
+                notification.show()
+                Gdk.threads_leave()
+            elif note.parameters[0] == codes.STR_NOTFOUND:
+                Gdk.threads_enter()
+                notification = Notify.Notification.new(
+                    "MEO Cloud",
+                    _("File isn't synchronized yet. "
+                      "Please try again once synchronization finishes."),
+                    os.path.join(
+                        self.app.app_path,
+                        "icons/"
+                        "meocloud.svg"))
+                notification.show()
+                Gdk.threads_leave()
+            elif note.parameters[0] == codes.STR_ERROR:
+                Gdk.threads_enter()
+                notification = Notify.Notification.new(
+                    "MEO Cloud",
+                    _("An error ocurred while trying to complete the "
+                      "operation. Please try again later."),
+                    os.path.join(
+                        self.app.app_path,
+                        "icons/"
+                        "meocloud.svg"))
+                notification.show()
+                Gdk.threads_leave()
         elif (note.code == codes.SHARE_FOLDER or
                 note.code == codes.OPEN_IN_BROWSER):
-            webbrowser.open(note.parameters[2])
+            if note.parameters[0] == codes.STR_OK:
+                webbrowser.open(note.parameters[2])
+            elif note.parameters[0] == codes.STR_NOTFOUND:
+                Gdk.threads_enter()
+                notification = Notify.Notification.new(
+                    "MEO Cloud",
+                    _("File isn't synchronized yet. "
+                      "Please try again once synchronization finishes."),
+                    os.path.join(
+                        self.app.app_path,
+                        "icons/"
+                        "meocloud.svg"))
+                notification.show()
+                Gdk.threads_leave()
+            elif note.parameters[0] == codes.STR_ERROR:
+                Gdk.threads_enter()
+                notification = Notify.Notification.new(
+                    "MEO Cloud",
+                    _("An error ocurred while trying to complete the "
+                      "operation. Please try again later."),
+                    os.path.join(
+                        self.app.app_path,
+                        "icons/"
+                        "meocloud.svg"))
+                notification.show()
+                Gdk.threads_leave()
         elif note.code == codes.SHARED_FOLDER_ADDED:
             if not note.parameters[0] in self.app.shell.shared:
                 if self.app.shell.shared is not None:
@@ -226,10 +283,12 @@ class CoreListenerHandler(UI.Iface):
             if display_notifications == "True":
                 notif_icon = os.path.join(
                     self.app.app_path, "icons/meocloud.svg")
+                Gdk.threads_enter()
                 notification = Notify.Notification.new(notif_title,
                                                        notif_string,
                                                        notif_icon)
                 notification.show()
+                Gdk.threads_leave()
         elif note.type == 0:
             self.app.trayicon.wrapper(lambda: self.app.menuitem_problem.hide())
 
