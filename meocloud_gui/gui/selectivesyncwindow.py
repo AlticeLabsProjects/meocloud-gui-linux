@@ -51,21 +51,7 @@ class SelectiveSyncWindow(Gtk.Window):
         self.separators = []
         self.cell_toggled = False
 
-        self.ignored_directories = self.app.ignored_directories[:]
-
-        if "meocloud-sync" in self.app.trayicon.icon_name:
-            self.ignore_panic = True
-        else:
-            self.ignore_panic = False
-
-    def panic(self):
-        # folders were moved while we are configuring selective sync.
-        # close everything so we don't risk breaking stuff
-        if not self.ignore_panic:
-            log.info('SelectiveSyncWindow.panic: something changed. panic '
-                     'before the user breaks something')
-            if self.app.prefs_window is not None:
-                self.app.prefs_window.on_selective_sync(None, True)
+        self.ignored_directories = self.app.core_client.ignoredDirectories()[:]
 
     def add_column(self, folders):
         log.info('SelectiveSyncWindow.add_column: received data, '
@@ -151,23 +137,8 @@ class SelectiveSyncWindow(Gtk.Window):
             self.ignored_directories.append(liststore[path][2])
 
     def save_ignored_directories(self, w):
-        self.ignore_panic = True
-        self.app.ignored_directories = self.ignored_directories
-
         self.app.core_client.setIgnoredDirectories(
-            self.app.ignored_directories)
-
-        f = open(os.path.join(UI_CONFIG_PATH, 'ignored_directories'), "w")
-        for directory in self.app.ignored_directories:
-            f.write(directory + "\n")
-        f.close()
-
-        if self.app.shell is not None:
-            self.app.shell.ignored = []
-
-            for ignored_dir in self.app.ignored_directories:
-                if not ignored_dir in self.app.shell.ignored:
-                    self.app.shell.ignored.append(ignored_dir)
+            self.ignored_directories)
 
         log.info('SelectiveSyncWindow.save_ignored_directories: '
                  'ignored directories saved')

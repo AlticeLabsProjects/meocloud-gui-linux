@@ -28,8 +28,7 @@ log = logging.getLogger(LOGGER_NAME)
 
 
 class Shell(object):
-    def __init__(self, cb_file_changed=None):
-        self.cb_file_changed = cb_file_changed
+    def __init__(self):
         self.syncing = []
         self.cached = []
         self.ignored = ['/.cloudcontrol']
@@ -136,9 +135,6 @@ class Shell(object):
                         self.syncing.remove(msg.fileStatus.status.path)
                     utils.touch(os.path.join(self.cloud_home,
                                              msg.fileStatus.status.path[1:]))
-
-                    if self.cb_file_changed is not None:
-                        GLib.idle_add(self.cb_file_changed)
                 else:
                     utils.touch(self.cloud_home)
         except Exception:

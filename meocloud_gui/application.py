@@ -66,7 +66,6 @@ class Application(Gtk.Application):
         self.log_handler = None
         self.shell = None
         self.core = None
-        self.ignored_directories = []
         self.icon_type = ""
 
         self.recentfiles_menu = None
@@ -113,10 +112,6 @@ class Application(Gtk.Application):
                 if keyring.get_password('meocloud', AUTH_KEY) is not None:
                     keyring.delete_password('meocloud', AUTH_KEY)
 
-                if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                               'ignored_directories')):
-                    os.remove(os.path.join(UI_CONFIG_PATH,
-                                           'ignored_directories'))
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'shared_directories')):
                     os.remove(os.path.join(UI_CONFIG_PATH,
@@ -172,19 +167,6 @@ class Application(Gtk.Application):
                 utils.create_required_folders()
                 self.log_handler = LogHandler(self.core_client)
                 utils.init_logging(self.log_handler)
-
-                if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                               'ignored_directories')):
-                    log.info('Application.on_activate: loading ignored '
-                             'directories')
-                    f = open(os.path.join(UI_CONFIG_PATH,
-                                          'ignored_directories'), "r")
-                    for line in f.readlines():
-                        self.ignored_directories.append(line.rstrip('\n'))
-                    f.close()
-
-                    log.info('Application.on_activate: ignored '
-                             'directories: ' + str(self.ignored_directories))
 
                 recentfiles_nothing = Gtk.MenuItem(_("No Recent Files"))
                 recentfiles_nothing.show()
@@ -296,13 +278,6 @@ class Application(Gtk.Application):
 
         webbrowser.open(path)
 
-    def file_changed(self):
-        if self.prefs_window is not None:
-            if self.prefs_window.selective_sync is not None:
-                # if a folder changed and selective sync is being configured,
-                # make sure we tell the selective sync preferences about it
-                GLib.idle_add(self.prefs_window.selective_sync.panic)
-
     def update_menu(self, ignore_sync=False):
         if self.requires_authorization:
             self.requires_authorization = False
@@ -328,10 +303,7 @@ class Application(Gtk.Application):
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
-            self.shell = Shell(self.file_changed)
-            for ignored_dir in self.ignored_directories:
-                if not ignored_dir in self.shell.ignored:
-                    self.shell.ignored.append(ignored_dir)
+            self.shell = Shell()
             self.shell.subscribe_path('/')
             self.dbus_service.shell = self.shell
             self.dbus_service.update_prefs()
@@ -598,14 +570,10 @@ class Application(Gtk.Application):
         if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
             os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
         if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                       'ignored_directories')):
-            os.remove(os.path.join(UI_CONFIG_PATH, 'ignored_directories'))
-        if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                        'shared_directories')):
             os.remove(os.path.join(UI_CONFIG_PATH, 'shared_directories'))
         utils.purge_all()
 
-        self.ignored_directories = []
         self.requires_authorization = True
         self.update_status(_("Unauthorized"))
         self.update_menu_action(_("Authorize"))
