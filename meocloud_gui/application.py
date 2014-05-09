@@ -67,10 +67,12 @@ class Application(Gtk.Application):
         self.shell = None
         self.core = None
         self.icon_type = ""
+        self.problem_text = ""
 
         self.recentfiles_menu = None
         self.menuitem_recent = None
         self.menuitem_storage = None
+        self.menuitem_problem = None
         self.menuitem_status = []
         self.menuitem_changestatus = None
         self.menuitem_prefs = None
@@ -179,6 +181,8 @@ class Application(Gtk.Application):
                 self.menuitem_recent.set_submenu(self.recentfiles_menu)
                 self.menuitem_storage = Gtk.MenuItem("-")
                 self.menuitem_storage.set_sensitive(False)
+                self.menuitem_problem = Gtk.MenuItem(
+                    _("There is a problem synchronizing your files."))
                 self.menuitem_status.append(Gtk.MenuItem(_("Unauthorized")))
                 self.menuitem_status.append(Gtk.MenuItem("-"))
                 self.menuitem_status.append(Gtk.MenuItem("-"))
@@ -200,6 +204,7 @@ class Application(Gtk.Application):
                 self.trayicon.add_menu_item(self.storage_separator)
                 self.trayicon.add_menu_item(self.menuitem_storage)
                 self.trayicon.add_menu_item(Gtk.SeparatorMenuItem())
+                self.trayicon.add_menu_item(self.menuitem_problem)
                 self.trayicon.add_menu_item(self.menuitem_status[0])
                 self.trayicon.add_menu_item(self.menuitem_status[1])
                 self.trayicon.add_menu_item(self.menuitem_status[2])
@@ -211,12 +216,14 @@ class Application(Gtk.Application):
                 self.trayicon.add_menu_item(menuitem_about)
                 self.trayicon.add_menu_item(menuitem_quit)
 
+                self.menuitem_problem.hide()
                 self.menuitem_status[1].hide()
                 self.menuitem_status[2].hide()
                 self.menuitem_status[3].hide()
 
                 menuitem_folder.connect("activate", self.open_folder)
                 menuitem_site.connect("activate", self.open_website)
+                self.menuitem_problem.connect("activate", self.show_problem)
                 self.menuitem_changestatus.connect("activate",
                                                    self.toggle_status)
                 self.menuitem_prefs.connect("activate", self.show_prefs)
@@ -245,6 +252,15 @@ class Application(Gtk.Application):
 
     def report_bug(self, w):
         webbrowser.open("http://ajuda.cld.pt")
+
+    def show_problem(self, w):
+        messagedialog = Gtk.MessageDialog(parent=None,
+                                          flags=Gtk.DialogFlags.MODAL,
+                                          type=Gtk.MessageType.WARNING,
+                                          buttons=Gtk.ButtonsType.OK,
+                                          message_format=self.problem_text)
+        messagedialog.run()
+        messagedialog.destroy()
 
     def clean_recent_files(self):
         for menuitem in self.recentfiles_menu.get_children():
