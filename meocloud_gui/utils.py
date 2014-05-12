@@ -1,3 +1,4 @@
+import locale
 import sys
 import base64
 import os
@@ -246,10 +247,24 @@ def convert_size(size):
         return '0 B'
 
 
-def convert_time(secs):
-    mins, secs = divmod(secs, 60)
-    hours, mins = divmod(mins, 60)
-    return '%02d:%02d:%02d' % (hours, mins, secs)
+def convert_time(n):
+    locale.setlocale(locale.LC_ALL, '')
+
+    if locale.getlocale()[0][0:2] == "pt":
+        time_units = [(60, 'minuto'), (60, 'hora'), (24, 'dia')]
+    else:
+        time_units = [(60, 'minute'), (60, 'hour'), (24, 'day')]
+        final_unit_name = 'second'
+
+    for unit_size, unit_name in time_units:
+        if n >= unit_size:
+            n //= unit_size
+            final_unit_name = unit_name
+        else:
+            break
+    if n != 1:
+        final_unit_name += 's'
+    return '{0} {1}'.format(n, final_unit_name)
 
 
 def move_folder_async(src, dst, callback=None):
