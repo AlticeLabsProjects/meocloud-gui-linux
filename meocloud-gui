@@ -23,6 +23,9 @@ if not os.path.isfile("/opt/meocloud/core/meocloudd"):
 # warn about unavailable libraries
 try:
     import keyring
+    from keyring.backends.file import EncryptedKeyring, PlaintextKeyring
+    if isinstance(keyring.get_keyring(), EncryptedKeyring):
+        keyring.set_keyring(PlaintextKeyring())
 except ImportError:
     print "Keyring unavailable. Please install python-keyring."
     sys.exit(1)
