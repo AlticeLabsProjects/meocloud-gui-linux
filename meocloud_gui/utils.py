@@ -252,6 +252,7 @@ def convert_time(n):
 
     if locale.getlocale()[0][0:2] == "pt":
         time_units = [(60, 'minuto'), (60, 'hora'), (24, 'dia')]
+        final_unit_name = 'segundo'
     else:
         time_units = [(60, 'minute'), (60, 'hour'), (24, 'day')]
         final_unit_name = 'second'
