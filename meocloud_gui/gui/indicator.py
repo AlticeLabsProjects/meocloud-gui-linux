@@ -11,6 +11,7 @@ class Indicator (GObject.Object):
         self.syncing = 0
         self.timeout = None
         self.icon_name = "meocloud-ok"
+        self.icon_theme = Gtk.IconTheme()
 
         self.ind = appindicator.Indicator.new(
             "meocloud",
@@ -34,6 +35,13 @@ class Indicator (GObject.Object):
     def set_icon(self, name):
         if self.app.icon_type != "":
             name += "-" + self.app.icon_type
+            use_icon_name = False
+        else:
+            icon_info = self.icon_theme.lookup_icon(name, 32, 0)
+            if icon_info is not None:
+                use_icon_name = True
+            else:
+                use_icon_name = False
 
         self.icon_name = name
 
@@ -45,9 +53,12 @@ class Indicator (GObject.Object):
                 GLib.source_remove(self.timeout)
             self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
-        self.ind.set_icon(os.path.join(self.app.app_path,
-                                       "icons/" + name +
-                                       ".svg"))
+        if use_icon_name:
+            self.ind.set_icon(name)
+        else:
+            self.ind.set_icon(os.path.join(self.app.app_path,
+                                           "icons/" + name +
+                                           ".svg"))
 
     def cycle_sync_icon(self):
         if self.syncing < 1:

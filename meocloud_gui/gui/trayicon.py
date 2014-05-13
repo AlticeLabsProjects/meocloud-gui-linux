@@ -11,6 +11,7 @@ class TrayIcon (GObject.Object):
         self.timeout = None
         self.last_icon = None
         self.icon_name = "meocloud-ok"
+        self.icon_theme = Gtk.IconTheme()
 
         self.icon = Gtk.StatusIcon()
         self.icon.connect("activate", self.tray_popup)
@@ -31,6 +32,13 @@ class TrayIcon (GObject.Object):
 
         if self.app.icon_type != "":
             name += "-" + self.app.icon_type
+            use_icon_name = False
+        else:
+            icon_info = self.icon_theme.lookup_icon(name, 32, 0)
+            if icon_info is not None:
+                use_icon_name = True
+            else:
+                use_icon_name = False
 
         self.icon_name = name
 
@@ -42,8 +50,12 @@ class TrayIcon (GObject.Object):
                 GLib.source_remove(self.timeout)
             self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
-        icon_file = os.path.join(self.app.app_path, "icons/" + name + ".svg")
-        GLib.idle_add(lambda: self.icon.set_from_file(icon_file))
+        if use_icon_name:
+            GLib.idle_add(lambda: self.icon.set_from_icon_name(name))
+        else:
+            icon_file = os.path.join(
+                self.app.app_path, "icons/" + name + ".svg")
+            GLib.idle_add(lambda: self.icon.set_from_file(icon_file))
 
     def cycle_sync_icon(self):
         if self.syncing < 1:
