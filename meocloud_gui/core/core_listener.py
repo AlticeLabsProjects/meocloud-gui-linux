@@ -12,7 +12,8 @@ from gi.repository import Notify
 
 # Thrift related imports
 from meocloud_gui.codes import USER_NOTIFY_TYPE_MASK_PERSISTENT, \
-    USER_NOTIFY_TYPE_MASK_MENU_BAR, USER_NOTIFY_TYPE_RESET
+    USER_NOTIFY_TYPE_MASK_MENU_BAR, USER_NOTIFY_TYPE_RESET, \
+    USER_NOTIFY_TYPE_MASK_BALLOON
 from meocloud_gui.protocol.daemon_core import UI
 from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
@@ -280,7 +281,8 @@ class CoreListenerHandler(UI.Iface):
             if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
                 self.app.trayicon.set_icon("meocloud-activity")
 
-            if display_notifications == "True":
+            if (note.type & USER_NOTIFY_TYPE_MASK_BALLOON and
+                    display_notifications == "True"):
                 notif_icon = os.path.join(
                     self.app.app_path, "icons/meocloud.svg")
                 Gdk.threads_enter()
