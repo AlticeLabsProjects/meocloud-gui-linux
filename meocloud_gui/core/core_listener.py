@@ -13,7 +13,7 @@ from gi.repository import Notify
 # Thrift related imports
 from meocloud_gui.codes import USER_NOTIFY_TYPE_MASK_PERSISTENT, \
     USER_NOTIFY_TYPE_MASK_MENU_BAR, USER_NOTIFY_TYPE_RESET, \
-    USER_NOTIFY_TYPE_MASK_BALLOON
+    USER_NOTIFY_TYPE_MASK_BALLOON, USER_NOTIFY_CANNOT_WATCH_FS
 from meocloud_gui.protocol.daemon_core import UI
 from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
@@ -61,6 +61,7 @@ class CoreListenerHandler(UI.Iface):
         self.app = app
         self.setup = None
         self.ignore_sync = ignore_sync
+        self.last_notify = 0
 
         Notify.init('MEOCloud')
 
@@ -261,38 +262,43 @@ class CoreListenerHandler(UI.Iface):
         display_notifications = Preferences().get("General", "Notifications",
                                                   "True")
 
-        if note.type != 0:
-            loc = locale.getlocale()
-            if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
-                lang = 'pt'
-            else:
-                lang = 'en'
+        if (self.last_notify != USER_NOTIFY_CANNOT_WATCH_FS or (
+                self.last_notify == USER_NOTIFY_CANNOT_WATCH_FS and
+                self.code != self.last_notify)):
+            if note.type != 0:
+                loc = locale.getlocale()
+                if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
+                    lang = 'pt'
+                else:
+                    lang = 'en'
 
-            notif_title = NOTIFICATIONS[lang][
-                str(note.code) + "_title"].format(*note.parameters)
-            notif_string = NOTIFICATIONS[lang][
-                str(note.code) + "_description"].format(*note.parameters)
+                notif_title = NOTIFICATIONS[lang][
+                    str(note.code) + "_title"].format(*note.parameters)
+                notif_string = NOTIFICATIONS[lang][
+                    str(note.code) + "_description"].format(*note.parameters)
 
-            if note.type & USER_NOTIFY_TYPE_MASK_PERSISTENT:
-                self.app.problem_text = notif_string
-                self.app.trayicon.wrapper(
-                    lambda: self.app.menuitem_problem.show())
+                if note.type & USER_NOTIFY_TYPE_MASK_PERSISTENT:
+                    self.app.problem_text = notif_string
+                    self.app.trayicon.wrapper(
+                        lambda: self.app.menuitem_problem.show())
 
-            if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
-                self.app.trayicon.set_icon("meocloud-activity")
+                if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
+                    self.app.trayicon.set_icon("meocloud-activity")
 
-            if (note.type & USER_NOTIFY_TYPE_MASK_BALLOON and
-                    display_notifications == "True"):
-                notif_icon = os.path.join(
-                    self.app.app_path, "icons/meocloud.svg")
-                Gdk.threads_enter()
-                notification = Notify.Notification.new(notif_title,
-                                                       notif_string,
-                                                       notif_icon)
-                notification.show()
-                Gdk.threads_leave()
-        elif note.type == 0:
-            self.app.trayicon.wrapper(lambda: self.app.menuitem_problem.hide())
+                if (note.type & USER_NOTIFY_TYPE_MASK_BALLOON and
+                        display_notifications == "True"):
+                    notif_icon = os.path.join(
+                        self.app.app_path, "icons/meocloud.svg")
+                    Gdk.threads_enter()
+                    notification = Notify.Notification.new(notif_title,
+                                                           notif_string,
+                                                           notif_icon)
+                    notification.show()
+                    Gdk.threads_leave()
+            elif note.type == 0:
+                self.app.trayicon.wrapper(lambda: self.app.menuitem_problem.hide())
+
+        self.last_notify = note.code
 
     def remoteDirectoryListing(self, statusCode, path, listing):
         log.debug(
