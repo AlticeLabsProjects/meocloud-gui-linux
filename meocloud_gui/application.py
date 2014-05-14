@@ -101,7 +101,7 @@ class Application(Gtk.Application):
             prefs = Preferences()
 
             self.icon_type = prefs.get("General", "Icons", "")
-            self.trayicon.set_icon("meocloud-ok")
+            self.trayicon.set_icon("meocloud-init")
 
             self.force_preferences_visible = \
                 prefs.get("Network", "Proxy", "None") != "None"
@@ -334,7 +334,7 @@ class Application(Gtk.Application):
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
             self.trayicon.wrapper(lambda: self.hide_gui_elements())
-            self.trayicon.set_icon("meocloud-ok")
+            self.trayicon.set_icon("meocloud-init")
             self.paused = True
             self.update_sync_status_stop()
             self.update_status(_("Initializing"))
@@ -384,7 +384,7 @@ class Application(Gtk.Application):
             self.update_menu_action(_("Applying selective sync settings..."))
         elif status.state == codes.CORE_OFFLINE:
             self.trayicon.wrapper(lambda: self.show_gui_elements())
-            self.trayicon.set_icon("meocloud-error")
+            self.trayicon.set_icon("meocloud-offline")
             self.paused = True
             self.offline = True
             self.update_sync_status_stop()
@@ -608,7 +608,7 @@ class Application(Gtk.Application):
         prefs = Preferences()
 
         self.trayicon.wrapper(lambda: self.hide_gui_elements())
-        self.trayicon.set_icon("meocloud-ok")
+        self.trayicon.set_icon("meocloud-init")
 
         self.core_client = CoreClient()
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,

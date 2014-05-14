@@ -10,12 +10,12 @@ class Indicator (GObject.Object):
         self.app = app
         self.syncing = 0
         self.timeout = None
-        self.icon_name = "meocloud-ok"
+        self.icon_name = "meocloud-init"
         self.icon_theme = Gtk.IconTheme()
 
         self.ind = appindicator.Indicator.new(
             "meocloud",
-            "meocloud-ok",
+            "meocloud-init",
             appindicator.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
 

@@ -10,7 +10,7 @@ class TrayIcon (GObject.Object):
         self.syncing = 0
         self.timeout = None
         self.last_icon = None
-        self.icon_name = "meocloud-ok"
+        self.icon_name = "meocloud-init"
         self.icon_theme = Gtk.IconTheme()
 
         self.icon = Gtk.StatusIcon()
