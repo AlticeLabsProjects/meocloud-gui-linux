@@ -390,18 +390,6 @@ class Application(Gtk.Application):
             self.update_sync_status_stop()
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
-
-            notif_icon = os.path.join(
-                self.app_path, "icons/meocloud.svg")
-            notif_title = _("Network Error")
-            notif_string = _("Please check your Internet connection "
-                             "or proxy settings.")
-            Gdk.threads_enter()
-            notification = Notify.Notification.new(notif_title,
-                                                   notif_string,
-                                                   notif_icon)
-            notification.show()
-            Gdk.threads_leave()
         elif status.state == codes.CORE_ERROR:
             self.trayicon.wrapper(lambda: self.show_gui_elements())
             self.trayicon.set_icon("meocloud-error")
