@@ -61,6 +61,7 @@ class Application(Gtk.Application):
         self.offline = False
         self.force_preferences_visible = False
         self.requires_authorization = True
+        self.enable_sync = True
         self.core_client = None
         self.core_listener = None
         self.log_handler = None
@@ -294,7 +295,7 @@ class Application(Gtk.Application):
 
         webbrowser.open(path)
 
-    def update_menu(self, ignore_sync=False):
+    def update_menu(self):
         if self.requires_authorization:
             self.requires_authorization = False
 
@@ -306,7 +307,7 @@ class Application(Gtk.Application):
 
         self.dbus_service.status = status.state
 
-        if (status.state == codes.CORE_WAITING) and (not ignore_sync):
+        if (status.state == codes.CORE_WAITING) and self.enable_sync:
             self.core_client.startSync(cloud_home)
 
         if (self.in_selective_sync and

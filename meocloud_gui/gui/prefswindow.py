@@ -320,7 +320,6 @@ class PrefsWindow(Gtk.Window):
         self.selective_button.connect("clicked", self.on_selective_sync)
         self.connect("destroy", self.destroy)
 
-        self.restart_core = False
         self.add(self.box)
         self.set_size_request(300, 360)
 
@@ -340,13 +339,10 @@ class PrefsWindow(Gtk.Window):
         prefs.put("Network", "ProxyUser", self.proxy["ProxyUser"])
         prefs.put("Network", "ProxyPassword", self.proxy["ProxyPassword"])
 
-        if self.restart_core:
-            self.app.restart_core()
-        else:
-            try:
-                self.update_network()
-            except ValueError:
-                pass
+        try:
+            self.update_network()
+        except ValueError:
+            pass
 
         self.app.prefs_window = None
         Gtk.Window.destroy(self)
@@ -366,7 +362,7 @@ class PrefsWindow(Gtk.Window):
     def toggle_icons(self, w, type=""):
         self.icon_type = type
         self.app.icon_type = self.icon_type
-        self.app.update_menu(True)
+        self.app.update_menu()
 
     def toggle_start_at_login(self, w):
         folder_path = os.path.join(os.path.expanduser('~'),
@@ -479,16 +475,12 @@ class PrefsWindow(Gtk.Window):
         self.update_network()
 
     def proxy_automatic_value_changed(self, w):
-        self.restart_core = True
         self.proxy["ProxyURL"] = self.proxy_automatic_url.get_text()
 
     def proxy_manual_value_changed(self, w, pref_name):
-        self.restart_core = True
         self.proxy[pref_name] = w.get_text()
 
     def set_proxy(self, w, proxy):
-        self.restart_core = True
-
         if w.get_active():
             self.proxy["Proxy"] = proxy
 

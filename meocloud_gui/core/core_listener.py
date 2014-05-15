@@ -131,16 +131,16 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
 
         if self.setup.setup_easy.get_active():
+            self.app.enable_sync = True
             GLib.idle_add(self.setup.spinner.stop)
             GLib.idle_add(self.setup.pages.last_page)
             meocloud_gui.utils.create_startup_file(self.app.app_path)
             meocloud_gui.utils.create_bookmark()
-            self.app.restart_core()
         else:
+            self.app.enable_sync = False
             meocloud_gui.utils.create_startup_file(self.app.app_path)
             meocloud_gui.utils.create_bookmark()
             GLib.idle_add(self.setup.pages.next_page)
-            self.app.restart_core(True)
 
         GLib.idle_add(lambda: self.setup.present())
 
@@ -254,7 +254,7 @@ class CoreListenerHandler(UI.Iface):
                             'CoreListener.notifySystem: unable to save '
                             'shared directories list')
 
-        self.app.update_menu(self.ignore_sync)
+        self.app.update_menu()
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))

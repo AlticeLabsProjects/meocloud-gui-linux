@@ -202,7 +202,8 @@ class SetupWindow(Gtk.Window):
 
     def finish_advanced_setup(self, widget):
         log.info('SetupWindow.finish_advanced_setup: completing setup')
-        self.prefs_window.restart_core = True
+        self.app.enable_sync = True
+        self.app.update_menu()
         self.prefs_window.destroy()
         self.destroy()
 
