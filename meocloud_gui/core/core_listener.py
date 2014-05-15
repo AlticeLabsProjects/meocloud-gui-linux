@@ -281,6 +281,8 @@ class CoreListenerHandler(UI.Iface):
                     self.app.problem_text = notif_string
                     self.app.trayicon.wrapper(
                         lambda: self.app.menuitem_problem.show())
+                    self.app.trayicon.wrapper(
+                        lambda: self.app.menuitem_moreinfo.show())
 
                 if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
                     self.app.trayicon.set_icon("meocloud-activity")

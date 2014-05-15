@@ -73,6 +73,7 @@ class Application(Gtk.Application):
         self.menuitem_recent = None
         self.menuitem_storage = None
         self.menuitem_problem = None
+        self.menuitem_moreinfo = None
         self.menuitem_status = []
         self.menuitem_changestatus = None
         self.menuitem_prefs = None
@@ -181,8 +182,12 @@ class Application(Gtk.Application):
                 self.menuitem_recent.set_submenu(self.recentfiles_menu)
                 self.menuitem_storage = Gtk.MenuItem("-")
                 self.menuitem_storage.set_sensitive(False)
+                problem_moreinfo_menu = Gtk.Menu()
+                self.menuitem_moreinfo = Gtk.MenuItem(_("More info"))
                 self.menuitem_problem = Gtk.MenuItem(
                     _("There is a problem synchronizing your files."))
+                problem_moreinfo_menu.append(self.menuitem_moreinfo)
+                self.menuitem_problem.set_submenu(problem_moreinfo_menu)
                 self.menuitem_status.append(Gtk.MenuItem(_("Unauthorized")))
                 self.menuitem_status.append(Gtk.MenuItem("-"))
                 self.menuitem_status.append(Gtk.MenuItem("-"))
@@ -218,7 +223,7 @@ class Application(Gtk.Application):
 
                 menuitem_folder.connect("activate", self.open_folder)
                 menuitem_site.connect("activate", self.open_website)
-                self.menuitem_problem.connect("activate", self.show_problem)
+                self.menuitem_moreinfo.connect("activate", self.show_problem)
                 self.menuitem_changestatus.connect("activate",
                                                    self.toggle_status)
                 self.menuitem_prefs.connect("activate", self.show_prefs)
