@@ -475,7 +475,7 @@ class Application(Gtk.Application):
         elif syncstatus.pendingUploads > 0:
             self.update_status(
                 _("Uploading {0} file(s)...").format(
-                    syncstatus.pendingUploads), 1)
+                    syncstatus.pendingUploads), 2)
 
         if syncstatus.pendingIndexes > 0:
             self.update_status(
