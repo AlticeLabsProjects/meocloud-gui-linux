@@ -83,16 +83,10 @@ class PrefsWindow(Gtk.Window):
 
         self.icon_normal = Gtk.RadioButton.new_with_label(
             None, _("Use default icons"))
-        self.icon_normal.connect(
-            "toggled", lambda w: self.toggle_icons(w, ""))
         self.icon_black = Gtk.RadioButton.new_with_label_from_widget(
             self.icon_normal, _("Use dark icons"))
-        self.icon_black.connect("toggled", lambda w:
-                                self.toggle_icons(w, "black"))
         self.icon_white = Gtk.RadioButton.new_with_label_from_widget(
             self.icon_normal, _("Use white icons"))
-        self.icon_white.connect("toggled", lambda w:
-                                self.toggle_icons(w, "white"))
 
         general_box.pack_start(icons_label, False, True, 0)
         general_box.pack_start(self.icon_normal, False, True, 0)
@@ -111,8 +105,7 @@ class PrefsWindow(Gtk.Window):
                                        "Notifications", "True") == "True"
         display_notifications = Gtk.CheckButton(_("Display notifications"))
         display_notifications.set_active(self.display_notif)
-        display_notifications.connect("toggled",
-                                      self.toggle_display_notifications)
+
         general_box.pack_start(display_notifications, False, True, 10)
 
         # start at login
@@ -124,7 +117,7 @@ class PrefsWindow(Gtk.Window):
             start_at_login.set_active(True)
         else:
             start_at_login.set_active(os.path.isfile(start_at_login_path))
-        start_at_login.connect("toggled", self.toggle_start_at_login)
+
         general_box.pack_start(start_at_login, False, True, 10)
 
         # account
@@ -141,16 +134,12 @@ class PrefsWindow(Gtk.Window):
 
         # proxy radio buttons
         self.proxy_none = Gtk.RadioButton.new_with_label(None, _("None"))
-        self.proxy_none.connect("toggled", lambda w: self.set_proxy(w,
-                                                                    "None"))
+
         self.proxy_automatic = Gtk.RadioButton.new_with_label_from_widget(
             self.proxy_none, _("Automatic"))
-        self.proxy_automatic.connect("toggled", lambda w:
-                                     self.set_proxy(w, "Automatic"))
+
         self.proxy_manual = Gtk.RadioButton.new_with_label_from_widget(
             self.proxy_none, _("Manual"))
-        self.proxy_manual.connect("toggled", lambda w:
-                                  self.set_proxy(w, "Manual"))
 
         # proxy automatic configuration
         self.proxy_automatic_url = Gtk.Entry()
@@ -159,8 +148,6 @@ class PrefsWindow(Gtk.Window):
         self.proxy["ProxyURL"] = prefs.get("Network", "ProxyURL", "")
         self.proxy_automatic_url.set_text(self.proxy["ProxyURL"])
         self.proxy_automatic_url.set_no_show_all(True)
-        self.proxy_automatic_url.connect("changed",
-                                         self.proxy_automatic_value_changed)
 
         # proxy manual configuration
         self.proxy_manual_address = Gtk.Entry()
@@ -168,27 +155,18 @@ class PrefsWindow(Gtk.Window):
         self.proxy["ProxyAddress"] = prefs.get("Network", "ProxyAddress", "")
         self.proxy_manual_address.set_text(self.proxy["ProxyAddress"])
         self.proxy_manual_address.set_no_show_all(True)
-        self.proxy_manual_address.connect(
-            "changed", lambda w: self.proxy_manual_value_changed(
-                w, "ProxyAddress"))
 
         self.proxy_manual_port = Gtk.Entry()
         self.proxy_manual_port.set_placeholder_text("Port")
         self.proxy["ProxyPort"] = prefs.get("Network", "ProxyPort", "")
         self.proxy_manual_port.set_text(self.proxy["ProxyPort"])
         self.proxy_manual_port.set_no_show_all(True)
-        self.proxy_manual_port.connect(
-            "changed", lambda w: self.proxy_manual_value_changed(
-                w, "ProxyPort"))
 
         self.proxy_manual_user = Gtk.Entry()
         self.proxy_manual_user.set_placeholder_text("User")
         self.proxy["ProxyUser"] = prefs.get("Network", "ProxyUser", "")
         self.proxy_manual_user.set_text(self.proxy["ProxyUser"])
         self.proxy_manual_user.set_no_show_all(True)
-        self.proxy_manual_user.connect(
-            "changed", lambda w: self.proxy_manual_value_changed(
-                w, "ProxyUser"))
 
         self.proxy_manual_password = Gtk.Entry()
         self.proxy_manual_password.set_visibility(False)
@@ -196,9 +174,6 @@ class PrefsWindow(Gtk.Window):
         self.proxy["ProxyPassword"] = prefs.get("Network", "ProxyPassword", "")
         self.proxy_manual_password.set_text(self.proxy["ProxyPassword"])
         self.proxy_manual_password.set_no_show_all(True)
-        self.proxy_manual_password.connect(
-            "changed", lambda w: self.proxy_manual_value_changed(
-                w, "ProxyPassword"))
 
         # bandwidth label
         bandwidth_label = Gtk.Label("<b>" + _("Bandwidth") + "</b>")
@@ -217,14 +192,10 @@ class PrefsWindow(Gtk.Window):
             download_text = "128"
         download_entry.set_text(download_text)
         download_entry.set_alignment(1)
-        download_entry.connect("changed", lambda w:
-                               self.throttle_value_changed(w, "Download"))
+
         download_check_active = int(self.throttle["Download"]) > 0
         download_check = Gtk.CheckButton(_("Download"))
         download_check.set_active(download_check_active)
-        download_check.connect("toggled", lambda w:
-                               self.toggle_throttle(download_entry,
-                                                    "Download"))
 
         # upload limit
         upload_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -236,14 +207,10 @@ class PrefsWindow(Gtk.Window):
             upload_text = "64"
         upload_entry.set_text(upload_text)
         upload_entry.set_alignment(1)
-        upload_entry.connect("changed", lambda w:
-                             self.throttle_value_changed(w, "Upload"))
 
         upload_check_active = int(self.throttle["Upload"]) > 0
         upload_check = Gtk.CheckButton(_("Upload"))
         upload_check.set_active(upload_check_active)
-        upload_check.connect("toggled", lambda w:
-                             self.toggle_throttle(upload_entry, "Upload"))
 
         # pack it all up
         download_box.pack_start(download_check, False, False, 0)
@@ -285,9 +252,9 @@ class PrefsWindow(Gtk.Window):
         # advanced
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
                                    _("Choose Folder")))
-        folder_button.connect("clicked", self.on_choose_folder)
+
         self.selective_button = Gtk.Button(_("Selective Sync"))
-        self.selective_button.connect("clicked", self.on_selective_sync)
+
         advanced_box.pack_start(folder_button, False, True, 10)
         advanced_box.pack_start(self.selective_button, False, True, 0)
 
@@ -311,6 +278,46 @@ class PrefsWindow(Gtk.Window):
             close_box.pack_end(close_button, False, False, 10)
             self.box.pack_end(close_box, False, False, 10)
 
+        self.icon_normal.connect(
+            "toggled", lambda w: self.toggle_icons(w, ""))
+        self.icon_black.connect("toggled", lambda w:
+                                self.toggle_icons(w, "black"))
+        self.icon_white.connect("toggled", lambda w:
+                                self.toggle_icons(w, "white"))
+        display_notifications.connect("toggled",
+                                      self.toggle_display_notifications)
+        start_at_login.connect("toggled", self.toggle_start_at_login)
+        self.proxy_none.connect("toggled", lambda w: self.set_proxy(w,
+                                                                    "None"))
+        self.proxy_automatic.connect("toggled", lambda w:
+                                     self.set_proxy(w, "Automatic"))
+        self.proxy_manual.connect("toggled", lambda w:
+                                  self.set_proxy(w, "Manual"))
+        self.proxy_automatic_url.connect("changed",
+                                         self.proxy_automatic_value_changed)
+        self.proxy_manual_address.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyAddress"))
+        self.proxy_manual_port.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyPort"))
+        self.proxy_manual_user.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyUser"))
+        self.proxy_manual_password.connect(
+            "changed", lambda w: self.proxy_manual_value_changed(
+                w, "ProxyPassword"))
+        download_entry.connect("changed", lambda w:
+                               self.throttle_value_changed(w, "Download"))
+        download_check.connect("toggled", lambda w:
+                               self.toggle_throttle(download_entry,
+                                                    "Download"))
+        upload_entry.connect("changed", lambda w:
+                             self.throttle_value_changed(w, "Upload"))
+        upload_check.connect("toggled", lambda w:
+                             self.toggle_throttle(upload_entry, "Upload"))
+        folder_button.connect("clicked", self.on_choose_folder)
+        self.selective_button.connect("clicked", self.on_selective_sync)
         self.connect("destroy", self.destroy)
 
         self.restart_core = False
