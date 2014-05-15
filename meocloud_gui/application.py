@@ -307,6 +307,9 @@ class Application(Gtk.Application):
 
         self.dbus_service.status = status.state
 
+        if status.state == codes.CORE_WAITING:
+            self.core_client.ignore_logs = False
+
         if (status.state == codes.CORE_WAITING) and self.enable_sync:
             self.core_client.startSync(cloud_home)
 

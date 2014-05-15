@@ -95,7 +95,6 @@ class Core(object):
 
                 try:
                     self.run()
-                    self.core_client.ignore_logs = False
                 except OSError:
                     self.process = None
                     self.core_client.ignore_logs = True
