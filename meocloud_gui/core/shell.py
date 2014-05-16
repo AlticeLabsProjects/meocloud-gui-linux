@@ -109,9 +109,8 @@ class Shell(object):
                 data, socket_state, Message())
 
             if not msg:
+                log.warning('Shell.process_data: invalid message')
                 return
-
-            log.debug('Shell._listener: got message: {0}'.format(msg))
 
             if not hasattr(msg, 'fileStatus'):
                 return
