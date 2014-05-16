@@ -12,7 +12,7 @@ class CoreClient(ThriftClient, Core.Iface):
     def __init__(self):
         super(CoreClient, self).__init__(DAEMON_LISTENER_SOCKET_ADDRESS,
                                          Core.Client)
-        self.ignore_logs = False
+        self.ignore_logs = True
 
     # I know you wanted to remove the parenthesis, but believe me, you don't
     @wrap_client_call()
