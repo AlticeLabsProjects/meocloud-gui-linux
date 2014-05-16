@@ -1,7 +1,9 @@
 from _socket import SHUT_RD
 import socket
 import os
+from thrift.protocol.TProtocol import TProtocolException
 from time import sleep
+from collections import namedtuple
 from gi.repository import GLib
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
@@ -99,46 +101,59 @@ class Shell(object):
         for path in self.syncing:
             self.syncing.remove(path)
             utils.touch(os.path.join(self.cloud_home, path[1:]))
-        self.syncing = []
+        self.syncing = set()
+
+    def process_data(self, data, socket_state):
+        while data:
+            msg, remaining = thrift_utils.deserialize_thrift_msg(
+                data, socket_state, Message())
+
+            if not msg:
+                return
+
+            log.debug('Shell._listener: got message: {0}'.format(msg))
+
+            if not hasattr(msg, 'fileStatus'):
+                return
+
+            if self.cloud_home in msg.fileStatus.status.path:
+                msg.fileStatus.status.path = \
+                    msg.fileStatus.status.path.replace(self.cloud_home, "")
+
+            if msg.fileStatus.status.path != "/":
+                self.cached.add(msg.fileStatus.status.path)
+
+                if msg.fileStatus.status.state == FileState.SYNCING:
+                    self.syncing.add(msg.fileStatus.status.path)
+                elif msg.fileStatus.status.state == FileState.IGNORED:
+                    if not msg.fileStatus.status.path in self.ignored:
+                        self.ignored.add(msg.fileStatus.status.path)
+                elif msg.fileStatus.status.path in self.syncing:
+                    self.syncing.remove(msg.fileStatus.status.path)
+                utils.touch(os.path.join(self.cloud_home,
+                                         msg.fileStatus.status.path[1:]))
+            else:
+                utils.touch(self.cloud_home)
+
+            data = remaining
 
     def _listener(self):
         log.info('Shell: shell listener ready')
 
+        class SocketState(object):
+            def __init__(self, buffer=None):
+                self.buffer = buffer
+
+        socket_state = SocketState(buffer=None)
+
         try:
             while not self.thread.stopped():
                 try:
-                    msg = self.s.recvfrom(4096)[0]
-                    msg = thrift_utils.deserialize(Message(), msg)
-                except (EOFError, TypeError):
+                    data = self.s.recvfrom(4096)
+                    self.process_data(data[0], socket_state)
+                except OverflowError:
                     log.info('Shell._listener: lost connection to socket')
-                    break
-
-                if len(msg) > 0:
-                    msg = msg[0]
-
-                if not hasattr(msg, 'fileStatus'):
-                    break
-                if msg.fileStatus is None:
-                    break
-
-                if self.cloud_home in msg.fileStatus.status.path:
-                    msg.fileStatus.status.path = \
-                        msg.fileStatus.status.path.replace(self.cloud_home, "")
-
-                if msg.fileStatus.status.path != "/":
-                    self.cached.add(msg.fileStatus.status.path)
-
-                    if msg.fileStatus.status.state == FileState.SYNCING:
-                        self.syncing.add(msg.fileStatus.status.path)
-                    elif msg.fileStatus.status.state == FileState.IGNORED:
-                        if not msg.fileStatus.status.path in self.ignored:
-                            self.ignored.add(msg.fileStatus.status.path)
-                    elif msg.fileStatus.status.path in self.syncing:
-                        self.syncing.remove(msg.fileStatus.status.path)
-                    utils.touch(os.path.join(self.cloud_home,
-                                             msg.fileStatus.status.path[1:]))
-                else:
-                    utils.touch(self.cloud_home)
+                    return
         except Exception:
             log.exception(
                 'Shell._listener: An uncatched error occurred!')

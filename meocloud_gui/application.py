@@ -307,9 +307,6 @@ class Application(Gtk.Application):
 
         self.dbus_service.status = status.state
 
-        if status.state == codes.CORE_WAITING:
-            self.core_client.ignore_logs = False
-
         if (status.state == codes.CORE_WAITING) and self.enable_sync:
             self.core_client.startSync(cloud_home)
 
@@ -359,6 +356,7 @@ class Application(Gtk.Application):
             self.update_sync_status_start()
             self.update_menu_action(_("Pause"))
         elif status.state == codes.CORE_READY:
+            self.core_client.ignore_logs = False
             self.trayicon.wrapper(lambda: self.show_gui_elements(True))
             self.trayicon.set_icon("meocloud-ok")
             self.paused = False
