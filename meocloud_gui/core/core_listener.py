@@ -226,7 +226,7 @@ class CoreListenerHandler(UI.Iface):
         elif note.code == codes.SHARED_FOLDER_ADDED:
             if not note.parameters[0] in self.app.shell.shared:
                 if self.app.shell.shared is not None:
-                    self.app.shell.shared.append(note.parameters[0])
+                    self.app.shell.shared.add(note.parameters[0])
 
                     try:
                         f = open(os.path.join(UI_CONFIG_PATH,

@@ -30,25 +30,25 @@ log = logging.getLogger(LOGGER_NAME)
 
 class Shell(object):
     def __init__(self):
-        self.syncing = []
-        self.cached = []
-        self.ignored = ['/.cloudcontrol']
+        self.syncing = set()
+        self.cached = set()
+        self.ignored = set()
         self.shared = None
         self.disconnected = False
         self.failed = 0
 
         try:
-            self.shared = []
+            self.shared = set()
 
             if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                            'shared_directories')):
                 f = open(os.path.join(UI_CONFIG_PATH,
                                       'shared_directories'), "r")
                 for line in f.readlines():
-                    self.shared.append(line.rstrip('\n'))
+                    self.shared.add(line.rstrip('\n'))
                 f.close()
         except (OSError, IOError):
-            self.shared = []
+            self.shared = set()
 
         prefs = Preferences()
         self.cloud_home = prefs.get('Advanced', 'Folder',
@@ -126,13 +126,13 @@ class Shell(object):
                         msg.fileStatus.status.path.replace(self.cloud_home, "")
 
                 if msg.fileStatus.status.path != "/":
-                    self.cached.append(msg.fileStatus.status.path)
+                    self.cached.add(msg.fileStatus.status.path)
 
                     if msg.fileStatus.status.state == FileState.SYNCING:
-                        self.syncing.append(msg.fileStatus.status.path)
+                        self.syncing.add(msg.fileStatus.status.path)
                     elif msg.fileStatus.status.state == FileState.IGNORED:
                         if not msg.fileStatus.status.path in self.ignored:
-                            self.ignored.append(msg.fileStatus.status.path)
+                            self.ignored.add(msg.fileStatus.status.path)
                     elif msg.fileStatus.status.path in self.syncing:
                         self.syncing.remove(msg.fileStatus.status.path)
                     utils.touch(os.path.join(self.cloud_home,
