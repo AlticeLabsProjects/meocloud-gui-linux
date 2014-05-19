@@ -1,10 +1,10 @@
+import ConfigParser
 import socket
 import sys
 import errno
 
 from gi.repository import GLib
-
-#sys.path.insert(0, '/opt/meocloud/libs/')
+import urlparse
 
 sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
 
@@ -123,7 +123,11 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                         type=FileStatusType.REQUEST,
                          status=FileStatus()))
 
-        self.cloud_folder_uri = 'file:///home/ivo/MEOCloud'
+        path = os.path.expanduser("~/.meocloud/gui/prefs.ini")
+        self.config = ConfigParser.ConfigParser()
+        self.config.read(path)
+
+        self.cloud_folder_uri = self.get_cloud_folder()
 
         try:
             import platform
@@ -132,6 +136,21 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                     'emblem-synchronizing-symbolic'
         except ImportError:
             pass
+
+    def get_cloud_folder(self):
+        try:
+            val = self.config.get("Advanced", "Folder")
+
+            if val is None:
+                return urlparse.urljoin(
+                    'file:', urllib.pathname2url(
+                        os.path.expanduser("~/MEOCloud")))
+            else:
+                return val
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return urlparse.urljoin(
+                'file:', urllib.pathname2url(
+                    os.path.expanduser("~/MEOCloud")))
 
     def _check_connection(self):
         if self.sock is not None:
@@ -297,6 +316,11 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         self._send(serialize_thrift_msg(data))
 
+    def uri_to_full_path(self, uri):
+        path = urllib.unquote(uri)
+        path = path.replace('file://', '')
+        return path if path else '/'
+
     def uri_to_path(self, uri):
         path = urllib.unquote(uri)
         path = path.replace(self.cloud_folder_uri, '')
@@ -340,9 +364,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         item = files[0]
         uri = item.get_uri()
 
+        if uri == self.cloud_folder_uri:
+            return None,
         if not self.valid_uri(uri):
             return None,
 
+        full_path = self.uri_to_full_path(uri)
         uri = self.uri_to_path(uri)
 
         top_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
@@ -356,7 +383,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         link_menuitem.connect("activate", lambda w: self.share_link(uri))
         submenu.append_item(link_menuitem)
 
-        if not os.path.isfile(uri):
+        if not os.path.isfile(full_path):
             share_menuitem = Nautilus.MenuItem.new(
                 'MEOCloudMenuProvider::Share', _('Share Folder'), '', '')
             share_menuitem.connect("activate", lambda w:
