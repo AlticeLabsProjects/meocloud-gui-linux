@@ -6,6 +6,8 @@ from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH, LOGGER_NAME
 
 # Logging
 import logging
+from meocloud_gui.protocol.shell.ttypes import FileState
+
 log = logging.getLogger(LOGGER_NAME)
 
 
@@ -48,16 +50,22 @@ class DBusService(dbus.service.Object):
                 is_shared = False
             else:
                 short_path = path.replace(cloud_home, '')
-                is_syncing = short_path in self.shell.syncing
-                is_ignored = short_path in self.shell.ignored
-                is_shared = short_path in self.shell.shared
 
-                if short_path not in self.shell.cached:
+                is_syncing = False
+                is_ignored = False
+                is_shared = False
+
+                if short_path in self.shell.file_states:
+                    if self.shell.file_states[short_path] == FileState.SYNCING:
+                        is_syncing = True
+                    if self.shell.file_states[short_path] == FileState.IGNORED:
+                        is_ignored = True
+                    if self.shell.file_states[short_path] == FileState.ERROR:
+                        is_ignored = True
+
+                    is_shared = short_path in self.shell.shared
+                else:
                     self.shell.update_file_status(short_path)
-
-                if not is_ignored:
-                    is_ignored = short_path.startswith(tuple(
-                        (s + "/" for s in self.shell.ignored)))
 
             return True, is_syncing, \
                 is_ignored, is_shared
@@ -76,9 +84,12 @@ class DBusService(dbus.service.Object):
                 is_syncing = False
             else:
                 short_path = path.replace(cloud_home, '')
-                is_syncing = short_path in self.shell.syncing
 
-                if short_path not in self.shell.cached:
+                if short_path in self.shell.file_states:
+                    is_syncing = (
+                        self.shell.file_states[short_path] == FileState.SYNCING)
+                else:
+                    is_syncing = False
                     self.shell.update_file_status(short_path)
 
             return is_syncing
@@ -91,15 +102,18 @@ class DBusService(dbus.service.Object):
         if os.path.samefile(path, cloud_home):
             return False
         else:
-            if self.shell is None:
-                is_ignored = False
-            else:
-                path = path.replace(cloud_home, '')
-                is_ignored = path.replace(cloud_home, '') in self.shell.ignored
+            short_path = path.replace(cloud_home, '')
+
+            if short_path in self.shell.file_states:
+                is_ignored = (
+                    self.shell.file_states[short_path] == FileState.IGNORED)
 
                 if not is_ignored:
-                    is_ignored = path.startswith(tuple(
-                        (s + "/" for s in self.shell.ignored)))
+                    is_ignored = (
+                        self.shell.file_states[short_path] == FileState.ERROR)
+            else:
+                is_ignored = False
+                self.shell.update_file_status(short_path)
 
             return is_ignored
 

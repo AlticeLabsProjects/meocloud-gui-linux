@@ -107,7 +107,7 @@ def init_localization():
 
 
 class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
-                       GObject.GObject):
+                   GObject.GObject):
     def __init__(self):
         init_localization()
         self.nemo_items = {}
@@ -121,7 +121,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             Message(type=MessageType.FILE_STATUS,
                     fileStatus=FileStatusMessage(
                         type=FileStatusType.REQUEST,
-                         status=FileStatus()))
+                        status=FileStatus()))
 
         path = os.path.expanduser("~/.meocloud/gui/prefs.ini")
         self.config = ConfigParser.ConfigParser()
@@ -158,7 +158,6 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         return self._connect_to_helper()
 
     def _connect_to_helper(self):
-        #print 'Trying connection...'
         if self.sock is not None:
             try:
                 self.sock.close()
@@ -173,7 +172,6 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                 '~/.meocloud/gui/meocloud_shell_listener.socket')
             self.sock.connect(path)
         except socket.error as error:
-            print 'Could not connect to socket: ' + repr(error)
             return False
         else:
             self.subscribe_path('/')
@@ -255,7 +253,6 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                 break
 
             path = msg.fileStatus.status.path
-            #print 'Setting file state: ' + repr(path)
             if path in self.nemo_items:
                 prev_state = self.file_states.get(path)
                 state = msg.fileStatus.status.state
@@ -272,7 +269,6 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         if not self._check_connection():
             return
 
-        #print 'Sending: ' + repr(data)
         for i in xrange(2):
             try:
                 self.sock.send(data)
@@ -345,14 +341,6 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             item.add_emblem(FILE_STATE_TO_EMBLEM.get(state, 'emblem-important'))
             item.connect('changed', self.changed_cb)
             return Nemo.OperationResult.COMPLETE
- 
-        # If this paths's parent is synced, there is a very good chance
-        # that this path is also synced. However, Nemo seems to slow
-        # down whenever we set an emblem. So, for now, we avoid it. 
-        #parent_path = os.path.dirname(path)
-        #parent_state = self.file_states.get(parent_path)
-        #if parent_state == FileState.READY:
-        #    item.add_emblem(FILE_STATE_TO_EMBLEM.get(FileState.READY))
 
         self.fetch_file_state(path)
         return Nemo.OperationResult.FAILED
@@ -373,13 +361,13 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         uri = self.uri_to_path(uri)
 
         top_menuitem = Nemo.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
-                                             'MEO Cloud', '', '')
+                                         'MEO Cloud', '', '')
 
         submenu = Nemo.Menu()
         top_menuitem.set_submenu(submenu)
 
         link_menuitem = Nemo.MenuItem.new('MEOCloudMenuProvider::Copy',
-                                              _('Copy Link'), '', '')
+                                          _('Copy Link'), '', '')
         link_menuitem.connect("activate", lambda w: self.share_link(uri))
         submenu.append_item(link_menuitem)
 

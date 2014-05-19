@@ -48,21 +48,21 @@ def deserialize_thrift_msg(data, socket_state, msgobj):
     Try to deserialize data (or buf + data) into a valid
     "Message" (msgobj), as defined in the thrift ShellHelper specification
     '''
-    if socket_state.buffer:
-        data = ''.join((socket_state.buffer, data))
-        socket_state.buffer = None
+    if socket_state:
+        data = ''.join((socket_state, data))
+        socket_state = None
     try:
         msg, remaining = deserialize(msgobj, data)
     except (TProtocolException, EOFError, TypeError) as dex:
         log.error('Could not deserialize message: {0}'.format(dex))
         if len(data) <= 8192:
-            socket_state.buffer = data
+            socket_state = data
             msg = None
             remaining = None
         else:
             raise OverflowError('Message does not fit buffer.')
 
-    return msg, remaining
+    return msg, remaining, socket_state
 
 
 def serialize_thrift_msg(msg):

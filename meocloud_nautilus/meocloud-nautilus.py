@@ -121,7 +121,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             Message(type=MessageType.FILE_STATUS,
                     fileStatus=FileStatusMessage(
                         type=FileStatusType.REQUEST,
-                         status=FileStatus()))
+                        status=FileStatus()))
 
         path = os.path.expanduser("~/.meocloud/gui/prefs.ini")
         self.config = ConfigParser.ConfigParser()

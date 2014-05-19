@@ -364,11 +364,6 @@ class Application(Gtk.Application):
             self.update_status(_("Synced"))
             self.update_menu_action(_("Pause"))
 
-            # clean the list of files that are syncing,
-            # just in case we missed a notification
-            if self.shell is not None:
-                self.shell.clean_syncing()
-
             recently_changed = self.core_client.recentlyChangedFilePaths()
             self.trayicon.wrapper(
                 lambda: self.update_recent_files(recently_changed, cloud_home))
@@ -646,8 +641,6 @@ class Application(Gtk.Application):
         if (self.watchdog_thread is not None and
                 not self.watchdog_thread.stopped()):
             self.watchdog_thread.stop()
-        if self.shell is not None and not self.shell.thread.stopped():
-            self.shell.thread.stop()
         self.shell = None
 
         if (self.core.thread is not None and

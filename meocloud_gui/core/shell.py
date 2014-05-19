@@ -1,16 +1,14 @@
-from _socket import SHUT_RD
 import socket
 import os
-from thrift.protocol.TProtocol import TProtocolException
-from time import sleep
-from collections import namedtuple
+
 from gi.repository import GLib
+import errno
 from meocloud_gui import thrift_utils
 from meocloud_gui import utils
-from meocloud_gui.stoppablethread import StoppableThread
+
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH,
-                                    LOGGER_NAME)
+                                    LOGGER_NAME, SHELL_LISTENER_SOCKET_ADDRESS)
 from meocloud_gui.protocol.shell.ttypes import (
     Message,
     MessageType,
@@ -27,14 +25,26 @@ from meocloud_gui.protocol.shell.ttypes import (
 
 # Logging
 import logging
+from meocloud_gui.thrift_utils import serialize_thrift_msg, \
+    deserialize_thrift_msg
+
 log = logging.getLogger(LOGGER_NAME)
 
 
 class Shell(object):
     def __init__(self):
-        self.syncing = set()
-        self.cached = set()
-        self.ignored = set()
+        self.file_states = {}
+
+        self.read_buffer = None
+        self.sock = None
+
+        self.recv_msg = Message()
+        self.file_status_msg = \
+            Message(type=MessageType.FILE_STATUS,
+                    fileStatus=FileStatusMessage(
+                        type=FileStatusType.REQUEST,
+                        status=FileStatus()))
+
         self.shared = None
         self.disconnected = False
         self.failed = 0
@@ -56,114 +66,91 @@ class Shell(object):
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
 
-        log.info('Shell: starting the shell listener thread')
-        self.thread = StoppableThread(target=self._listener)
+        log.info('Shell: started the shell listener')
 
+    def _check_connection(self):
+        if self.sock is not None:
+            return True
+        return self._connect_to_helper()
+
+    def _connect_to_helper(self):
+        if self.sock is not None:
+            try:
+                self.sock.close()
+            except socket.error:
+                pass
+            self.sock = None
+
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.setblocking(0)
         try:
-            self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)#
+            self.sock.connect(SHELL_LISTENER_SOCKET_ADDRESS)
+        except socket.error as error:
+            return False
+        else:
+            self.subscribe_path('/')
+            GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN|GLib.IO_HUP,
+                              self.on_helper_msg, priority=GLib.PRIORITY_LOW)
+            return True
 
-            self.s.connect(os.path.join(UI_CONFIG_PATH,
-                                        'meocloud_shell_listener.socket'))
-        except socket.error:
-            self.failed += 1
-            log.warning("Shell: failed to connect")
-            self.retry()
-            return
+    def _clear_state(self):
+        self.file_states.clear()
 
-        self.thread.start()
+    def _handle_connection_error(self, error):
+        self.sock = None
+        self._clear_state()
+        return self._connect_to_helper()
+
+    def on_helper_msg(self, source, condition):
+        '''
+        This function is called whenever there is data
+        available on the shell helper socket.
+
+        Important note:
+        If this function returns False it will be automatically removed
+        from the list of event sources and will not be called again.
+        If it returns True it will be called again when the condition is
+        matched.
+        '''
+
+        # TODO: other IO_ states (NVAL, etc)
+
+        if condition & GLib.IO_HUP:
+            self.sock = None
+            self._clear_state()
+            return False
+
+        data_buffer = []
+        recv_size = 4096
+        while True:
+            try:
+                data = self.sock.recv(recv_size)
+            except socket.error as error:
+                # No more data available.
+                if error.errno == errno.EAGAIN:
+                    break
+                else:
+                    # Try to re-establish connection
+                    if self._handle_connection_error(error):
+                        continue
+                    return False
+                # Not reached
+                break
+            else:
+                data_buffer.append(data)
+                if len(data) < recv_size:
+                    break
+
+        data = ''.join(data_buffer)
+        del data_buffer[:]
+        self._process_data(data)
+
+        return True
 
     def update_file_status(self, path):
-        data = Message(type=MessageType.FILE_STATUS,
-                       fileStatus=FileStatusMessage(
-                           type=FileStatusType.REQUEST,
-                           status=FileStatus(path=path)))
-
-        self._send(thrift_utils.serialize_thrift_msg(data))
-
-    def retry(self):
-        while self.failed < 5:
-            sleep(1)
-            log.debug("Shell: retrying")
-
-            try:
-                self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                self.s.connect(os.path.join(UI_CONFIG_PATH,
-                                            'meocloud_shell_listener.socket'))
-                self.thread.start()
-                return
-            except socket.error:
-                self.failed += 1
-                log.warning("Shell: failed to connect")
-
-        log.exception("Shell: reached max retries for shell socket")
-
-    def clean_syncing(self):
-        to_notify = list(self.syncing)
-        while to_notify:
-            utils.touch(os.path.join(self.cloud_home, to_notify.pop()[1:]))
-        self.syncing.clear()
-
-    def process_data(self, data, socket_state):
-        while data:
-            msg, remaining = thrift_utils.deserialize_thrift_msg(
-                data, socket_state, Message())
-
-            if not msg:
-                log.warning('Shell.process_data: invalid message')
-                return
-
-            if not hasattr(msg, 'fileStatus'):
-                return
-
-            if self.cloud_home in msg.fileStatus.status.path:
-                msg.fileStatus.status.path = \
-                    msg.fileStatus.status.path.replace(self.cloud_home, "")
-
-            if msg.fileStatus.status.path != "/":
-                self.cached.add(msg.fileStatus.status.path)
-
-                if msg.fileStatus.status.state == FileState.SYNCING:
-                    self.syncing.add(msg.fileStatus.status.path)
-                elif msg.fileStatus.status.state == FileState.IGNORED:
-                    if not msg.fileStatus.status.path in self.ignored:
-                        self.ignored.add(msg.fileStatus.status.path)
-                elif msg.fileStatus.status.path in self.syncing:
-                    self.syncing.remove(msg.fileStatus.status.path)
-                utils.touch(os.path.join(self.cloud_home,
-                                         msg.fileStatus.status.path[1:]))
-            else:
-                utils.touch(self.cloud_home)
-
-            data = remaining
-
-    def _listener(self):
-        log.info('Shell: shell listener ready')
-
-        class SocketState(object):
-            def __init__(self, buffer=None):
-                self.buffer = buffer
-
-        socket_state = SocketState(buffer=None)
-
-        try:
-            while not self.thread.stopped():
-                try:
-                    data = self.s.recvfrom(4096)
-
-                    if data[0] == '' and data[1] is None:
-                        return
-
-                    self.process_data(data[0], socket_state)
-                except OverflowError:
-                    print "exception"
-                    log.info('Shell._listener: lost connection to socket')
-                    return
-        except Exception:
-            log.exception(
-                'Shell._listener: An uncatched error occurred!')
-
-    def _send(self, data):
-        self.s.sendall(data)
+        msg = self.file_status_msg
+        msg.fileStatus.status.path = path
+        self._send(serialize_thrift_msg(msg))
 
     def open_in_browser(self, open_path):
         data = Message(type=MessageType.OPEN,
@@ -191,3 +178,44 @@ class Shell(object):
                                                   path=sub_path))
 
         self._send(thrift_utils.serialize_thrift_msg(data))
+
+    def _process_data(self, data):
+        paths = []
+        while data:
+            msg, remaining, self.read_buffer = deserialize_thrift_msg(
+                data, self.read_buffer, self.recv_msg)
+
+            if not msg:
+                break
+
+            path = msg.fileStatus.status.path
+            prev_state = self.file_states.get(path)
+            state = msg.fileStatus.status.state
+            if state != prev_state:
+                self.file_states[path] = state
+                paths.append(path)
+
+            data = remaining
+
+        while paths:
+            utils.touch(paths.pop())
+
+    def _send(self, data):
+        if not self._check_connection():
+            return
+
+        for i in xrange(2):
+            try:
+                self.sock.send(data)
+            except socket.error as error:
+                if error.errno == errno.EAGAIN:
+                    print 'Write operation would block. No bueno.'
+                elif i == 0:
+                    # Try to re-establish connection
+                    if self._handle_connection_error(error):
+                        continue
+                else:
+                    print 'ShellHelper seems down. Giving up...'
+                break
+            else:
+                break
