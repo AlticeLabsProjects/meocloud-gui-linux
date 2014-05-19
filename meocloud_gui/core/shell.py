@@ -59,18 +59,18 @@ class Shell(object):
         log.info('Shell: starting the shell listener thread')
         self.thread = StoppableThread(target=self._listener)
 
-        #try:
-        #    self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)#
+        try:
+            self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)#
 
- #           self.s.connect(os.path.join(UI_CONFIG_PATH,
- #                                       'meocloud_shell_listener.socket'))
- #       except socket.error:
- #           self.failed += 1
- #           log.warning("Shell: failed to connect")
- #           self.retry()
- #           return
+            self.s.connect(os.path.join(UI_CONFIG_PATH,
+                                        'meocloud_shell_listener.socket'))
+        except socket.error:
+            self.failed += 1
+            log.warning("Shell: failed to connect")
+            self.retry()
+            return
 
- #       self.thread.start()
+        self.thread.start()
 
     def update_file_status(self, path):
         data = Message(type=MessageType.FILE_STATUS,
@@ -149,8 +149,13 @@ class Shell(object):
             while not self.thread.stopped():
                 try:
                     data = self.s.recvfrom(4096)
+
+                    if data[0] == '' and data[1] is None:
+                        return
+
                     self.process_data(data[0], socket_state)
                 except OverflowError:
+                    print "exception"
                     log.info('Shell._listener: lost connection to socket')
                     return
         except Exception:
@@ -158,8 +163,7 @@ class Shell(object):
                 'Shell._listener: An uncatched error occurred!')
 
     def _send(self, data):
-        #self.s.sendall(data)
-        pass
+        self.s.sendall(data)
 
     def open_in_browser(self, open_path):
         data = Message(type=MessageType.OPEN,

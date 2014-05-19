@@ -158,7 +158,6 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         return self._connect_to_helper()
 
     def _connect_to_helper(self):
-        #print 'Trying connection...'
         if self.sock is not None:
             try:
                 self.sock.close()
@@ -173,7 +172,6 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 '~/.meocloud/gui/meocloud_shell_listener.socket')
             self.sock.connect(path)
         except socket.error as error:
-            print 'Could not connect to socket: ' + repr(error)
             return False
         else:
             self.subscribe_path('/')
@@ -203,7 +201,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         # TODO: other IO_ states (NVAL, etc)
 
-        if condition == GLib.IO_HUP:
+        if condition & GLib.IO_HUP:
             self.sock = None
             self._clear_state()
             return False
@@ -216,7 +214,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             except socket.error as error:
                 # No more data available.
                 if error.errno == errno.EAGAIN:
-                    break 
+                    break
                 else:
                     # Try to re-establish connection
                     if self._handle_connection_error(error):
@@ -228,10 +226,10 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 data_buffer.append(data)
                 if len(data) < recv_size:
                     break
- 
+
         data = ''.join(data_buffer)
         del data_buffer[:]
-        self._process_data(data) 
+        self._process_data(data)
 
         return True
 
@@ -255,7 +253,6 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 break
 
             path = msg.fileStatus.status.path
-            #print 'Setting file state: ' + repr(path)
             if path in self.nautilus_items:
                 prev_state = self.file_states.get(path)
                 state = msg.fileStatus.status.state
@@ -272,7 +269,6 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         if not self._check_connection():
             return
 
-        #print 'Sending: ' + repr(data)
         for i in xrange(2):
             try:
                 self.sock.send(data)
@@ -345,14 +341,6 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             item.add_emblem(FILE_STATE_TO_EMBLEM.get(state, 'emblem-important'))
             item.connect('changed', self.changed_cb)
             return Nautilus.OperationResult.COMPLETE
- 
-        # If this paths's parent is synced, there is a very good chance
-        # that this path is also synced. However, Nautilus seems to slow
-        # down whenever we set an emblem. So, for now, we avoid it. 
-        #parent_path = os.path.dirname(path)
-        #parent_state = self.file_states.get(parent_path)
-        #if parent_state == FileState.READY:
-        #    item.add_emblem(FILE_STATE_TO_EMBLEM.get(FileState.READY))
 
         self.fetch_file_state(path)
         return Nautilus.OperationResult.FAILED

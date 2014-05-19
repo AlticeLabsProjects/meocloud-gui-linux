@@ -203,7 +203,7 @@ class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
 
         # TODO: other IO_ states (NVAL, etc)
 
-        if condition == GLib.IO_HUP:
+        if condition & GLib.IO_HUP:
             self.sock = None
             self._clear_state()
             return False
