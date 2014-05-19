@@ -35,6 +35,9 @@ FILE_STATE_TO_EMBLEM = {
 
 READBUF_SIZE = 8192
 
+PREFS_PATH = os.path.expanduser("~/.meocloud/gui/prefs.ini")
+SHARED_PATH = os.path.expanduser("~/.meocloud/gui/shared_directories")
+
 def deserialize(msg, data):
     transport = TTransport.TMemoryBuffer(data)
     protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
@@ -112,9 +115,13 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         init_localization()
         self.nautilus_items = {}
         self.file_states = {}
+        self.shared = set()
 
         self.read_buffer = None
         self.sock = None
+        self.last_prefs_mtime = 0
+        self.last_shared_mtime = 0
+        self.cloud_folder_uri = ""
  
         self.recv_msg = Message()
         self.file_status_msg = \
@@ -123,11 +130,8 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                         type=FileStatusType.REQUEST,
                         status=FileStatus()))
 
-        path = os.path.expanduser("~/.meocloud/gui/prefs.ini")
         self.config = ConfigParser.ConfigParser()
-        self.config.read(path)
-
-        self.cloud_folder_uri = self.get_cloud_folder()
+        self.config.read(PREFS_PATH)
 
         try:
             import platform
@@ -136,6 +140,31 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                     'emblem-synchronizing-symbolic'
         except ImportError:
             pass
+
+        self.update_config()
+        GLib.timeout_add_seconds(30, self.update_config,
+                                 priority=GLib.PRIORITY_LOW)
+
+    def update_config(self):
+        if os.path.isfile(PREFS_PATH):
+            mtime = os.path.getmtime(PREFS_PATH)
+
+            if mtime != self.last_prefs_mtime:
+                self.cloud_folder_uri = self.get_cloud_folder()
+                self.last_prefs_mtime = mtime
+
+        if os.path.isfile(SHARED_PATH):
+            mtime = os.path.getmtime(SHARED_PATH)
+
+            if mtime != self.last_shared_mtime:
+                f = open(SHARED_PATH, "r")
+                self.shared.clear()
+                for line in f.readlines():
+                    self.shared.add(line.rstrip('\n'))
+                f.close()
+                self.last_shared_mtime = mtime
+
+        return True
 
     def get_cloud_folder(self):
         try:
@@ -338,8 +367,12 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         self.nautilus_items[path] = item
         state = self.file_states.get(path)
         if state is not None:
-            item.add_emblem(FILE_STATE_TO_EMBLEM.get(state, 'emblem-important'))
+            item.add_emblem(FILE_STATE_TO_EMBLEM.get(state,
+                                                     'emblem-important'))
             item.connect('changed', self.changed_cb)
+
+            if path in self.shared:
+                item.add_emblem('emblem-shared')
             return Nautilus.OperationResult.COMPLETE
 
         self.fetch_file_state(path)
@@ -347,15 +380,15 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
  
     def get_file_items(self, window, files):
         if len(files) != 1:
-            return None,
+            return
 
         item = files[0]
         uri = item.get_uri()
 
         if uri == self.cloud_folder_uri:
-            return None,
+            return
         if not self.valid_uri(uri):
-            return None,
+            return
 
         full_path = self.uri_to_full_path(uri)
         uri = self.uri_to_path(uri)
