@@ -118,6 +118,8 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         self.shared = set()
 
         self.read_buffer = None
+        self.write_buffer = None
+        self.writing = False
         self.sock = None
         self.last_prefs_mtime = 0
         self.last_shared_mtime = 0
@@ -294,25 +296,51 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         while paths:
             self.touch(paths.pop())
 
+    def on_msg_write(self, source, condition):
+        # Ensure socket is alive
+        if self.sock is None:
+            return False
+
+        for i in xrange(2):
+            try:
+                while self.write_buffer:
+                    data = self.write_buffer[:4096]
+                    self.write_buffer = self.write_buffer[4096:]
+                    self.sock.send(data)
+            except socket.error as error:
+                self.write_buffer = data + self.write_buffer
+                if error.errno == errno.EAGAIN:
+                    return True
+                elif i == 0 and self._handle_connection_error(error):
+                    GLib.io_add_watch(self.sock.fileno(), GLib.IO_OUT,
+                                      self.on_msg_write,
+                                      priority=GLib.PRIORITY_LOW)
+                    return False
+
+                else:
+                    self.writing = False
+                    return False
+            else:
+                self.writing = False
+                return False
+
+
     def _send(self, data):
         if not self._check_connection():
             return
 
-        for i in xrange(2):
-            try:
-                self.sock.send(data)
-            except socket.error as error:
-                if error.errno == errno.EAGAIN:
-                    print 'Write operation would block. No bueno.'
-                elif i == 0:
-                    # Try to re-establish connection
-                    if self._handle_connection_error(error):
-                        continue
-                else:
-                    print 'ShellHelper seems down. Giving up...'
-                break
-            else:
-                break
+        if self.write_buffer:
+            self.write_buffer += data
+        else:
+            self.write_buffer = data
+
+        if self.writing:
+            return
+
+        self.writing = True
+        GLib.io_add_watch(self.sock.fileno(), GLib.IO_OUT,
+                          self.on_msg_write,
+                          priority=GLib.PRIORITY_LOW)
 
     def open_in_browser(self, open_path):
         data = Message(type=MessageType.OPEN,
