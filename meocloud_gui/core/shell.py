@@ -59,18 +59,18 @@ class Shell(object):
         log.info('Shell: starting the shell listener thread')
         self.thread = StoppableThread(target=self._listener)
 
-        try:
-            self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        #try:
+        #    self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)#
 
-            self.s.connect(os.path.join(UI_CONFIG_PATH,
-                                        'meocloud_shell_listener.socket'))
-        except socket.error:
-            self.failed += 1
-            log.warning("Shell: failed to connect")
-            self.retry()
-            return
+ #           self.s.connect(os.path.join(UI_CONFIG_PATH,
+ #                                       'meocloud_shell_listener.socket'))
+ #       except socket.error:
+ #           self.failed += 1
+ #           log.warning("Shell: failed to connect")
+ #           self.retry()
+ #           return
 
-        self.thread.start()
+ #       self.thread.start()
 
     def update_file_status(self, path):
         data = Message(type=MessageType.FILE_STATUS,
@@ -98,10 +98,10 @@ class Shell(object):
         log.exception("Shell: reached max retries for shell socket")
 
     def clean_syncing(self):
-        for path in self.syncing:
-            self.syncing.remove(path)
-            utils.touch(os.path.join(self.cloud_home, path[1:]))
-        self.syncing = set()
+        to_notify = list(self.syncing)
+        while to_notify:
+            utils.touch(os.path.join(self.cloud_home, to_notify.pop()[1:]))
+        self.syncing.clear()
 
     def process_data(self, data, socket_state):
         while data:
@@ -158,7 +158,8 @@ class Shell(object):
                 'Shell._listener: An uncatched error occurred!')
 
     def _send(self, data):
-        self.s.sendall(data)
+        #self.s.sendall(data)
+        pass
 
     def open_in_browser(self, open_path):
         data = Message(type=MessageType.OPEN,
