@@ -33,7 +33,10 @@ FILE_STATE_TO_EMBLEM = {
     FileState.ERROR: 'emblem-important'
 }
 
-READBUF_SIZE = 8192
+READBUF_SIZE = 16 * 1024
+CHUNK_SIZE = 4 * 1024
+MAX_WRITE_BATCH_SIZE = 64 * 1024
+
 
 PREFS_PATH = os.path.expanduser("~/.meocloud/gui/prefs.ini")
 SHARED_PATH = os.path.expanduser("~/.meocloud/gui/shared_directories")
@@ -177,7 +180,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                     'file:', urllib.pathname2url(
                         os.path.expanduser("~/MEOCloud")))
             else:
-                return val
+                return 'file://' + val.replace('file://', '')
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return urlparse.urljoin(
                 'file:', urllib.pathname2url(
@@ -207,7 +210,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         else:
             self.subscribe_path('/')
             GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN|GLib.IO_HUP,
-                              self.on_helper_msg, priority=GLib.PRIORITY_LOW)
+                              self.on_msg_read, priority=GLib.PRIORITY_LOW)
             return True
 
     def _clear_state(self):
@@ -218,7 +221,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         self._clear_state()
         return self._connect_to_helper()
 
-    def on_helper_msg(self, source, condition):
+    def on_msg_read(self, source, condition):
         '''
         This function is called whenever there is data
         available on the shell helper socket.
@@ -238,10 +241,9 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             return False
  
         data_buffer = []
-        recv_size = 4096
         while True:
             try:
-                data = self.sock.recv(recv_size)
+                data = self.sock.recv(CHUNK_SIZE)
             except socket.error as error:
                 # No more data available.
                 if error.errno == errno.EAGAIN:
@@ -255,7 +257,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
                 break
             else:
                 data_buffer.append(data)
-                if len(data) < recv_size:
+                if len(data) < CHUNK_SIZE:
                     break
 
         data = ''.join(data_buffer)
@@ -301,29 +303,29 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         if self.sock is None:
             return False
 
-        for i in xrange(2):
-            try:
-                while self.write_buffer:
-                    data = self.write_buffer[:4096]
-                    self.write_buffer = self.write_buffer[4096:]
-                    self.sock.send(data)
-            except socket.error as error:
-                self.write_buffer = data + self.write_buffer
-                if error.errno == errno.EAGAIN:
-                    return True
-                elif i == 0 and self._handle_connection_error(error):
-                    GLib.io_add_watch(self.sock.fileno(), GLib.IO_OUT,
-                                      self.on_msg_write,
-                                      priority=GLib.PRIORITY_LOW)
-                    return False
+        bytes_sent = 0
+        bytes_total = len(self.write_buffer)
+        try:
+            while self.write_buffer and bytes_sent < MAX_WRITE_BATCH_SIZE:
+                data = self.write_buffer[:CHUNK_SIZE]
+                self.sock.send(data)
+                bytes_sent += len(data)
+                self.write_buffer = self.write_buffer[CHUNK_SIZE:]
+        except socket.error as error:
+            if error.errno == errno.EAGAIN:
+                return True
+            elif self._handle_connection_error(error):
+                GLib.io_add_watch(self.sock.fileno(), GLib.IO_OUT,
+                                  self.on_msg_write,
+                                  priority=GLib.PRIORITY_LOW)
+                return False
 
-                else:
-                    self.writing = False
-                    return False
             else:
                 self.writing = False
                 return False
-
+        else:
+            self.writing = bytes_sent < bytes_total
+            return self.writing
 
     def _send(self, data):
         if not self._check_connection():

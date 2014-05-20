@@ -33,7 +33,10 @@ FILE_STATE_TO_EMBLEM = {
     FileState.ERROR: 'emblem-important'
 }
 
-READBUF_SIZE = 8192
+READBUF_SIZE = 16 * 1024
+CHUNK_SIZE = 4 * 1024
+MAX_WRITE_BATCH_SIZE = 64 * 1024
+
 
 PREFS_PATH = os.path.expanduser("~/.meocloud/gui/prefs.ini")
 SHARED_PATH = os.path.expanduser("~/.meocloud/gui/shared_directories")
@@ -118,6 +121,8 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         self.shared = set()
 
         self.read_buffer = None
+        self.write_buffer = None
+        self.writing = False
         self.sock = None
         self.last_prefs_mtime = 0
         self.last_shared_mtime = 0
@@ -175,7 +180,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                     'file:', urllib.pathname2url(
                         os.path.expanduser("~/MEOCloud")))
             else:
-                return val
+                return 'file://' + val.replace('file://', '')
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return urlparse.urljoin(
                 'file:', urllib.pathname2url(
@@ -205,7 +210,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         else:
             self.subscribe_path('/')
             GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN|GLib.IO_HUP,
-                              self.on_helper_msg, priority=GLib.PRIORITY_LOW)
+                              self.on_msg_read, priority=GLib.PRIORITY_LOW)
             return True
 
     def _clear_state(self):
@@ -216,7 +221,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         self._clear_state()
         return self._connect_to_helper()
 
-    def on_helper_msg(self, source, condition):
+    def on_msg_read(self, source, condition):
         '''
         This function is called whenever there is data
         available on the shell helper socket.
@@ -236,10 +241,9 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             return False
  
         data_buffer = []
-        recv_size = 4096
         while True:
             try:
-                data = self.sock.recv(recv_size)
+                data = self.sock.recv(CHUNK_SIZE)
             except socket.error as error:
                 # No more data available.
                 if error.errno == errno.EAGAIN:
@@ -253,7 +257,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
                 break
             else:
                 data_buffer.append(data)
-                if len(data) < recv_size:
+                if len(data) < CHUNK_SIZE:
                     break
 
         data = ''.join(data_buffer)
@@ -294,25 +298,51 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         while paths:
             self.touch(paths.pop())
 
+    def on_msg_write(self, source, condition):
+        # Ensure socket is alive
+        if self.sock is None:
+            return False
+
+        bytes_sent = 0
+        bytes_total = len(self.write_buffer)
+        try:
+            while self.write_buffer and bytes_sent < MAX_WRITE_BATCH_SIZE:
+                data = self.write_buffer[:CHUNK_SIZE]
+                self.sock.send(data)
+                bytes_sent += len(data)
+                self.write_buffer = self.write_buffer[CHUNK_SIZE:]
+        except socket.error as error:
+            if error.errno == errno.EAGAIN:
+                return True
+            elif self._handle_connection_error(error):
+                GLib.io_add_watch(self.sock.fileno(), GLib.IO_OUT,
+                                  self.on_msg_write,
+                                  priority=GLib.PRIORITY_LOW)
+                return False
+
+            else:
+                self.writing = False
+                return False
+        else:
+            self.writing = bytes_sent < bytes_total
+            return self.writing
+
     def _send(self, data):
         if not self._check_connection():
             return
 
-        for i in xrange(2):
-            try:
-                self.sock.send(data)
-            except socket.error as error:
-                if error.errno == errno.EAGAIN:
-                    print 'Write operation would block. No bueno.'
-                elif i == 0:
-                    # Try to re-establish connection
-                    if self._handle_connection_error(error):
-                        continue
-                else:
-                    print 'ShellHelper seems down. Giving up...'
-                break
-            else:
-                break
+        if self.write_buffer:
+            self.write_buffer += data
+        else:
+            self.write_buffer = data
+
+        if self.writing:
+            return
+
+        self.writing = True
+        GLib.io_add_watch(self.sock.fileno(), GLib.IO_OUT,
+                          self.on_msg_write,
+                          priority=GLib.PRIORITY_LOW)
 
     def open_in_browser(self, open_path):
         data = Message(type=MessageType.OPEN,

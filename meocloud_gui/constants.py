@@ -46,6 +46,10 @@ SHELL_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
 LOGGER_NAME = 'meocloud_gui'
 LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_gui.log')
 
+READBUF_SIZE = 16 * 1024
+CHUNK_SIZE = 4 * 1024
+MAX_WRITE_BATCH_SIZE = 64 * 1024
+
 
 def get_own_dir(own_filename):
     if getattr(sys, "frozen", False):
