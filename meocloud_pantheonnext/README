@@ -1,0 +1,27 @@
+MEOCloud Plugin for Pantheon Files >= 0.2
+
+Overview:
+- Pantheon Files 0.2 breaks the previous plugin ABI
+- If an outdated plugin is installed,
+  there's a very good chance Pantheon Files will crash.
+- Some (very) important methods have been moved to the Vala
+  side of Pantheon Files. They were previously in the C side.
+  The old Pantheon Files plugin had a custom vapi file, which
+  is responsible for binding Vala methods to C. This way, we
+  could access methods that weren't normally accessible.
+  As of today (20-05-2014), it's not possible to create the
+  kind of plugin we need for Pantheon Files 0.2 because of
+  the unavailable methods.
+
+To do:
+1. Fix the API issues or wait for a fix from upstream.
+2. Rewrite parts of the plugin to comply with the API changes.
+3. Recompile for elementary OS Isis.
+
+Current state:
+1. I'm getting this issue fixed upstream. Hopefully.
+2. I've rewrote some parts but as there isn't a fix
+   upstream yet there's no guarantee it won't need
+   more changes.
+3. Requires above items to be dealt with before
+   a final build. It currently builds successfuly.
