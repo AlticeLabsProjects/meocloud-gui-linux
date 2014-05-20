@@ -32,6 +32,7 @@ from meocloud_gui.thrift_utils import serialize_thrift_msg, \
 log = logging.getLogger(LOGGER_NAME)
 
 
+# TODO: Kill ShellHelper socket handling. Requires D-Bus to be killed.
 class Shell(object):
     def __init__(self):
         self.file_states = {}

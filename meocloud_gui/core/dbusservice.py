@@ -11,6 +11,7 @@ from meocloud_gui.protocol.shell.ttypes import FileState
 log = logging.getLogger(LOGGER_NAME)
 
 
+# TODO: Kill D-Bus. Requires the Dolphin and Thunar extensions to be rewritten.
 class DBusService(dbus.service.Object):
     def __init__(self, status, app_path):
         bus_name = dbus.service.BusName('pt.meocloud.dbus',

@@ -1,0 +1,2 @@
+We should rewrite the Thunar plugin to communicate
+with meocloudd directly through the shellhelper socket.
