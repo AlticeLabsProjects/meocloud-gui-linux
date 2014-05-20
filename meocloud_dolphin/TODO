@@ -1,0 +1,5 @@
+The Dolphin plugin currently uses D-Bus.
+
+It's slow and unreliable. We should rewrite
+the plugin to communicate directly with
+meocloudd through the shellhelper socket.
