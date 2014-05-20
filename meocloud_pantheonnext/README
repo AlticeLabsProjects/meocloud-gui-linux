@@ -20,6 +20,9 @@ To do:
 
 Current state:
 1. I'm getting this issue fixed upstream. Hopefully.
+   A branch with the required changes is available
+   in Launchpad, but is waiting for a review. I could
+   review and merge it myself but I'd rather not to do it.
 2. I've rewrote some parts but as there isn't a fix
    upstream yet there's no guarantee it won't need
    more changes.
