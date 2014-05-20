@@ -33,8 +33,8 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
 
     if (lang == "pt" || lang == "pt_PT" || lang == "pt_BR") {
         SHARE_STRING = "Partilhar Pasta";
-        BROWSER_STRING = "Abrir no navegador web";
-        LINK_STRING = "Copiar hiperligação";
+        BROWSER_STRING = "Abrir no browser";
+        LINK_STRING = "Copiar link";
     }
 
     m_shareFolderAction = new KAction(this);

@@ -79,9 +79,9 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         string[] langs = GLib.Intl.get_language_names ();
 
         if ("pt" in langs[0]) {
-            OPEN_BROWSER = "Abrir no navegador web";
+            OPEN_BROWSER = "Abrir no browser";
             SHARE_FOLDER = "Partilhar pasta";
-            COPY_LINK = "Copiar hiperligação";
+            COPY_LINK = "Copiar link";
             CLOUD_LABEL = "Nuvem";
             CLOUD_TOOLTIP = "Nuvem";
             MEOCLOUD_TOOLTIP = "A sua pasta MEO Cloud";

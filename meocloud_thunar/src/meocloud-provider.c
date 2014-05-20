@@ -279,9 +279,9 @@ meocloud_provider_get_file_actions (ThunarxMenuProvider *menu_provider,
 
   if (strstr (lang, "pt") != NULL)
     {
-      OPEN_BROWSER = "Abrir no navegador web";
+      OPEN_BROWSER = "Abrir no browser";
       SHARE_FOLDER = "Partilhar pasta";
-      COPY_LINK = "Copiar hiperligação";
+      COPY_LINK = "Copiar link";
     }
 
   action = g_object_new (GTK_TYPE_ACTION,
