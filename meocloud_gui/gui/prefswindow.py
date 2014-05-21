@@ -251,12 +251,19 @@ class PrefsWindow(Gtk.Window):
 
         # advanced
         folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
-                                   _("Choose Folder")))
+                                   CLOUD_HOME_DEFAULT_PATH))
 
-        self.selective_button = Gtk.Button(_("Selective Sync"))
+        self.selective_button = Gtk.Button(_("Select Synced Folders"))
 
-        advanced_box.pack_start(folder_button, False, True, 10)
-        advanced_box.pack_start(self.selective_button, False, True, 0)
+        folder_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")), False, False, 0)
+        folder_box.pack_start(folder_button, True, True, 0)
+        selective_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        selective_box.pack_start(Gtk.Label(_("Selective Sync: ")), False, False, 0)
+        selective_box.pack_start(self.selective_button, True, True, 0)
+
+        advanced_box.pack_start(folder_box, False, True, 10)
+        advanced_box.pack_start(selective_box, False, True, 0)
 
         # change the contents according to where the preferences will be
         if embed:

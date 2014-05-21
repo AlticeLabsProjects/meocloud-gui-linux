@@ -103,9 +103,9 @@ def clean_cloud_path():
             dialog = Gtk.MessageDialog(
                 None, 0, Gtk.MessageType.QUESTION,
                 Gtk.ButtonsType.YES_NO,
-                _("The MEOCloud folder already exists. If you want to use it, "
-                  "the contents will be synchronized to your account. Would "
-                  "you like to continue?"))
+                _("The MEOCloud folder ({0}) already exists. If you want to "
+                  "use it, the contents will be synchronized to your account. "
+                  "Would you like to continue?").format(cloud_home))
             response = dialog.run()
             dialog.destroy()
 
