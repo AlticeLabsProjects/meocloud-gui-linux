@@ -298,7 +298,9 @@ class CoreListenerHandler(UI.Iface):
                     notification.show()
                     Gdk.threads_leave()
             elif note.type == 0:
-                self.app.trayicon.wrapper(lambda: self.app.menuitem_problem.hide())
+                self.app.trayicon.wrapper(
+                    lambda: self.app.menuitem_problem.hide())
+                self.app.trayicon.wrapper(lambda: self.app.update_menu())
 
         self.last_notify = note.code
 
