@@ -224,14 +224,14 @@ class CoreListenerHandler(UI.Iface):
                 notification.show()
                 Gdk.threads_leave()
         elif note.code == codes.SHARED_FOLDER_ADDED:
-            if not note.parameters[0] in self.app.shell.shared:
-                if self.app.shell.shared is not None:
-                    self.app.shell.shared.add(note.parameters[0])
+            if not note.parameters[0] in self.app.shared:
+                if self.app.shared is not None:
+                    self.app.shared.add(note.parameters[0])
 
                     try:
                         f = open(os.path.join(UI_CONFIG_PATH,
                                               'shared_directories'), "w")
-                        for directory in self.app.shell.shared:
+                        for directory in self.app.shared:
                             f.write(directory + "\n")
                         f.close()
                     except (OSError, IOError):
@@ -239,14 +239,14 @@ class CoreListenerHandler(UI.Iface):
                             'CoreListener.notifySystem: unable to save '
                             'shared directories list')
         elif note.code == codes.SHARED_FOLDER_UNSHARED:
-            if note.parameters[0] in self.app.shell.shared:
-                if self.app.shell.shared is not None:
-                    self.app.shell.shared.remove(note.parameters[0])
+            if note.parameters[0] in self.app.shared:
+                if self.app.shared is not None:
+                    self.app.shared.remove(note.parameters[0])
 
                     try:
                         f = open(os.path.join(UI_CONFIG_PATH,
                                               'shared_directories'), "w")
-                        for directory in self.app.shell.shared:
+                        for directory in self.app.shared:
                             f.write(directory + "\n")
                         f.close()
                     except (OSError, IOError):

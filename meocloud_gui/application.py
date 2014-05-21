@@ -69,6 +69,7 @@ class Application(Gtk.Application):
         self.core = None
         self.icon_type = ""
         self.problem_text = ""
+        self.shared = None
 
         self.recentfiles_menu = None
         self.menuitem_recent = None
@@ -168,6 +169,19 @@ class Application(Gtk.Application):
                 os.remove(os.path.join(CONFIG_PATH, "ui/ui_config.yaml"))
 
             if not self.missing_quit:
+                try:
+                    self.shared = set()
+
+                    if os.path.isfile(os.path.join(UI_CONFIG_PATH,
+                                                   'shared_directories')):
+                        f = open(os.path.join(UI_CONFIG_PATH,
+                                              'shared_directories'), "r")
+                        for line in f.readlines():
+                            self.shared.add(line.rstrip('\n'))
+                        f.close()
+                except (OSError, IOError):
+                    self.shared = set()
+
                 utils.create_required_folders()
                 self.log_handler = LogHandler(self.core_client)
                 utils.init_logging(self.log_handler)

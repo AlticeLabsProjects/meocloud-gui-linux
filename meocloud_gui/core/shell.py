@@ -49,22 +49,8 @@ class Shell(object):
                         type=FileStatusType.REQUEST,
                         status=FileStatus()))
 
-        self.shared = None
         self.disconnected = False
         self.failed = 0
-
-        try:
-            self.shared = set()
-
-            if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                           'shared_directories')):
-                f = open(os.path.join(UI_CONFIG_PATH,
-                                      'shared_directories'), "r")
-                for line in f.readlines():
-                    self.shared.add(line.rstrip('\n'))
-                f.close()
-        except (OSError, IOError):
-            self.shared = set()
 
         prefs = Preferences()
         self.cloud_home = prefs.get('Advanced', 'Folder',

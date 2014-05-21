@@ -75,7 +75,7 @@ class DBusService(dbus.service.Object):
                     if self.shell.file_states[short_path] == FileState.ERROR:
                         is_ignored = True
 
-                    is_shared = short_path in self.shell.shared
+                    is_shared = short_path in self.app.shared
                 else:
                     self.shell.update_file_status(short_path)
 
@@ -143,7 +143,7 @@ class DBusService(dbus.service.Object):
             if self.shell is None:
                 is_shared = False
             else:
-                is_shared = path.replace(cloud_home, '') in self.shell.shared
+                is_shared = path.replace(cloud_home, '') in self.app.shared
 
             return is_shared
 
