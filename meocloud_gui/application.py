@@ -87,7 +87,7 @@ class Application(Gtk.Application):
 
         # initialize dbus
         DBusGMainLoop(set_as_default=True)
-        self.dbus_service = DBusService(codes.CORE_INITIALIZING, self.app_path)
+        self.dbus_service = DBusService(codes.CORE_INITIALIZING, self)
 
         # are we running GNOME or elementary OS?
         self.use_headerbar = utils.use_headerbar()
@@ -319,7 +319,8 @@ class Application(Gtk.Application):
                         True))
 
         if ((status.state == codes.CORE_SYNCING or
-                status.state == codes.CORE_READY) and self.shell is None):
+                status.state == codes.CORE_READY) and self.dbus_service.enabled
+                and self.shell is None):
             self.shell = Shell()
             self.shell.subscribe_path('/')
             self.dbus_service.shell = self.shell
@@ -440,7 +441,8 @@ class Application(Gtk.Application):
                         error_code))
                 assert False
 
-        utils.touch(cloud_home)
+        if self.dbus_service.enabled:
+            utils.touch(cloud_home)
 
     def update_sync_status(self):
         if self.update_sync_status_timeout is None:
