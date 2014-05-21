@@ -6,8 +6,8 @@ import errno
 from gi.repository import GLib
 import urlparse
 
+sys.path.insert(0, '/opt/meocloud/libs/')
 sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
-
 
 from shell.ttypes import OpenMessage, OpenType, \
     ShareMessage, ShareType, SubscribeMessage, SubscribeType
