@@ -11,10 +11,17 @@
 #include <QtCore/QtDebug>
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
-#include <QtDBus/QtDBus>
+#include <QLocalSocket>
 #include <KDE/KPluginFactory>
 #include <KDE/KPluginLoader>
 #include "dolphin-meocloud-plugin.h"
+#include "shell_types.h"
+
+#include <protocol/TBinaryProtocol.h>
+#include <protocol/TDenseProtocol.h>
+#include <protocol/TJSONProtocol.h>
+#include <transport/TTransportUtils.h>
+#include <transport/TFDTransport.h>
 
 K_PLUGIN_FACTORY(DolphinMEOCloudPluginFactory, registerPlugin<DolphinMEOCloudPlugin>();)
 K_EXPORT_PLUGIN(DolphinMEOCloudPluginFactory("dolphin-meocloud-plugin"))
@@ -55,7 +62,7 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
     connect(m_shareFileLinkAction, SIGNAL(triggered()),
             this, SLOT(shareFileLinkAction()));
 
-    ShellServer *server = new ShellServer(this);
+    /*ShellServer *server = new ShellServer(this);
     new ShellAdaptor(server);
 
     QDBusConnection connection = QDBusConnection::sessionBus();
@@ -69,11 +76,69 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
     registerSuccess = connection.registerObject("/pt/meocloud/shell", server);
     if (!registerSuccess) {
         qDebug() << "registerObject failed :(";
-    }
+    }*/
+
+    m_socket = new QLocalSocket(this);
+
+    connect(m_socket, SIGNAL(connected()), this, SLOT(socket_connected()));
+    connect(m_socket, SIGNAL(disconnected()), this, SLOT(socket_disconnected()));
+
+    connect(m_socket, SIGNAL(readyRead()), this, SLOT(socket_readReady()));
+    connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
+            this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
+
+    m_socket->connectToServer("/home/ivo/.meocloud/gui/meocloud_shell_listener.socket");
 }
 
 DolphinMEOCloudPlugin::~DolphinMEOCloudPlugin()
 {
+    m_socket->abort();
+    delete m_socket;
+    m_socket = NULL;
+}
+
+/* SOCKETS */
+
+void DolphinMEOCloudPlugin::send_MessageToServer() {
+    Shell::SubscribeMessage msg;
+    msg.type = Shell::SubscribeType::SUBSCRIBE;
+    msg.path = "/";
+
+    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
+
+    uint8_t* bufPtr;
+    uint32_t sz;
+
+    transportOut->resetBuffer();
+    msg.write(protocolOut.get());
+    transportOut->getBuffer(&bufPtr, &sz);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_0);
+    out << QByteArray((char*)bufPtr, sz);
+    out.device()->seek(0);
+    m_socket->write(block);
+    m_socket->flush();
+}
+
+void DolphinMEOCloudPlugin::socket_connected(){
+    qDebug() << "connected";
+    send_MessageToServer();
+}
+
+void DolphinMEOCloudPlugin::socket_disconnected() {
+    qDebug() << "socket_disconnected";
+}
+
+
+void DolphinMEOCloudPlugin::socket_readReady() {
+    qDebug() << "socket_readReady";
+}
+
+void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
+    qDebug() << "socket_error";
 }
 
 QString DolphinMEOCloudPlugin::fileName() const
@@ -85,7 +150,8 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
 {
     Q_ASSERT(directory.endsWith(QLatin1Char('/')));
 
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
+    return true;
+    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                     "/pt/meocloud/dbus",
                                                     "",
                                                     "GetCloudHome");
@@ -98,6 +164,7 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
     } else {
         return true;
     }
+    return true;
 
     bool cloudIsHere = false;
     QDir dir(directory);
@@ -176,6 +243,7 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
             }
         }
     }
+    */
 
     return true;
 }
@@ -223,7 +291,7 @@ QList<QAction *>DolphinMEOCloudPlugin::getActions(QString path, bool isDir)
 {
     QList<QAction *>actions;
 
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
+    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                     "/pt/meocloud/dbus",
                                                     "",
                                                     "FileInCloud");
@@ -238,7 +306,8 @@ QList<QAction *>DolphinMEOCloudPlugin::getActions(QString path, bool isDir)
         }
     } else {
         return actions;
-    }
+    }*/
+    return actions;
 
     m_contextUrl = path;
 
@@ -273,30 +342,30 @@ void DolphinMEOCloudPlugin::shareFileLinkAction()
 
 void DolphinMEOCloudPlugin::requestLink(QString path)
 {
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
+    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                     "/pt/meocloud/dbus",
                                                     "",
                                                     "ShareLink");
     m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
+    QDBusMessage response = QDBusConnection::sessionBus().call(m);*/
 }
 
 void DolphinMEOCloudPlugin::requestShare(QString path)
 {
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
+    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                     "/pt/meocloud/dbus",
                                                     "",
                                                     "ShareFolder");
     m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
+    QDBusMessage response = QDBusConnection::sessionBus().call(m);*/
 }
 
 void DolphinMEOCloudPlugin::requestOpen(QString path)
 {
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
+    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
                                                     "/pt/meocloud/dbus",
                                                     "",
                                                     "OpenInBrowser");
     m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
+    QDBusMessage response = QDBusConnection::sessionBus().call(m);*/
 }

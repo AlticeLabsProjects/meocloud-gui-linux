@@ -8,7 +8,8 @@
 #include <QtCore/QVariantList>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTimer>
-#include "dolphin-meocloud-dbus.h"
+#include <QLocalSocket>
+
 
 class DolphinMEOCloudPlugin : public KVersionControlPlugin
 {
@@ -27,6 +28,13 @@ public:
 public slots:
     void setVersionState();
 
+    void send_MessageToServer();
+
+    void socket_connected();
+    void socket_disconnected();
+
+    void socket_readReady();
+    void socket_error(QLocalSocket::LocalSocketError);
 private slots:
     void shareFolderAction();
     void openInBrowserAction();
@@ -45,5 +53,9 @@ private:
 
     QString m_contextUrl;
     QHash<QString, KVersionControlPlugin::VersionState> m_versionInfoHash;
+
+    QLocalSocket*   m_socket;
+    quint16 m_blockSize;
+    QString m_message;
 };
 #endif // DolphinMEOCloudPlugin_H

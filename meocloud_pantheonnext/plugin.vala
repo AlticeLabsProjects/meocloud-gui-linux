@@ -41,6 +41,36 @@ enum PlaceType {
     STORAGE_CATEGORY
 }
 
+uint8[] buffer;
+
+static Python.Object? emb_buffer (Python.Object? self, Python.Object? args) {
+	if (!Python.arg_parse_tuple (args, ":buffer")) {
+        return null;
+	}
+	return Python.build_value ("s#", buffer, buffer.length);
+}
+
+static Python.Object? emb_set_buffer (Python.Object? self, Python.Object? args) {
+	unowned string s;
+	unowned int size;
+
+    if (!Python.arg_parse_tuple (args, "s#", out s, out size)) {
+        return null;
+	}
+
+    buffer = ((uint8[])s)[0:size];
+
+	return Python.build_value ("");
+}
+
+const Python.MethodDef[] emb_methods = {
+	{ "set_buffer", emb_set_buffer, Python.MethodFlags.VARARGS,
+	  "Set the Vala buffer" },
+	{ "buffer", emb_buffer, Python.MethodFlags.VARARGS,
+	  "Return the current Vala buffer." },
+	{ null, null, 0, null }
+};
+
 public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private Gtk.UIManager ui_manager;
     private Gtk.Menu menu;
@@ -54,6 +84,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string MEOCLOUD_TOOLTIP;
 
     public Gee.HashMap<string, GOF.File> map;
+
+    private Socket socket;
 
     public MEOCloud () {
         this.map = new Gee.HashMap<string, GOF.File> ();
@@ -91,6 +123,84 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                       () => stderr.printf ("Could not aquire name\n"));
 
         this.get_dbus ();
+
+        socket = new Socket (SocketFamily.UNIX, SocketType.STREAM, SocketProtocol.DEFAULT);
+        assert (socket != null);
+
+        socket.connect (new UnixSocketAddress ("/home/ivo/.meocloud/gui/meocloud_shell_listener.socket"));
+        debug ("connected\n");
+
+        this.subscribe_path("/");
+    }
+
+    private void subscribe_path(string path) {
+        Python.initialize ();
+        Python.init_module ("emb", emb_methods);
+        Python.run_simple_string ("""
+
+import emb
+import sys
+sys.path.insert(0, '/opt/meocloud/libs/')
+sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
+
+from shell.ttypes import OpenMessage, OpenType, \
+    ShareMessage, ShareType, SubscribeMessage, SubscribeType
+
+from shell.ttypes import Message, FileState, MessageType, \
+    FileStatusMessage, FileStatusType, FileStatus, FileState
+
+from thrift.protocol import TBinaryProtocol
+from thrift.protocol.TProtocol import TProtocolException
+from thrift.transport import TTransport
+
+def serialize(msg):
+    msg.validate()
+    transport = TTransport.TMemoryBuffer()
+    protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
+    msg.write(protocol)
+
+    data = transport.getvalue()
+    transport.close()
+    return data
+
+
+def serialize_thrift_msg(msg):
+    '''
+    Try to serialize a 'Message' (msg) into a byte stream
+    'Message' is defined in the thrift ShellHelper specification
+    '''
+    try:
+        data = serialize(msg)
+    except TProtocolException as tpe:
+        raise
+
+    return data
+
+serialized_msg = serialize_thrift_msg(
+    Message(type=MessageType.SUBSCRIBE_PATH,
+        subscribe=SubscribeMessage(type=SubscribeType.SUBSCRIBE,
+        path= """" + path + """ ")))
+
+emb.set_buffer(serialized_msg)
+
+import os
+os.system("echo '" + repr(emb.buffer()) + "' > ~/teste.log")
+
+""");
+        Python.finalize ();
+
+        socket.send(buffer);
+    }
+
+    private void thrift_serialize(string path) {
+        Python.initialize ();
+        Python.init_module ("emb", emb_methods);
+        Python.run_simple_string ("""
+import emb
+emb.puts('Hello World! ' + str(emb.numargs()) + '\n')
+
+""");
+        Python.finalize ();
     }
 
     public void get_dbus () {
