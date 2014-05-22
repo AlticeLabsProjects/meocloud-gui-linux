@@ -110,16 +110,10 @@ void DolphinMEOCloudPlugin::send_MessageToServer() {
     uint8_t* bufPtr;
     uint32_t sz;
 
-    transportOut->resetBuffer();
     msg.write(protocolOut.get());
     transportOut->getBuffer(&bufPtr, &sz);
 
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-    out << QByteArray((char*)bufPtr, sz);
-    out.device()->seek(0);
-    m_socket->write(block);
+    m_socket->write(QByteArray((const char*)bufPtr, sz));
     m_socket->flush();
 }
 
@@ -135,6 +129,21 @@ void DolphinMEOCloudPlugin::socket_disconnected() {
 
 void DolphinMEOCloudPlugin::socket_readReady() {
     qDebug() << "socket_readReady";
+
+    QDataStream in(m_socket);
+    in.setVersion(QDataStream::Qt_4_0);
+
+    //if (blockSize == 0) {
+    if (m_socket->bytesAvailable() < (int)sizeof(quint16))
+        return;
+    //    in >> blockSize;
+    //}
+
+     if (in.atEnd())
+         return;
+
+     QString nextFortune;
+     in >> nextFortune;
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
