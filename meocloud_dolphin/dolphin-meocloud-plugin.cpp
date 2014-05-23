@@ -125,7 +125,9 @@ void DolphinMEOCloudPlugin::requestStatus(QString path) {
     Shell::FileStatus fileStatusTmp;
     fileStatus.status = fileStatusTmp;
     msg.fileStatus = fileStatus;
-    msg.fileStatus.status.path = path.toStdString();
+    msg.fileStatus.status.path = path.replace("/home/ivo/MEOCloud", "").toStdString();
+
+    qDebug() << path.replace("/home/ivo/MEOCloud", "");
 
     boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
     boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
@@ -217,7 +219,7 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
         return true;
     }
 
-    m_versionInfoHash.clear();
+//m_versionInfoHash.clear();
 
     for(int i = 2; i < files.size(); ++i) {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
@@ -226,9 +228,11 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
         if (filename == "/home/ivo/MEOCloud") {
             return true;
         } else {
-        	if (!m_versionInfoHash.contains(filename))
+        	if (!m_versionInfoHash.contains(filename)) {
+        		versionState = KVersionControlPlugin::UnversionedVersion;
+        		m_versionInfoHash.insert(filename, versionState);
         		requestStatus(filename);
-            versionState = KVersionControlPlugin::UnversionedVersion;
+        	}
         }
     }
 
