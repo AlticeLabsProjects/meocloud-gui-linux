@@ -99,7 +99,7 @@ DolphinMEOCloudPlugin::~DolphinMEOCloudPlugin()
 
 /* SOCKETS */
 
-void DolphinMEOCloudPlugin::send_MessageToServer() {
+void DolphinMEOCloudPlugin::subscribe() {
     Shell::SubscribeMessage msg;
     msg.type = Shell::SubscribeType::SUBSCRIBE;
     msg.path = "/";
@@ -119,13 +119,16 @@ void DolphinMEOCloudPlugin::send_MessageToServer() {
 
 void DolphinMEOCloudPlugin::socket_connected(){
     qDebug() << "connected";
-    send_MessageToServer();
+    subscribe();
+
+    /*QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(socket_readReady()));
+	timer->start(3000);*/
 }
 
 void DolphinMEOCloudPlugin::socket_disconnected() {
     qDebug() << "socket_disconnected";
 }
-
 
 void DolphinMEOCloudPlugin::socket_readReady() {
     qDebug() << "socket_readReady";
@@ -133,17 +136,24 @@ void DolphinMEOCloudPlugin::socket_readReady() {
     QDataStream in(m_socket);
     in.setVersion(QDataStream::Qt_4_0);
 
-    //if (blockSize == 0) {
-    if (m_socket->bytesAvailable() < (int)sizeof(quint16))
+    if (m_socket->bytesAvailable() < (int)sizeof(quint16)) {
+    		qDebug() << "no data to be read";
+    		return;
+    }
+
+    if (in.atEnd())
         return;
-    //    in >> blockSize;
-    //}
 
-     if (in.atEnd())
-         return;
+    char* bufPtr = (char*)std::malloc(m_socket->bytesAvailable());
+	in.readRawData(bufPtr, m_socket->bytesAvailable());
 
-     QString nextFortune;
-     in >> nextFortune;
+    Shell::FileStatusMessage msg;
+    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer((uint8_t*)bufPtr, m_socket->bytesAvailable()));
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
+    msg.read(protocolOut.get());
+    transportOut->close();
+
+    qDebug() << QString::fromUtf8(msg.status.path.c_str());
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
@@ -351,30 +361,57 @@ void DolphinMEOCloudPlugin::shareFileLinkAction()
 
 void DolphinMEOCloudPlugin::requestLink(QString path)
 {
-    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "ShareLink");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);*/
+	Shell::ShareMessage msg;
+	msg.path = path.toStdString();
+	msg.type = Shell::ShareType::LINK;
+
+	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
+	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
+
+	uint8_t* bufPtr;
+	uint32_t sz;
+
+	msg.write(protocolOut.get());
+	transportOut->getBuffer(&bufPtr, &sz);
+
+	m_socket->write(QByteArray((const char*)bufPtr, sz));
+	m_socket->flush();
 }
 
 void DolphinMEOCloudPlugin::requestShare(QString path)
 {
-    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "ShareFolder");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);*/
+	Shell::ShareMessage msg;
+	msg.path = path.toStdString();
+	msg.type = Shell::ShareType::FOLDER;
+
+	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
+	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
+
+	uint8_t* bufPtr;
+	uint32_t sz;
+
+	msg.write(protocolOut.get());
+	transportOut->getBuffer(&bufPtr, &sz);
+
+	m_socket->write(QByteArray((const char*)bufPtr, sz));
+	m_socket->flush();
 }
 
 void DolphinMEOCloudPlugin::requestOpen(QString path)
 {
-    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "OpenInBrowser");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);*/
+	Shell::OpenMessage msg;
+	msg.path = path.toStdString();
+	msg.type = Shell::OpenType::BROWSER;
+
+	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
+	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
+
+	uint8_t* bufPtr;
+	uint32_t sz;
+
+	msg.write(protocolOut.get());
+	transportOut->getBuffer(&bufPtr, &sz);
+
+	m_socket->write(QByteArray((const char*)bufPtr, sz));
+	m_socket->flush();
 }

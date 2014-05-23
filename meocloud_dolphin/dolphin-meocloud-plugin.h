@@ -28,7 +28,7 @@ public:
 public slots:
     void setVersionState();
 
-    void send_MessageToServer();
+    void subscribe();
 
     void socket_connected();
     void socket_disconnected();
