@@ -67,11 +67,12 @@ static Python.Object? emb_update_status (Python.Object? self, Python.Object? arg
 	unowned string path;
 	unowned int status;
 
-    if (!Python.arg_parse_tuple (args, "s", out path, "d", out status)) {
+    if (!Python.arg_parse_tuple (args, "si", out path, out status)) {
         return null;
 	}
 
     debug("TESTE: " + path);
+    debug("TESTE: %d", status);
 
 	return Python.build_value ("");
 }
@@ -281,7 +282,7 @@ def deserialize_thrift_msg(data, socket_state=None, msgobj=Message()):
 
 des = deserialize_thrift_msg(emb.buffer())
 
-// for some reason, it doesn't like being given two arguments
+# for some reason, it doesn't like being given two arguments
 emb.update_status(des.fileStatus.status.path, des.fileStatus.status.state)
 
 """);
