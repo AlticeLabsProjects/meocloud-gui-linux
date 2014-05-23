@@ -117,6 +117,29 @@ void DolphinMEOCloudPlugin::subscribe() {
     m_socket->flush();
 }
 
+void DolphinMEOCloudPlugin::requestStatus(QString path) {
+    Shell::Message msg;
+    msg.type = Shell::MessageType::FILE_STATUS;
+    Shell::FileStatusMessage fileStatus;
+    fileStatus.type = Shell::FileStatusType::REQUEST;
+    Shell::FileStatus fileStatusTmp;
+    fileStatus.status = fileStatusTmp;
+    msg.fileStatus = fileStatus;
+    msg.fileStatus.status.path = path.toStdString();
+
+    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
+
+    uint8_t* bufPtr;
+    uint32_t sz;
+
+    msg.write(protocolOut.get());
+    transportOut->getBuffer(&bufPtr, &sz);
+
+    m_socket->write(QByteArray((const char*)bufPtr, sz));
+    m_socket->flush();
+}
+
 void DolphinMEOCloudPlugin::socket_connected(){
     qDebug() << "connected";
     subscribe();
@@ -147,11 +170,21 @@ void DolphinMEOCloudPlugin::socket_readReady() {
     char* bufPtr = (char*)std::malloc(m_socket->bytesAvailable());
 	int read = in.readRawData(bufPtr, m_socket->bytesAvailable());
 
-    Shell::FileStatusMessage msg;
+    Shell::Message msg;
     boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer((uint8_t*)bufPtr, read));
     boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
     msg.read(protocolOut.get());
     transportOut->close();
+
+    if (msg.fileStatus.status.state == 1) {
+		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::UpdateRequiredVersion);
+	} else if (msg.fileStatus.status.state == 2) {
+		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::ConflictingVersion);
+	} else if (true) {
+		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::NormalVersion);
+	}
+
+    setVersionState();
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
@@ -167,22 +200,6 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
 {
     Q_ASSERT(directory.endsWith(QLatin1Char('/')));
 
-    return true;
-    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "GetCloudHome");
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-    QString cloudHome;
-
-    if (response.type() == QDBusMessage::ReplyMessage) {
-        cloudHome = response.arguments().at(0).value<QString>();
-    } else {
-        return true;
-    }
-    return true;
-
     bool cloudIsHere = false;
     QDir dir(directory);
     QStringList files = dir.entryList();
@@ -190,13 +207,13 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
     for(int i = 2; i < files.size(); ++i) {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
 
-        if(filename == cloudHome) {
+        if(filename == "/home/ivo/MEOCloud") {
             cloudIsHere = true;
             break;
         }
     }
 
-    if (!directory.startsWith(cloudHome) && !cloudIsHere) {
+    if (!directory.startsWith("/home/ivo/MEOCloud") && !cloudIsHere) {
         return true;
     }
 
@@ -206,61 +223,14 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
         KVersionControlPlugin::VersionState versionState;
 
-        if (filename == cloudHome) {
-            QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                            "/pt/meocloud/dbus",
-                                                            "",
-                                                            "Status");
-            QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-            if (response.type() == QDBusMessage::ReplyMessage) {
-                int status = response.arguments().at(0).value<int>();
-
-                switch (status) {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    versionState = KVersionControlPlugin::UpdateRequiredVersion;
-                    break;
-                default:
-                    versionState = KVersionControlPlugin::NormalVersion;
-                    break;
-                }
-
-                m_versionInfoHash.insert(filename, versionState);
-            }
-
+        if (filename == "/home/ivo/MEOCloud") {
             return true;
         } else {
+        	if (!m_versionInfoHash.contains(filename))
+        		requestStatus(filename);
             versionState = KVersionControlPlugin::UnversionedVersion;
         }
-
-        QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                        "/pt/meocloud/dbus",
-                                                        "",
-                                                        "FileInCloud");
-        m << filename;
-        QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-        if (response.type() == QDBusMessage::ReplyMessage) {
-            bool inCloud = response.arguments().at(0).value<bool>();
-            bool isSyncing = response.arguments().at(1).value<bool>();
-            bool isIgnored = response.arguments().at(2).value<bool>();
-
-            if (inCloud && isSyncing) {
-                versionState = KVersionControlPlugin::UpdateRequiredVersion;
-                m_versionInfoHash.insert(filename, versionState);
-            } else if (inCloud && isIgnored) {
-                versionState = KVersionControlPlugin::ConflictingVersion;
-                m_versionInfoHash.insert(filename, versionState);
-            } else if (inCloud) {
-                versionState = KVersionControlPlugin::NormalVersion;
-                m_versionInfoHash.insert(filename, versionState);
-            }
-        }
     }
-    */
 
     return true;
 }

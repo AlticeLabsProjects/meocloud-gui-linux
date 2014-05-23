@@ -29,6 +29,7 @@ public slots:
     void setVersionState();
 
     void subscribe();
+    void requestStatus(QString path);
 
     void socket_connected();
     void socket_disconnected();
