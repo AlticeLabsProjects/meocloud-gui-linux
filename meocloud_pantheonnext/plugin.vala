@@ -63,7 +63,22 @@ static Python.Object? emb_set_buffer (Python.Object? self, Python.Object? args) 
 	return Python.build_value ("");
 }
 
+static Python.Object? emb_update_status (Python.Object? self, Python.Object? args) {
+	unowned string path;
+	unowned int status;
+
+    if (!Python.arg_parse_tuple (args, "s", out path, "d", out status)) {
+        return null;
+	}
+
+    debug("TESTE: " + path);
+
+	return Python.build_value ("");
+}
+
 const Python.MethodDef[] emb_methods = {
+	{ "update_status", emb_update_status, Python.MethodFlags.VARARGS,
+	  "Update file status" },
 	{ "set_buffer", emb_set_buffer, Python.MethodFlags.VARARGS,
 	  "Set the Vala buffer" },
 	{ "buffer", emb_buffer, Python.MethodFlags.VARARGS,
@@ -131,12 +146,31 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         debug ("connected\n");
 
         this.subscribe_path("/");
-    }
+        var io = new GLib.IOChannel.unix_new(socket.fd);
+        io.add_watch(IOCondition.IN|IOCondition.HUP, (source, condition) => {
+        	if (condition == IOCondition.HUP) {
+        		return false;
+        	}
+        	
+        	uint8 tbuffer[100];
+			ssize_t len;
 
-    private void subscribe_path(string path) {
-        Python.initialize ();
-        Python.init_module ("emb", emb_methods);
-        Python.run_simple_string ("""
+			len = socket.receive (tbuffer);
+			buffer = tbuffer[0:len];
+			
+			thrift_deserialize();
+        	
+        	debug ("TESTE: received something!");
+        	return true; // continue
+        });
+    }
+    
+    
+
+    private void thrift_serialize(string object_to_serialize) {
+    	Python.initialize ();
+		Python.init_module ("emb", emb_methods);
+		Python.run_simple_string ("""
 
 import emb
 import sys
@@ -144,63 +178,114 @@ sys.path.insert(0, '/opt/meocloud/libs/')
 sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
 
 from shell.ttypes import OpenMessage, OpenType, \
-    ShareMessage, ShareType, SubscribeMessage, SubscribeType
+	ShareMessage, ShareType, SubscribeMessage, SubscribeType
 
 from shell.ttypes import Message, FileState, MessageType, \
-    FileStatusMessage, FileStatusType, FileStatus, FileState
+	FileStatusMessage, FileStatusType, FileStatus, FileState
 
 from thrift.protocol import TBinaryProtocol
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.transport import TTransport
 
 def serialize(msg):
-    msg.validate()
-    transport = TTransport.TMemoryBuffer()
-    protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
-    msg.write(protocol)
+	msg.validate()
+	transport = TTransport.TMemoryBuffer()
+	protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
+	msg.write(protocol)
 
-    data = transport.getvalue()
-    transport.close()
-    return data
+	data = transport.getvalue()
+	transport.close()
+	return data
 
 
 def serialize_thrift_msg(msg):
-    '''
-    Try to serialize a 'Message' (msg) into a byte stream
-    'Message' is defined in the thrift ShellHelper specification
-    '''
-    try:
-        data = serialize(msg)
-    except TProtocolException as tpe:
-        raise
+	'''
+	Try to serialize a 'Message' (msg) into a byte stream
+	'Message' is defined in the thrift ShellHelper specification
+	'''
+	try:
+		data = serialize(msg)
+	except TProtocolException as tpe:
+		raise
 
-    return data
+	return data
 
 serialized_msg = serialize_thrift_msg(
-    Message(type=MessageType.SUBSCRIBE_PATH,
-        subscribe=SubscribeMessage(type=SubscribeType.SUBSCRIBE,
-        path= """" + path + """ ")))
+	""" + object_to_serialize + """)
 
 emb.set_buffer(serialized_msg)
 
-import os
-os.system("echo '" + repr(emb.buffer()) + "' > ~/teste.log")
-
 """);
-        Python.finalize ();
-
+		Python.finalize ();
+    }
+    
+    private void subscribe_path(string path) {
+    	this.thrift_serialize("""
+Message(type=MessageType.SUBSCRIBE_PATH, subscribe=SubscribeMessage(type=SubscribeType.SUBSCRIBE, path=" """ + path + """ "))
+""");
         socket.send(buffer);
     }
 
-    private void thrift_serialize(string path) {
-        Python.initialize ();
-        Python.init_module ("emb", emb_methods);
-        Python.run_simple_string ("""
+    private void thrift_deserialize() {
+    	Python.initialize ();
+		Python.init_module ("emb", emb_methods);
+		Python.run_simple_string ("""
+
 import emb
-emb.puts('Hello World! ' + str(emb.numargs()) + '\n')
+import sys
+sys.path.insert(0, '/opt/meocloud/libs/')
+sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
+
+from shell.ttypes import OpenMessage, OpenType, \
+	ShareMessage, ShareType, SubscribeMessage, SubscribeType
+
+from shell.ttypes import Message, FileState, MessageType, \
+	FileStatusMessage, FileStatusType, FileStatus, FileState
+
+from thrift.protocol import TBinaryProtocol
+from thrift.protocol.TProtocol import TProtocolException
+from thrift.transport import TTransport
+
+def deserialize(msg, data):
+    transport = TTransport.TMemoryBuffer(data)
+    protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
+    msg.read(protocol)
+    msg.validate()
+    remaining = data[transport.cstringio_buf.tell():]
+    transport.close()
+
+    return msg, remaining
+
+
+def deserialize_thrift_msg(data, socket_state=None, msgobj=Message()):
+    '''
+    Try to deserialize data (or buf + data) into a valid
+    "Message" (msgobj), as defined in the thrift ShellHelper specification
+    '''
+    if socket_state:
+        data = ''.join((socket_state, data))
+        socket_state = None
+    try:
+        msg, remaining = deserialize(msgobj, data)
+    except (TProtocolException, EOFError, TypeError) as dex:
+        log.error('Could not deserialize message: {0}'.format(dex))
+        if len(data) <= 8192:
+            socket_state = data
+            msg = None
+            remaining = None
+        else:
+            raise OverflowError('Message does not fit buffer.')
+
+    return msg
+
+
+des = deserialize_thrift_msg(emb.buffer())
+
+// for some reason, it doesn't like being given two arguments
+emb.update_status(des.fileStatus.status.path, des.fileStatus.status.state)
 
 """);
-        Python.finalize ();
+		Python.finalize ();
     }
 
     public void get_dbus () {

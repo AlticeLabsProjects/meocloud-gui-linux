@@ -145,15 +145,13 @@ void DolphinMEOCloudPlugin::socket_readReady() {
         return;
 
     char* bufPtr = (char*)std::malloc(m_socket->bytesAvailable());
-	in.readRawData(bufPtr, m_socket->bytesAvailable());
+	int read = in.readRawData(bufPtr, m_socket->bytesAvailable());
 
     Shell::FileStatusMessage msg;
-    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer((uint8_t*)bufPtr, m_socket->bytesAvailable()));
+    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer((uint8_t*)bufPtr, read));
     boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
     msg.read(protocolOut.get());
     transportOut->close();
-
-    qDebug() << QString::fromUtf8(msg.status.path.c_str());
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
