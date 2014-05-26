@@ -124,6 +124,8 @@ void DolphinMEOCloudPlugin::requestStatus(QString path) {
     msg.type = Shell::MessageType::FILE_STATUS;
     msg.fileStatus.type = Shell::FileStatusType::REQUEST;
     msg.fileStatus.status.path = path.replace("/home/ivo/MEOCloud", "").toStdString();
+    msg.__isset.fileStatus = true;
+    msg.fileStatus.__isset.status = true;
 
     qDebug() << "REQUESTING: " + QString::fromStdString(msg.fileStatus.status.path);
 
@@ -338,10 +340,10 @@ void DolphinMEOCloudPlugin::requestLink(QString path)
 	path = path.replace("/home/ivo/MEOCloud", "");
 
 	Shell::Message msg;
-	Shell::ShareMessage share_msg;
-	msg.share = share_msg;
-	share_msg.path = path.toStdString();
-	share_msg.type = Shell::ShareType::LINK;
+	msg.type = Shell::MessageType::SHARE;
+	msg.share.path = path.toStdString();
+	msg.share.type = Shell::ShareType::LINK;
+	msg.__isset.share = true;
 
 	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
 	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
@@ -349,8 +351,8 @@ void DolphinMEOCloudPlugin::requestLink(QString path)
 	uint8_t* bufPtr;
 	uint32_t sz;
 
+	transportOut->resetBuffer();
 	msg.write(protocolOut.get());
-	//share_msg.write(protocolOut.get());
 	transportOut->getBuffer(&bufPtr, &sz);
 	transportOut->close();
 
@@ -362,9 +364,11 @@ void DolphinMEOCloudPlugin::requestShare(QString path)
 {
 	path = path.replace("/home/ivo/MEOCloud", "");
 
-	Shell::ShareMessage msg;
-	msg.path = path.toStdString();
-	msg.type = Shell::ShareType::FOLDER;
+	Shell::Message msg;
+	msg.type = Shell::MessageType::SHARE;
+	msg.share.path = path.toStdString();
+	msg.share.type = Shell::ShareType::FOLDER;
+	msg.__isset.share = true;
 
 	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
 	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
@@ -372,6 +376,7 @@ void DolphinMEOCloudPlugin::requestShare(QString path)
 	uint8_t* bufPtr;
 	uint32_t sz;
 
+	transportOut->resetBuffer();
 	msg.write(protocolOut.get());
 	transportOut->getBuffer(&bufPtr, &sz);
 	transportOut->close();
@@ -384,9 +389,11 @@ void DolphinMEOCloudPlugin::requestOpen(QString path)
 {
 	path = path.replace("/home/ivo/MEOCloud", "");
 
-	Shell::OpenMessage msg;
-	msg.path = path.toStdString();
-	msg.type = Shell::OpenType::BROWSER;
+	Shell::Message msg;
+	msg.type = Shell::MessageType::OPEN;
+	msg.open.path = path.toStdString();
+	msg.open.type = Shell::OpenType::BROWSER;
+	msg.__isset.open = true;
 
 	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
 	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
@@ -394,6 +401,7 @@ void DolphinMEOCloudPlugin::requestOpen(QString path)
 	uint8_t* bufPtr;
 	uint32_t sz;
 
+	transportOut->resetBuffer();
 	msg.write(protocolOut.get());
 	transportOut->getBuffer(&bufPtr, &sz);
 	transportOut->close();
