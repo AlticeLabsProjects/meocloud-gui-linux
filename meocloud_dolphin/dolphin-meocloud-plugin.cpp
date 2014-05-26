@@ -12,6 +12,7 @@
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
 #include <QLocalSocket>
+#include <QSettings>
 #include <KDE/KPluginFactory>
 #include <KDE/KPluginLoader>
 #include "dolphin-meocloud-plugin.h"
@@ -62,22 +63,6 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
     connect(m_shareFileLinkAction, SIGNAL(triggered()),
             this, SLOT(shareFileLinkAction()));
 
-    /*ShellServer *server = new ShellServer(this);
-    new ShellAdaptor(server);
-
-    QDBusConnection connection = QDBusConnection::sessionBus();
-    connection.unregisterService("pt.meocloud.shell");
-    bool registerSuccess = connection.registerService("pt.meocloud.shell");
-    if (!registerSuccess) {
-        qDebug() << "registerService failed :(";
-    }
-
-    connection.unregisterObject("/pt/meocloud/shell");
-    registerSuccess = connection.registerObject("/pt/meocloud/shell", server);
-    if (!registerSuccess) {
-        qDebug() << "registerObject failed :(";
-    }*/
-
     m_socket = new QLocalSocket(this);
 
     connect(m_socket, SIGNAL(connected()), this, SLOT(socket_connected()));
@@ -87,7 +72,7 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
     connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
 
-    m_socket->connectToServer("/home/ivo/.meocloud/gui/meocloud_shell_listener.socket");
+    reloadConfig();
 }
 
 DolphinMEOCloudPlugin::~DolphinMEOCloudPlugin()
@@ -123,11 +108,9 @@ void DolphinMEOCloudPlugin::requestStatus(QString path) {
     Shell::Message msg;
     msg.type = Shell::MessageType::FILE_STATUS;
     msg.fileStatus.type = Shell::FileStatusType::REQUEST;
-    msg.fileStatus.status.path = path.replace("/home/ivo/MEOCloud", "").toStdString();
+    msg.fileStatus.status.path = path.replace(m_cloudDir, "").toStdString();
     msg.__isset.fileStatus = true;
     msg.fileStatus.__isset.status = true;
-
-    qDebug() << "REQUESTING: " + QString::fromStdString(msg.fileStatus.status.path);
 
     boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transportOut(new apache::thrift::transport::TMemoryBuffer());
     boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocolOut(new apache::thrift::protocol::TBinaryProtocol(transportOut));
@@ -144,27 +127,40 @@ void DolphinMEOCloudPlugin::requestStatus(QString path) {
     m_socket->flush();
 }
 
-void DolphinMEOCloudPlugin::socket_connected(){
-    qDebug() << "connected";
+void DolphinMEOCloudPlugin::socket_connected() {
     subscribe();
 
-    /*QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(socket_readReady()));
-	timer->start(3000);*/
+    QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(reloadConfig()));
+	timer->start(30000);
+}
+
+void DolphinMEOCloudPlugin::reloadConfig() {
+    QFile checkConfig(QDir::homePath() + "/.meocloud/gui/prefs.ini");
+	if(checkConfig.exists())
+	{
+		QSettings* settings = new QSettings(QDir::homePath() + "/.meocloud/gui/prefs.ini", QSettings::IniFormat);
+		settings->beginGroup("Advanced");
+		m_cloudDir = settings->value("Folder", QDir::homePath() + "/MEOCloud").toString();
+		settings->endGroup();
+	}
+	else {
+		m_cloudDir = QDir::homePath() + "/MEOCloud";
+	}
+
+    if (m_socket->state() == QLocalSocket::UnconnectedState) {
+    	m_socket->connectToServer(QDir::homePath() + "/.meocloud/gui/meocloud_shell_listener.socket");
+    }
 }
 
 void DolphinMEOCloudPlugin::socket_disconnected() {
-    qDebug() << "socket_disconnected";
 }
 
 void DolphinMEOCloudPlugin::socket_readReady() {
-    qDebug() << "socket_readReady";
-
     QDataStream in(m_socket);
     in.setVersion(QDataStream::Qt_4_0);
 
     if (m_socket->bytesAvailable() < (int)sizeof(quint16)) {
-    		qDebug() << "no data to be read";
     		return;
     }
 
@@ -180,21 +176,23 @@ void DolphinMEOCloudPlugin::socket_readReady() {
     msg.read(protocolOut.get());
     transportOut->close();
 
-    qDebug() << "RECEIVED: " + QString::fromStdString(msg.fileStatus.status.path);
+    QString conv = QString::fromUtf8(msg.fileStatus.status.path.c_str());
+
+    if (conv == "/")
+    	conv = "";
 
 	if (msg.fileStatus.status.state == 1) {
-		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::UpdateRequiredVersion);
+		m_versionInfoHash.insert(m_cloudDir + conv, KVersionControlPlugin::UpdateRequiredVersion);
 	} else if (msg.fileStatus.status.state == 2) {
-		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::ConflictingVersion);
+		m_versionInfoHash.insert(m_cloudDir + conv, KVersionControlPlugin::ConflictingVersion);
 	} else if (true) {
-		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::NormalVersion);
+		m_versionInfoHash.insert(m_cloudDir + conv, KVersionControlPlugin::NormalVersion);
 	}
 
     setVersionState();
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
-    qDebug() << "socket_error";
 }
 
 QString DolphinMEOCloudPlugin::fileName() const
@@ -211,36 +209,40 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
     QStringList files = dir.entryList();
 
     for(int i = 2; i < files.size(); ++i) {
-        QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
+		QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
 
-        if(filename == "/home/ivo/MEOCloud") {
-            cloudIsHere = true;
-            break;
-        }
-    }
+		if (filename == m_cloudDir) {
+			cloudIsHere = true;
+			break;
+		}
+	}
 
-    if (!directory.startsWith("/home/ivo/MEOCloud") && !cloudIsHere) {
+    if (!directory.startsWith(m_cloudDir) && !cloudIsHere) {
         return true;
     }
 
-    if (m_lastDir != dir.absolutePath())
+    if (m_lastDir != dir.absolutePath()) {
+    	m_lastDir = dir.absolutePath();
     	m_versionInfoHash.clear();
+    }
 
     for(int i = 2; i < files.size(); ++i) {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
         KVersionControlPlugin::VersionState versionState;
 
-        if (filename == "/home/ivo/MEOCloud") {
+        if (filename == m_cloudDir) {
+        	if (!m_versionInfoHash.contains(filename)) {
+				versionState = KVersionControlPlugin::UnversionedVersion;
+				requestStatus(filename + "/");
+			}
             return true;
-        } else {
+        } else if (!cloudIsHere) {
         	if (!m_versionInfoHash.contains(filename)) {
         		versionState = KVersionControlPlugin::UnversionedVersion;
         		requestStatus(filename);
         	}
         }
     }
-
-    m_lastDir = dir.absolutePath();
 
     return true;
 }
@@ -288,23 +290,8 @@ QList<QAction *>DolphinMEOCloudPlugin::getActions(QString path, bool isDir)
 {
     QList<QAction *>actions;
 
-    /*QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "FileInCloud");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-    if (response.type() == QDBusMessage::ReplyMessage) {
-        bool inCloud = response.arguments().at(0).value<bool>();
-
-        if (!inCloud) {
-            return actions;
-        }
-    } else {
-        return actions;
-    }*/
-    //return actions;
+    if (!path.startsWith(m_cloudDir + "/"))
+    	return actions;
 
     m_contextUrl = path;
 
@@ -339,7 +326,7 @@ void DolphinMEOCloudPlugin::shareFileLinkAction()
 
 void DolphinMEOCloudPlugin::requestLink(QString path)
 {
-	path = path.replace("/home/ivo/MEOCloud", "");
+	path = path.replace(m_cloudDir, "");
 
 	Shell::Message msg;
 	msg.type = Shell::MessageType::SHARE;
@@ -364,7 +351,7 @@ void DolphinMEOCloudPlugin::requestLink(QString path)
 
 void DolphinMEOCloudPlugin::requestShare(QString path)
 {
-	path = path.replace("/home/ivo/MEOCloud", "");
+	path = path.replace(m_cloudDir, "");
 
 	Shell::Message msg;
 	msg.type = Shell::MessageType::SHARE;
@@ -389,7 +376,7 @@ void DolphinMEOCloudPlugin::requestShare(QString path)
 
 void DolphinMEOCloudPlugin::requestOpen(QString path)
 {
-	path = path.replace("/home/ivo/MEOCloud", "");
+	path = path.replace(m_cloudDir, "");
 
 	Shell::Message msg;
 	msg.type = Shell::MessageType::OPEN;

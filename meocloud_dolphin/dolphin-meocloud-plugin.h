@@ -36,6 +36,8 @@ public slots:
 
     void socket_readReady();
     void socket_error(QLocalSocket::LocalSocketError);
+
+    void reloadConfig();
 private slots:
     void shareFolderAction();
     void openInBrowserAction();
@@ -52,6 +54,7 @@ private:
     void requestShare(QString path);
     void requestOpen(QString path);
 
+    QString m_cloudDir;
     QString m_lastDir;
     QString m_contextUrl;
     QHash<QString, KVersionControlPlugin::VersionState> m_versionInfoHash;
