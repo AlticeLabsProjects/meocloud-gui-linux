@@ -17,6 +17,7 @@ To do:
 1. Fix the API issues or wait for a fix from upstream.
 2. Rewrite parts of the plugin to comply with the API changes.
 3. Recompile for elementary OS Isis.
+4. Kill D-Bus and implement Unix sockets.
 
 Current state:
 1. I'm getting this issue fixed upstream. Hopefully.
@@ -28,3 +29,10 @@ Current state:
    more changes.
 3. Requires above items to be dealt with before
    a final build. It currently builds successfuly.
+4. An implementation has been started but isn't
+   ready yet. Thrift does not currently support
+   Vala and as such I've tried embedding Python
+   inside Vala using the Python C API. All the
+   Thrift functionality is implemented in Python.
+   However, this brings a few issues that I haven't
+   yet been able to solve.

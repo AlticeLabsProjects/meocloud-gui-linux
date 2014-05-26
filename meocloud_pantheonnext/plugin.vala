@@ -20,8 +20,8 @@ public class ShellServer : Object {
     }
 
     public void UpdateFile (string path) {
-        if (this.parent.map.has_key (path)) {
-            GOF.File file = this.parent.map.get (path);
+        if (map.has_key (path)) {
+            GOF.File file = map.get (path);
 
             file.emblems_list.foreach ((emblem) => {
                 file.emblems_list.remove (emblem);
@@ -42,6 +42,8 @@ enum PlaceType {
 }
 
 uint8[] buffer;
+Gee.HashMap<string, int> status;
+Gee.HashMap<string, GOF.File> map;
 
 static Python.Object? emb_buffer (Python.Object? self, Python.Object? args) {
 	if (!Python.arg_parse_tuple (args, ":buffer")) {
@@ -65,15 +67,31 @@ static Python.Object? emb_set_buffer (Python.Object? self, Python.Object? args) 
 
 static Python.Object? emb_update_status (Python.Object? self, Python.Object? args) {
 	unowned string path;
-	unowned int status;
+	unowned int fstatus;
 
-    if (!Python.arg_parse_tuple (args, "si", out path, out status)) {
+    if (!Python.arg_parse_tuple (args, "si", out path, out fstatus)) {
         return null;
 	}
 
     debug("TESTE: " + path);
-    debug("TESTE: %d", status);
+    debug("TESTE: %d", fstatus);
 
+    status.set ("/home/ivo/MEOCloud" + path, fstatus);
+    
+    if (map.has_key ("/home/ivo/MEOCloud" + path)) {
+    	debug("TESTE: emb_update_status has key");
+    	
+		GOF.File file = map.get (path);
+
+		file.emblems_list.foreach ((emblem) => {
+			file.emblems_list.remove (emblem);
+		});
+		
+		file.add_emblem ("emblem-default");
+
+		file.update_emblem ();
+	}
+    
 	return Python.build_value ("");
 }
 
@@ -99,12 +117,11 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string CLOUD_TOOLTIP;
     private string MEOCLOUD_TOOLTIP;
 
-    public Gee.HashMap<string, GOF.File> map;
-
     private Socket socket;
 
     public MEOCloud () {
-        this.map = new Gee.HashMap<string, GOF.File> ();
+        map = new Gee.HashMap<string, GOF.File> ();
+        status = new Gee.HashMap<string, int> ();
 
         OPEN_BROWSER = "Open in Browser";
         SHARE_FOLDER = "Share Folder";
@@ -165,8 +182,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         	return true; // continue
         });
     }
-    
-    
 
     private void thrift_serialize(string object_to_serialize) {
     	Python.initialize ();
@@ -226,6 +241,13 @@ Message(type=MessageType.SUBSCRIBE_PATH, subscribe=SubscribeMessage(type=Subscri
 """);
         socket.send(buffer);
     }
+    
+    private void request_file_status(string path) {
+		this.thrift_serialize("""
+Message(type=MessageType.FILE_STATUS, fileStatus=FileStatusMessage(type=FileStatusType.REQUEST, status=FileStatus(path=" """ + path + """ ")))
+""");
+		socket.send(buffer);
+	}
 
     private void thrift_deserialize() {
     	Python.initialize ();
@@ -269,7 +291,6 @@ def deserialize_thrift_msg(data, socket_state=None, msgobj=Message()):
     try:
         msg, remaining = deserialize(msgobj, data)
     except (TProtocolException, EOFError, TypeError) as dex:
-        log.error('Could not deserialize message: {0}'.format(dex))
         if len(data) <= 8192:
             socket_state = data
             msg = None
@@ -282,8 +303,8 @@ def deserialize_thrift_msg(data, socket_state=None, msgobj=Message()):
 
 des = deserialize_thrift_msg(emb.buffer())
 
-# for some reason, it doesn't like being given two arguments
-emb.update_status(des.fileStatus.status.path, des.fileStatus.status.state)
+if des is not None and des.fileStatus is not None:
+	emb.update_status(des.fileStatus.status.path, des.fileStatus.status.state)
 
 """);
 		Python.finalize ();
@@ -410,55 +431,29 @@ emb.update_status(des.fileStatus.status.path, des.fileStatus.status.state)
                         break;
                 }
             } else {
-                try {
-                    if (this.core.file_in_cloud (path)) {
-                        if (this.core.file_syncing (path))
-                            file.add_emblem ("emblem-synchronizing");
-                        else if (this.core.file_ignored (path))
-                            file.add_emblem ("emblem-important");
-                        else
-                            file.add_emblem ("emblem-default");
-                    }
-                } catch (Error e) {
-                    return;
-                }
+            	if (status.has_key(path)) {
+            		map.set (path, file);
+            		file.add_emblem ("emblem-synchronizing");
+//file.add_emblem ("emblem-important");
+//					file.add_emblem ("emblem-default");
+            	} else {
+            		map.set (path, file);
+            		status.set (path, 0);
+            		this.request_file_status(path.replace(cloud_home, ""));
+            	}
             }
         }
-
-        this.map.set (path, file);
     }
 
     public override void directory_loaded (void* user_data) {
-        this.map.clear ();
+        map.clear ();
+        status.clear ();
     }
 
     private void add_menuitem (Gtk.Menu menu, Gtk.MenuItem menu_item) {
         menu.append (menu_item);
         menu_item.show ();
         plugins.menuitem_references.add (menu_item);
-    }
-
-    public override void update_sidebar (Gtk.Widget sidebar) {
-        string cloud_home, app_path;
-
-        try {
-            cloud_home = this.core.get_cloud_home();
-            app_path = this.core.get_app_path();
-        } catch (Error e) {
-            return;
-        }
-
-        AbstractSidebar _sidebar = (AbstractSidebar) sidebar;
-
-        Gdk.Pixbuf icon = new Gdk.Pixbuf.from_file_at_size (app_path + "/icons/meocloud.svg", 18, 18);
-
-        _sidebar.add_custom_item (CLOUD_LABEL, null, null, null, null,
-                                  PlaceType.BOOKMARKS_CATEGORY, null, 0, false, true, false,
-                                  CLOUD_TOOLTIP, null, 0, 0);
-
-        _sidebar.add_custom_item ("MEO Cloud", "file://" + cloud_home.replace(" ", "%20"),
-                                  null, null, null, PlaceType.BOOKMARK, icon, 0, false, true,
-                                  false, MEOCLOUD_TOOLTIP, null, 0, 0);
     }
 }
 
