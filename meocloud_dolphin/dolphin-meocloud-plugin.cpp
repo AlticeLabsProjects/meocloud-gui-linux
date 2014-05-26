@@ -182,7 +182,7 @@ void DolphinMEOCloudPlugin::socket_readReady() {
 
     qDebug() << "RECEIVED: " + QString::fromStdString(msg.fileStatus.status.path);
 
-    if (msg.fileStatus.status.state == 1) {
+	if (msg.fileStatus.status.state == 1) {
 		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::UpdateRequiredVersion);
 	} else if (msg.fileStatus.status.state == 2) {
 		m_versionInfoHash.insert("/home/ivo/MEOCloud" + QString::fromUtf8(msg.fileStatus.status.path.c_str()), KVersionControlPlugin::ConflictingVersion);
@@ -223,7 +223,8 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
         return true;
     }
 
-//m_versionInfoHash.clear();
+    if (m_lastDir != dir.absolutePath())
+    	m_versionInfoHash.clear();
 
     for(int i = 2; i < files.size(); ++i) {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
@@ -234,11 +235,12 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
         } else {
         	if (!m_versionInfoHash.contains(filename)) {
         		versionState = KVersionControlPlugin::UnversionedVersion;
-        		m_versionInfoHash.insert(filename, versionState);
         		requestStatus(filename);
         	}
         }
     }
+
+    m_lastDir = dir.absolutePath();
 
     return true;
 }

@@ -52,6 +52,7 @@ private:
     void requestShare(QString path);
     void requestOpen(QString path);
 
+    QString m_lastDir;
     QString m_contextUrl;
     QHash<QString, KVersionControlPlugin::VersionState> m_versionInfoHash;
 
