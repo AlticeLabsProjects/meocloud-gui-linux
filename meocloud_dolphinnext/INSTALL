@@ -1,0 +1,7 @@
+sudo apt-get install kdelibs5-dev libkonq5-dev cmake
+
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+make
+sudo make install
