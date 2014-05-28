@@ -171,6 +171,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private void thrift_serialize(string object_to_serialize) {
 		Python.run_simple_string ("""
 
+import os
+				
 import emb
 import sys
 sys.path.insert(0, '/opt/meocloud/libs/')
@@ -260,36 +262,35 @@ def deserialize(msg, data):
     return msg, remaining
 
 
-def deserialize_thrift_msg(data, socket_state, msgobj=Message()):
+def deserialize_thrift_msg(data, buffered, msgobj=Message()):
     '''
     Try to deserialize data (or buf + data) into a valid
     "Message" (msgobj), as defined in the thrift ShellHelper specification
     '''
-    if socket_state:
-        data = ''.join((socket_state, data))
-        socket_state = None
+    if buffered:
+        data = ''.join((buffered, data))
+        buffered = None
     try:
         msg, remaining = deserialize(msgobj, data)
     except (TProtocolException, EOFError, TypeError) as dex:
         if len(data) <= 8192:
-            socket_state = data
             msg = None
-            remaining = None
+            remaining = data
         else:
             raise OverflowError('Message does not fit buffer.')
 
-    return msg, remaining, socket_state
+    return msg, remaining
 
 
-state = emb.state()
+remaining = emb.state()
 data = emb.buffer()
 
-if state is not None and len(state) < 1:
-	state = None
+if remaining is not None and len(remaining) < 1:
+	remaining = None
 
 while data:
-	des, remaining, state = deserialize_thrift_msg(
-		data, state)
+	des, remaining = deserialize_thrift_msg(
+		data, remaining)
 
 	if not des:
 		break
@@ -299,8 +300,8 @@ while data:
 
 	data = remaining
 
-if state is not None:
-	emb.set_state(state)
+if remaining is not None:
+	emb.set_state(remaining)
 else:
 	emb.set_state('')
 
