@@ -56,9 +56,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         socket = new Socket (SocketFamily.UNIX, SocketType.STREAM, SocketProtocol.DEFAULT);
         assert (socket != null);
 
-        debug ("connecting\n");
         socket.connect (new UnixSocketAddress (GLib.Environment.get_home_dir() + "/.meocloud/gui/meocloud_shell_proxy.socket"));
-        debug ("connected\n");
 
         this.request_cloud_home();
 
@@ -73,8 +71,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 			ssize_t len;
 			len = socket.receive (tbuffer);
 			string data = (string) tbuffer;
-
-			debug("TESTE2: " + data);
 
 			while (data.length > 0) {
 				int data_length = data.length;
@@ -110,8 +106,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     	string command = unescape(msg.split("\t")[0]);
     	string path = unescape(msg.split("\t")[1]);
 		string status = msg.split("\t")[2];
-
-		debug ("TESTE: " + path);
 
     	if (command == "home") {
     		this.cloud_home = path;
@@ -171,7 +165,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     		return;
 
     	string full = cmd + "\t" + this.escape(arg) + "\n";
-    	debug("TESTE3: " + full);
 		socket.send(full.data);
 	}
 
