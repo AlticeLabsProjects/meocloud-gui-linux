@@ -74,6 +74,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 			len = socket.receive (tbuffer);
 			string data = (string) tbuffer;
 			
+			debug("TESTE2: " + data);
+			
 			while (data.length > 0) {	
 				int data_length = data.length;
 				
@@ -108,6 +110,8 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     	string command = unescape(msg.split("\t")[0]);
     	string path = unescape(msg.split("\t")[1]);
 		string status = msg.split("\t")[2];
+		
+		debug ("TESTE: " + path);
     	
     	if (command == "home") {
     		this.cloud_home = path;

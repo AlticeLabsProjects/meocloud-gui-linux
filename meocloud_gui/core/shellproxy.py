@@ -56,15 +56,24 @@ class ShellProxy(object):
                 else:
                     try:
                         data = sock.recv(self.RECV_BUFFER)
+                        data_len = len(data)
+                        
+                        print data
+                        
                         while data:
                             for i, c in enumerate(data):
                                 if c == '\n':
+                                    print "buffer is " + self.buffer
                                     self.process_msg(self.buffer + data[:i])
                                     self.buffer = ''
-                                    data = data[i:]
+                                    data = data[i + 1:]
                                     break
-                            self.buffer += data
-                            break
+                            if len(data) == data_len:
+                                self.buffer += data
+                                break
+                            else:
+                                data_len = len(data)
+
                     except:
                         print "Client (%s) is offline" % addr
                         sock.close()
@@ -73,12 +82,11 @@ class ShellProxy(object):
              
         self.server_socket.close()
         
-    def process_msg(self, data):
+    def process_msg(self, data):              
         command = data.split('\t')[0]
         path = self.unescape(data.split('\t')[1])
         
-        if command.startswith('\n'):
-            command = command[1:]
+        print "processing " + path
         
         if command == "status":
             self.broadcast_file(path)
@@ -97,17 +105,22 @@ class ShellProxy(object):
         for sock in self.CONNECTION_LIST:
             if sock is self.server_socket:
                 continue
-            
-            print "parm is " + parm
 
             msg = cmd + "\t" + self.escape(parm) + "\t" + parm2 + "\n";
-            print "sending " + msg
             
             try:
+                print "sending " + msg
                 sock.send(msg)
             except socket.error:
-                sock.close()
-                self.CONNECTION_LIST.remove(sock)
+                self.remove_connection(sock)
+    
+    def remove_connection(self, sock):
+        sock.close()
+        
+        try:
+            self.CONNECTION_LIST.remove(sock)
+        except ValueError:
+            pass
 
     def unescape(self, path):
         return path.replace('\\t', '\t').replace('\\n', '\n').replace('\\\\', '\\')
@@ -115,9 +128,7 @@ class ShellProxy(object):
     def escape(self, path):
         return path.replace('\\', '\\\\').replace('\t', '\\t').replace('\n', '\\n')
 
-    def broadcast_file(self, short_path):
-        print "broadcasting " + short_path
-        
+    def broadcast_file(self, short_path):        
         if short_path in self.shell.file_states:
             if self.shell.file_states[short_path] == FileState.SYNCING:
                 self.socket_send("status", short_path, "1")
