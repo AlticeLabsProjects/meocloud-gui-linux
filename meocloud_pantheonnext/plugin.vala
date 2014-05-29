@@ -27,6 +27,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string cloud_home;
     
     bool subscribed = false;
+    bool disconnected = false;
 
     public MEOCloud () {  	
         map = new Gee.HashMap<string, GOF.File> ();
@@ -64,6 +65,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         var io = new GLib.IOChannel.unix_new(socket.fd);
         io.add_watch(IOCondition.IN|IOCondition.HUP, (source, condition) => {
         	if ((condition & IOCondition.HUP) != 0) {
+        		disconnected = true;
         		return false;
         	}
         	
@@ -150,6 +152,9 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 	}
 
     private void send_message(string cmd, string arg) {
+    	if (disconnected)
+    		return;
+    	
     	string full = cmd + "\t" + this.escape(arg) + "\n";
 		socket.send(full.data);
 	}
