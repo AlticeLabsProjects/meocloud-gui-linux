@@ -42,6 +42,9 @@ DAEMON_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
 SHELL_LISTENER_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
                                              'meocloud_shell_listener.socket'
                                              )
+SHELL_PROXY_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
+                                             'meocloud_shell_proxy.socket'
+                                             )
 
 LOGGER_NAME = 'meocloud_gui'
 LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_gui.log')

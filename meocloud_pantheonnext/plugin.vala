@@ -7,82 +7,6 @@ enum PlaceType {
     STORAGE_CATEGORY
 }
 
-uint8[] socket_state;
-uint8[] buffer;
-string file_path;
-int file_status;
-
-static Python.Object? emb_state (Python.Object? self, Python.Object? args) {
-	if (!Python.arg_parse_tuple (args, ":socket_state")) {
-        return null;
-	}
-	return Python.build_value ("s#", socket_state, buffer.length);
-}
-
-static Python.Object? emb_set_state(Python.Object? self, Python.Object? args) {
-	unowned string s;
-	unowned int size;
-
-    if (!Python.arg_parse_tuple (args, "s#", out s, out size)) {
-        return null;
-	}
-
-    socket_state = ((uint8[])s)[0:size];
-
-	return Python.build_value ("");
-}
-
-static Python.Object? emb_buffer (Python.Object? self, Python.Object? args) {
-	if (!Python.arg_parse_tuple (args, ":buffer")) {
-        return null;
-	}
-	return Python.build_value ("s#", buffer, buffer.length);
-}
-
-static Python.Object? emb_set_buffer (Python.Object? self, Python.Object? args) {
-	unowned string s;
-	unowned int size;
-
-    if (!Python.arg_parse_tuple (args, "s#", out s, out size)) {
-        return null;
-	}
-
-    buffer = ((uint8[])s)[0:size];
-
-	return Python.build_value ("");
-}
-
-static Python.Object? emb_update_status (Python.Object? self, Python.Object? args) {
-	unowned string path;
-	unowned int fstatus;
-
-    if (!Python.arg_parse_tuple (args, "si", out path, out fstatus)) {
-        return null;
-	}
-
-    debug("TESTE: " + path);
-    debug("TESTE: %d", fstatus);
-    
-    file_path = path.strip();
-    file_status = fstatus;
-    
-	return Python.build_value ("");
-}
-
-const Python.MethodDef[] emb_methods = {
-	{ "update_status", emb_update_status, Python.MethodFlags.VARARGS,
-	  "Update file status" },
-	{ "set_buffer", emb_set_buffer, Python.MethodFlags.VARARGS,
-	  "Set the Vala buffer" },
-	{ "buffer", emb_buffer, Python.MethodFlags.VARARGS,
-	  "Return the current Vala buffer." },
-	{ "set_state", emb_set_state, Python.MethodFlags.VARARGS,
-	  "Set the Vala socket_state" },
-	{ "state", emb_state, Python.MethodFlags.VARARGS,
-	  "Return the current Vala socket_state." },
-	{ null, null, 0, null }
-};
-
 public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private Gtk.UIManager ui_manager;
     private Gtk.Menu menu;
@@ -98,13 +22,17 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     
     private Gee.HashMap<string, int> status;
     private Gee.HashMap<string, GOF.File> map;
+    
+    private string buffer = "";
+    private string cloud_home;
+    
+    bool subscribed = false;
 
-    public MEOCloud () {
-    	Python.initialize ();
-		Python.init_module ("emb", emb_methods);
-    	
+    public MEOCloud () {  	
         map = new Gee.HashMap<string, GOF.File> ();
         status = new Gee.HashMap<string, int> ();
+        
+        cloud_home = GLib.Environment.get_home_dir() + "/MEOCloud";
 
         OPEN_BROWSER = "Open in Browser";
         SHARE_FOLDER = "Share Folder";
@@ -127,186 +55,112 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         socket = new Socket (SocketFamily.UNIX, SocketType.STREAM, SocketProtocol.DEFAULT);
         assert (socket != null);
 
-        socket.connect (new UnixSocketAddress ("/home/ivo/.meocloud/gui/meocloud_shell_listener.socket"));
+        debug ("connecting\n");
+        socket.connect (new UnixSocketAddress (GLib.Environment.get_home_dir() + "/.meocloud/gui/meocloud_shell_proxy.socket"));
         debug ("connected\n");
 
-        this.subscribe_path("/");
+        this.request_cloud_home();
 
         var io = new GLib.IOChannel.unix_new(socket.fd);
         io.add_watch(IOCondition.IN|IOCondition.HUP, (source, condition) => {
-        	if (condition == IOCondition.HUP) {
+        	if ((condition & IOCondition.HUP) != 0) {
         		return false;
         	}
         	
-        	uint8 tbuffer[100];
+        	uint8 tbuffer[8192];
 			ssize_t len;
-
 			len = socket.receive (tbuffer);
-			buffer = tbuffer[0:len];
+			string data = (string) tbuffer;
 			
-			thrift_deserialize();
-			
-			debug("TESTE2: " + file_path + " - " + file_status.to_string());
-			
-			status.set ("/home/ivo/MEOCloud" + file_path, file_status);
-			    
-			if (map.has_key ("/home/ivo/MEOCloud" + file_path)) {
-				debug("TESTE: emb_update_status has key");
+			while (data.length > 0) {	
+				int data_length = data.length;
 				
-				GOF.File file = map.get ("/home/ivo/MEOCloud" + file_path);
-
-				file.emblems_list.foreach ((emblem) => {
-					file.emblems_list.remove (emblem);
-				});
+				for (int i = 0; i < data.length; i++) {
+					if (data.data[i] == '\n') {
+						process_data(buffer + data[0:i]);
+						buffer = "";
+						data = data[(i+1):data.length];
+						break;
+					}
+				}
 				
-				file.add_emblem ("emblem-default");
-
-				file.update_emblem ();
+				if (data_length == data.length) {
+					buffer += data;
+					data = "";
+					break;
+				}
 			}
-        	
+
+			buffer += data;
+
         	return true; // continue
         });
     }
+    
+    private void process_data(string data) {
+    	string msg = data;
+    	
+    	if (msg.has_prefix("\n"))
+    		msg = msg[1:msg.length];
 
-    private void thrift_serialize(string object_to_serialize) {
-		Python.run_simple_string ("""
+    	string command = unescape(msg.split("\t")[0]);
+    	string path = unescape(msg.split("\t")[1]);
+		string status = msg.split("\t")[2];
+    	
+    	if (command == "home") {
+    		this.cloud_home = path;
+    		
+    		if (!subscribed) {
+    			this.subscribe_path("/");
+    			subscribed = true;
+    		}
+    		
+    		return;
+    	}
+    	
+    	if (path == "/")
+    		path = "";
+    	
+    	this.status.set (cloud_home + path, int.parse(status));
 
-import os
-				
-import emb
-import sys
-sys.path.insert(0, '/opt/meocloud/libs/')
-sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
+		if (map.has_key (cloud_home + path)) {
+			GOF.File file = map.get (cloud_home + path);
 
-from shell.ttypes import OpenMessage, OpenType, \
-	ShareMessage, ShareType, SubscribeMessage, SubscribeType
+			file.emblems_list.foreach ((emblem) => {
+				file.emblems_list.remove (emblem);
+			});
 
-from shell.ttypes import Message, FileState, MessageType, \
-	FileStatusMessage, FileStatusType, FileStatus, FileState
+			file.add_emblem ("emblem-default");
 
-from thrift.protocol import TBinaryProtocol
-from thrift.protocol.TProtocol import TProtocolException
-from thrift.transport import TTransport
-
-def serialize(msg):
-	msg.validate()
-	transport = TTransport.TMemoryBuffer()
-	protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
-	msg.write(protocol)
-
-	data = transport.getvalue()
-	transport.close()
-	return data
-
-
-def serialize_thrift_msg(msg):
-	'''
-	Try to serialize a 'Message' (msg) into a byte stream
-	'Message' is defined in the thrift ShellHelper specification
-	'''
-	try:
-		data = serialize(msg)
-	except TProtocolException as tpe:
-		raise
-
-	return data
-
-serialized_msg = serialize_thrift_msg(
-	""" + object_to_serialize + """)
-
-emb.set_buffer(serialized_msg)
-
-""");
+			file.update_emblem ();
+		}
     }
     
     private void subscribe_path(string path) {
-    	this.thrift_serialize("""
-Message(type=MessageType.SUBSCRIBE_PATH, subscribe=SubscribeMessage(type=SubscribeType.SUBSCRIBE, path=" """ + path + """ "))
-""");
-        socket.send(buffer);
+        send_message("subscribe", path);
     }
+
     
+    private void request_cloud_home() {
+        send_message("home", "/");
+    }
+
     private void request_file_status(string path) {
-		this.thrift_serialize("""
-Message(type=MessageType.FILE_STATUS, fileStatus=FileStatusMessage(type=FileStatusType.REQUEST, status=FileStatus(path=" """ + path + """ ")))
-""");
-		socket.send(buffer);
+    	send_message("status", path);
 	}
 
-    private void thrift_deserialize() {
-		Python.run_simple_string ("""
+    private void send_message(string cmd, string arg) {
+    	string full = cmd + "\t" + this.escape(arg) + "\n";
+		socket.send(full.data);
+	}
 
-import emb
-import sys
-sys.path.insert(0, '/opt/meocloud/libs/')
-sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
-
-from shell.ttypes import OpenMessage, OpenType, \
-	ShareMessage, ShareType, SubscribeMessage, SubscribeType
-
-from shell.ttypes import Message, FileState, MessageType, \
-	FileStatusMessage, FileStatusType, FileStatus, FileState
-
-from thrift.protocol import TBinaryProtocol
-from thrift.protocol.TProtocol import TProtocolException
-from thrift.transport import TTransport
-
-def deserialize(msg, data):
-    transport = TTransport.TMemoryBuffer(data)
-    protocol = TBinaryProtocol.TBinaryProtocolAccelerated(transport)
-    msg.read(protocol)
-    msg.validate()
-    remaining = data[transport.cstringio_buf.tell():]
-    transport.close()
-
-    return msg, remaining
-
-
-def deserialize_thrift_msg(data, buffered, msgobj=Message()):
-    '''
-    Try to deserialize data (or buf + data) into a valid
-    "Message" (msgobj), as defined in the thrift ShellHelper specification
-    '''
-    if buffered:
-        data = ''.join((buffered, data))
-        buffered = None
-    try:
-        msg, remaining = deserialize(msgobj, data)
-    except (TProtocolException, EOFError, TypeError) as dex:
-        if len(data) <= 8192:
-            msg = None
-            remaining = data
-        else:
-            raise OverflowError('Message does not fit buffer.')
-
-    return msg, remaining
-
-
-remaining = emb.state()
-data = emb.buffer()
-
-if remaining is not None and len(remaining) < 1:
-	remaining = None
-
-while data:
-	des, remaining = deserialize_thrift_msg(
-		data, remaining)
-
-	if not des:
-		break
-
-	if des is not None and des.fileStatus is not None and des.fileStatus.status is not None:
-		emb.update_status(des.fileStatus.status.path, des.fileStatus.status.state)
-
-	data = remaining
-
-if remaining is not None:
-	emb.set_state(remaining)
-else:
-	emb.set_state('')
-
-""");
+    private string escape(string path) {
+    	return path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
     }
+
+    private string unescape(string path) {
+    	return path.replace("\\t", "\t").replace("\\n", "\n").replace("\\\\", "\\");
+	}
 
     public override void context_menu (Gtk.Widget? widget,
                                        List<GOF.File> gof_files) {
@@ -325,7 +179,7 @@ else:
         var open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
         open_in_browser.activate.connect ((w) => {
             try {
-                debug("open in browser");
+            	send_message("browser", path.replace(cloud_home, ""));
             } catch (Error e) {
             }
         });
@@ -337,7 +191,7 @@ else:
             var share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
             share_folder.activate.connect ((w) => {
                 try {
-                	debug("share folder");
+                	send_message("folder", path.replace(cloud_home, ""));
                 } catch (Error e) {
                 }
             });
@@ -346,7 +200,7 @@ else:
             var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
             copy_link.activate.connect ((w) => {
                 try {
-                	debug("copy link");
+                	send_message("link", path.replace(cloud_home, ""));
                 } catch (Error e) {
                 }
             });
@@ -375,37 +229,30 @@ else:
         string path = file.get_target_location ().get_path ();
 
         if (file.emblems_list.length() == 0) {
-            string cloud_home = "/home/ivo/MEOCloud";
-
-            if (path == cloud_home) {
-                int status = 4;
-
-                switch (status) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                        file.add_emblem ("emblem-synchronizing");
-                        break;
-                    case 6:
-                    case 9:
-                        file.add_emblem ("emblem-important");
-                        break;
-                    default:
-                        file.add_emblem ("emblem-default");
-                        break;
-                }
-            } else if (path.has_prefix(cloud_home)) {
-            	if (status.has_key(path)) {
-            		file.add_emblem ("emblem-synchronizing");
-//file.add_emblem ("emblem-important");
-//					file.add_emblem ("emblem-default");
-            	} else {
-            		map.set (path, file);
-            		//status.set (path, 2);
-            		this.request_file_status(path.replace(cloud_home, ""));
-            	}
-            }
+        	if (path.has_prefix(cloud_home)) {
+				string short_path = path.replace(cloud_home, "");
+	
+				if (status.has_key(path)) {
+					switch(status.get(path)) {
+						case 0:
+							file.add_emblem ("emblem-default");
+							break;
+						case 1:
+							file.add_emblem ("emblem-synchronizing");
+							break;
+						case 2:
+						case 3:
+							file.add_emblem ("emblem-important");
+							break;
+					}
+				} else {
+					if (short_path == "")
+						short_path = "/";
+					
+					map.set (path, file);
+					this.request_file_status(short_path);
+				}
+        	}
         }
     }
 

@@ -1,7 +1,6 @@
 import os
 import keyring
 import webbrowser
-from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
 from meocloud_gui.exceptions import ListenerConnectionFailedException
@@ -15,7 +14,7 @@ from meocloud_gui.core.core import Core
 from meocloud_gui.core.shell import Shell
 from meocloud_gui.core.core_client import CoreClient
 from meocloud_gui.core.core_listener import CoreListener
-from meocloud_gui.core.dbusservice import DBusService
+from meocloud_gui.core.shellproxy import ShellProxy
 import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
@@ -86,9 +85,7 @@ class Application(Gtk.Application):
         self.listener_thread = None
         self.watchdog_thread = None
 
-        # initialize dbus
-        DBusGMainLoop(set_as_default=True)
-        self.dbus_service = DBusService(codes.CORE_INITIALIZING, self)
+        self.shell_proxy = ShellProxy(codes.CORE_INITIALIZING, self)
 
         # are we running GNOME or elementary OS?
         self.use_headerbar = utils.use_headerbar()
@@ -319,7 +316,7 @@ class Application(Gtk.Application):
         cloud_home = Preferences().get('Advanced', 'Folder',
                                        CLOUD_HOME_DEFAULT_PATH)
 
-        self.dbus_service.status = status.state
+        self.shell_proxy.status = status.state
 
         if (status.state == codes.CORE_WAITING) and self.enable_sync:
             self.core_client.startSync(cloud_home)
@@ -333,12 +330,11 @@ class Application(Gtk.Application):
                         True))
 
         if ((status.state == codes.CORE_SYNCING or
-                status.state == codes.CORE_READY) and self.dbus_service.enabled
-                and self.shell is None):
+                status.state == codes.CORE_READY) and self.shell is None):
             self.shell = Shell()
-            self.shell.subscribe_path('/')
-            self.dbus_service.shell = self.shell
-            self.dbus_service.update_prefs()
+            self.shell.proxy = self.shell_proxy
+            self.shell_proxy.shell = self.shell
+            self.shell_proxy.update_prefs()
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and
@@ -454,9 +450,6 @@ class Application(Gtk.Application):
                     'CoreListener: Got unknown error code: {0}'.format(
                         error_code))
                 assert False
-
-        if self.dbus_service.enabled:
-            utils.touch(cloud_home)
 
     def update_sync_status(self):
         if self.update_sync_status_timeout is None:
@@ -644,8 +637,8 @@ class Application(Gtk.Application):
         self.listener_thread.start()
         self.watchdog_thread.start()
 
-        # Restart DBus and update logging
-        self.dbus_service.update_prefs()
+        # Restart Shell Proxy and update logging
+        self.shell_proxy.update_prefs()
         log.info('Application.restart_core: core restart completed')
 
     def stop_threads(self):

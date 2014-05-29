@@ -41,6 +41,7 @@ class Shell(object):
         self.write_buffer = None
         self.writing = False
         self.sock = None
+        self.proxy = None
 
         self.recv_msg = Message()
         self.file_status_msg = \
@@ -78,7 +79,6 @@ class Shell(object):
         except socket.error as error:
             return False
         else:
-            self.subscribe_path('/')
             GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN|GLib.IO_HUP,
                               self.on_msg_read, priority=GLib.PRIORITY_LOW)
             return True
@@ -216,7 +216,7 @@ class Shell(object):
             data = remaining
 
         while paths:
-            utils.touch(paths.pop())
+            self.proxy.broadcast_file(paths.pop())
 
     def _send(self, data):
         if not self._check_connection():
