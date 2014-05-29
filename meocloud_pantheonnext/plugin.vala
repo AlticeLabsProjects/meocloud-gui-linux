@@ -19,20 +19,20 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string MEOCLOUD_TOOLTIP;
 
     private Socket socket;
-    
+
     private Gee.HashMap<string, int> status;
     private Gee.HashMap<string, GOF.File> map;
-    
+
     private string buffer = "";
     private string cloud_home;
-    
+
     bool subscribed = false;
     bool disconnected = false;
 
-    public MEOCloud () {  	
+    public MEOCloud () {
         map = new Gee.HashMap<string, GOF.File> ();
         status = new Gee.HashMap<string, int> ();
-        
+
         cloud_home = GLib.Environment.get_home_dir() + "/MEOCloud";
 
         OPEN_BROWSER = "Open in Browser";
@@ -68,17 +68,17 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         		disconnected = true;
         		return false;
         	}
-        	
+
         	uint8 tbuffer[32768];
 			ssize_t len;
 			len = socket.receive (tbuffer);
 			string data = (string) tbuffer;
-			
+
 			debug("TESTE2: " + data);
-			
-			while (data.length > 0) {	
+
+			while (data.length > 0) {
 				int data_length = data.length;
-				
+
 				for (int i = 0; i < data.length; i++) {
 					if (data.data[i] == '\n') {
 						process_data(buffer + data[0:i]);
@@ -87,7 +87,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 						break;
 					}
 				}
-				
+
 				if (data_length == data.length) {
 					buffer += data;
 					data = "";
@@ -100,33 +100,33 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         	return true; // continue
         });
     }
-    
+
     private void process_data(string data) {
     	string msg = data;
-    	
+
     	if (msg.has_prefix("\n"))
     		msg = msg[1:msg.length];
 
     	string command = unescape(msg.split("\t")[0]);
     	string path = unescape(msg.split("\t")[1]);
 		string status = msg.split("\t")[2];
-		
+
 		debug ("TESTE: " + path);
-    	
+
     	if (command == "home") {
     		this.cloud_home = path;
-    		
+
     		if (!subscribed) {
     			this.subscribe_path("/");
     			subscribed = true;
     		}
-    		
+
     		return;
     	}
-    	
+
     	if (path == "/")
     		path = "";
-    	
+
     	this.status.set (cloud_home + path, int.parse(status));
 
 		if (map.has_key (cloud_home + path)) {
@@ -136,17 +136,28 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 				file.emblems_list.remove (emblem);
 			});
 
-			file.add_emblem ("emblem-default");
+			switch(int.parse(status)) {
+				case 0:
+					file.add_emblem ("emblem-default");
+					break;
+				case 1:
+					file.add_emblem ("emblem-synchronizing");
+					break;
+				case 2:
+				case 3:
+					file.add_emblem ("emblem-important");
+					break;
+			}
 
 			file.update_emblem ();
 		}
     }
-    
+
     private void subscribe_path(string path) {
         send_message("subscribe", path);
     }
 
-    
+
     private void request_cloud_home() {
         send_message("home", "/");
     }
@@ -186,6 +197,15 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 
         Gtk.Menu submenu = new Gtk.Menu ();
 
+        var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
+        copy_link.activate.connect ((w) => {
+            try {
+            	send_message("link", path.replace(cloud_home, ""));
+            } catch (Error e) {
+            }
+        });
+        submenu.add (copy_link);
+
         var open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
         open_in_browser.activate.connect ((w) => {
             try {
@@ -206,15 +226,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
                 }
             });
             submenu.add (share_folder);
-        } else {
-            var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
-            copy_link.activate.connect ((w) => {
-                try {
-                	send_message("link", path.replace(cloud_home, ""));
-                } catch (Error e) {
-                }
-            });
-            submenu.add (copy_link);
         }
 
         submenu.show_all ();
@@ -241,7 +252,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         if (file.emblems_list.length() == 0) {
         	if (path.has_prefix(cloud_home)) {
 				string short_path = path.replace(cloud_home, "");
-	
+
 				if (status.has_key(path)) {
 					switch(status.get(path)) {
 						case 0:
@@ -258,16 +269,16 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 				} else {
 					if (short_path == "")
 						short_path = "/";
-					
+
 					map.set (path, file);
 					this.request_file_status(short_path);
-					
+
 					GLib.Timeout.add(1000, () => {
 						if (!status.has_key (cloud_home + short_path)) {
 							this.request_file_status(short_path);
 							return true;
 						}
-						
+
 						return false;
 					});
 				}

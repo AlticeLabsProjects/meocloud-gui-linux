@@ -1,37 +1,3 @@
-[DBus (name = "pt.meocloud.dbus")]
-interface Core : Object {
-    public abstract int status () throws GLib.Error;
-    public abstract bool file_in_cloud (string path) throws GLib.Error;
-    public abstract bool file_syncing (string path) throws GLib.Error;
-    public abstract bool file_ignored (string path) throws GLib.Error;
-    public abstract string get_cloud_home () throws GLib.Error;
-    public abstract string get_app_path () throws GLib.Error;
-    public abstract void share_link (string path) throws GLib.Error;
-    public abstract void share_folder (string path) throws GLib.Error;
-    public abstract void open_in_browser (string path) throws GLib.Error;
-}
-
-[DBus (name = "pt.meocloud.shell")]
-public class ShellServer : Object {
-    private Marlin.Plugins.MEOCloud parent;
-
-    public ShellServer (Marlin.Plugins.MEOCloud parent) {
-        this.parent = parent;
-    }
-
-    public void UpdateFile (string path) {
-        if (this.parent.map.has_key (path)) {
-            GOF.File file = this.parent.map.get (path);
-
-            file.emblems_list.foreach ((emblem) => {
-                file.emblems_list.remove (emblem);
-            });
-
-            file.update_emblem ();
-        }
-    }
-}
-
 enum SidebarPlaces {
     COLUMN_ROW_TYPE,
     COLUMN_URI,
@@ -55,7 +21,6 @@ enum SidebarPlaces {
 public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private Gtk.UIManager ui_manager;
     private Gtk.Menu menu;
-    private Core? core = null;
 
     private string OPEN_BROWSER;
     private string SHARE_FOLDER;
@@ -64,10 +29,22 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private string CLOUD_TOOLTIP;
     private string MEOCLOUD_TOOLTIP;
 
-    public Gee.HashMap<string, GOF.File> map;
+    private Socket socket;
+
+    private Gee.HashMap<string, int> status;
+    private Gee.HashMap<string, GOF.File> map;
+
+    private string buffer = "";
+    private string cloud_home;
+
+    bool subscribed = false;
+    bool disconnected = false;
 
     public MEOCloud () {
-        this.map = new Gee.HashMap<string, GOF.File> ();
+        map = new Gee.HashMap<string, GOF.File> ();
+        status = new Gee.HashMap<string, int> ();
+
+        cloud_home = GLib.Environment.get_home_dir() + "/MEOCloud";
 
         OPEN_BROWSER = "Open in Browser";
         SHARE_FOLDER = "Share Folder";
@@ -87,34 +64,135 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             MEOCLOUD_TOOLTIP = "A sua pasta MEO Cloud";
         }
 
-        Bus.own_name (BusType.SESSION, "pt.meocloud.shell",
-                      BusNameOwnerFlags.ALLOW_REPLACEMENT +
-                      BusNameOwnerFlags.REPLACE,
-                      (conn) => {
-                          try {
-                              conn.register_object ("/pt/meocloud/shell",
-                                                    new ShellServer (this));
-                          } catch (IOError e) {
-                              stderr.printf ("Could not register service\n");
-                          }
-                      },
-                      () => {},
-                      () => stderr.printf ("Could not aquire name\n"));
+        socket = new Socket (SocketFamily.UNIX, SocketType.STREAM, SocketProtocol.DEFAULT);
+        assert (socket != null);
 
-        this.get_dbus ();
+        debug ("connecting\n");
+        socket.connect (new UnixSocketAddress (GLib.Environment.get_home_dir() + "/.meocloud/gui/meocloud_shell_proxy.socket"));
+        debug ("connected\n");
+
+        this.request_cloud_home();
+
+        var io = new GLib.IOChannel.unix_new(socket.fd);
+        io.add_watch(IOCondition.IN|IOCondition.HUP, (source, condition) => {
+        	if ((condition & IOCondition.HUP) != 0) {
+        		disconnected = true;
+        		return false;
+        	}
+
+        	uint8 tbuffer[32768];
+			ssize_t len;
+			len = socket.receive (tbuffer);
+			string data = (string) tbuffer;
+
+			debug("TESTE2: " + data);
+
+			while (data.length > 0) {
+				int data_length = data.length;
+
+				for (int i = 0; i < data.length; i++) {
+					if (data.data[i] == '\n') {
+						process_data(buffer + data[0:i]);
+						buffer = "";
+						data = data[(i+1):data.length];
+						break;
+					}
+				}
+
+				if (data_length == data.length) {
+					buffer += data;
+					data = "";
+					break;
+				}
+			}
+
+			buffer += data;
+
+        	return true; // continue
+        });
     }
 
-    public void get_dbus () {
-        if (this.core == null) {
-            try {
-                this.core = Bus.get_proxy_sync (BusType.SESSION,
-                                                "pt.meocloud.dbus",
-                                                "/pt/meocloud/dbus");
-            } catch (Error e) {
-                this.core = null;
-            }
-        }
+    private void process_data(string data) {
+    	string msg = data;
+
+    	if (msg.has_prefix("\n"))
+    		msg = msg[1:msg.length];
+
+    	string command = unescape(msg.split("\t")[0]);
+    	string path = unescape(msg.split("\t")[1]);
+		string status = msg.split("\t")[2];
+
+		debug ("TESTE: " + path);
+
+    	if (command == "home") {
+    		this.cloud_home = path;
+
+    		if (!subscribed) {
+    			this.subscribe_path("/");
+    			subscribed = true;
+    		}
+
+    		return;
+    	}
+
+    	if (path == "/")
+    		path = "";
+
+    	this.status.set (cloud_home + path, int.parse(status));
+
+		if (map.has_key (cloud_home + path)) {
+			GOF.File file = map.get (cloud_home + path);
+
+			file.emblems_list.foreach ((emblem) => {
+				file.emblems_list.remove (emblem);
+			});
+
+			switch(int.parse(status)) {
+				case 0:
+					file.add_emblem ("emblem-default");
+					break;
+				case 1:
+					file.add_emblem ("emblem-synchronizing");
+					break;
+				case 2:
+				case 3:
+					file.add_emblem ("emblem-important");
+					break;
+			}
+
+			file.update_emblem ();
+		}
     }
+
+    private void subscribe_path(string path) {
+        send_message("subscribe", path);
+    }
+
+
+    private void request_cloud_home() {
+        send_message("home", "/");
+    }
+
+    private void request_file_status(string path) {
+    	send_message("status", path);
+	}
+
+    private void send_message(string cmd, string arg) {
+    	if (disconnected)
+    		return;
+
+    	string full = cmd + "\t" + this.escape(arg) + "\n";
+    	debug("TESTE3: " + full);
+		socket.send(full.data);
+	}
+
+    private string escape(string path) {
+    	return path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
+    }
+
+    private string unescape(string path) {
+    	return path.replace("\\t", "\t").replace("\\n", "\n").replace("\\\\", "\\");
+	}
 
     public override void context_menu (Gtk.Widget? widget,
                                        List<GOF.File> gof_files) {
@@ -128,21 +206,12 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         string path = GLib.Uri.unescape_string (file.uri.replace ("file://",
                                                                   ""));
 
-        try {
-            this.get_dbus ();
-            var file_in_cloud = this.core.file_in_cloud (path);
-            if (!file_in_cloud)
-                return;
-        } catch (Error e) {
-            return;
-        }
-
         Gtk.Menu submenu = new Gtk.Menu ();
 
         var copy_link = new Gtk.MenuItem.with_label (COPY_LINK);
         copy_link.activate.connect ((w) => {
             try {
-                this.core.share_link (path);
+                send_message("link", path.replace(cloud_home, ""));
             } catch (Error e) {
             }
         });
@@ -151,7 +220,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         var open_in_browser = new Gtk.MenuItem.with_label (OPEN_BROWSER);
         open_in_browser.activate.connect ((w) => {
             try {
-                this.core.open_in_browser (path);
+                send_message("browser", path.replace(cloud_home, ""));
             } catch (Error e) {
             }
         });
@@ -163,7 +232,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
             var share_folder = new Gtk.MenuItem.with_label (SHARE_FOLDER);
             share_folder.activate.connect ((w) => {
                 try {
-                    this.core.share_folder (path);
+                    send_message("folder", path.replace(cloud_home, ""));
                 } catch (Error e) {
                 }
             });
@@ -192,52 +261,39 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         string path = file.get_target_location ().get_path ();
 
         if (file.emblems_list.length() == 0) {
-            string cloud_home;
+        	if (path.has_prefix(cloud_home)) {
+				string short_path = path.replace(cloud_home, "");
 
-            try {
-                cloud_home = this.core.get_cloud_home ();
-            } catch (Error e) {
-                return;
-            }
+				if (status.has_key(path)) {
+					switch(status.get(path)) {
+						case 0:
+							file.add_emblem ("emblem-default");
+							break;
+						case 1:
+							file.add_emblem ("emblem-synchronizing");
+							break;
+						case 2:
+						case 3:
+							file.add_emblem ("emblem-important");
+							break;
+					}
+				} else {
+					if (short_path == "")
+						short_path = "/";
 
-            if (path == cloud_home) {
-                int status;
+					map.set (path, file);
+					this.request_file_status(short_path);
 
-                try {
-                    status = this.core.status ();
-                } catch (Error e) {
-                    return;
-                }
+					GLib.Timeout.add(1000, () => {
+						if (!status.has_key (cloud_home + short_path)) {
+							this.request_file_status(short_path);
+							return true;
+						}
 
-                switch (status) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                        file.add_emblem ("emblem-synchronizing");
-                        break;
-                    case 6:
-                    case 9:
-                        file.add_emblem ("emblem-important");
-                        break;
-                    default:
-                        file.add_emblem ("emblem-default");
-                        break;
-                }
-            } else {
-                try {
-                    if (this.core.file_in_cloud (path)) {
-                        if (this.core.file_syncing (path))
-                            file.add_emblem ("emblem-synchronizing");
-                        else if (this.core.file_ignored (path))
-                            file.add_emblem ("emblem-important");
-                        else
-                            file.add_emblem ("emblem-default");
-                    }
-                } catch (Error e) {
-                    return;
-                }
-            }
+						return false;
+					});
+				}
+        	}
         }
 
         this.map.set (path, file);
