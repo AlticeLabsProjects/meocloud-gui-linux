@@ -29,10 +29,10 @@ Current state:
    more changes.
 3. Requires above items to be dealt with before
    a final build. It currently builds successfuly.
-4. An implementation has been started but isn't
-   ready yet. Thrift does not currently support
-   Vala and as such I've tried embedding Python
-   inside Vala using the Python C API. All the
-   Thrift functionality is implemented in Python.
-   However, this brings a few issues that I haven't
-   yet been able to solve.
+   As a side note, elementary OS Isis does not have
+   public builds as of 29-05-2014. It's still in heavy
+   development and the only official builds are private,
+   made for in-house use.
+4. Done. Kind of. For some reason, some messages are failing.
+   I can't figure out why, so at the moment there is a workaround
+   implemented. If a reply doesn't arrive, the plugin asks again.
