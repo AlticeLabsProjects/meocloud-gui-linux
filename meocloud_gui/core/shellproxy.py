@@ -14,7 +14,6 @@ log = logging.getLogger(LOGGER_NAME)
 class ShellProxy(object):
     def __init__(self, status, app):
         self.app = app
-        self.enabled = True
         self.status = status
         self.shell = None
         self.app_path = app.app_path
@@ -136,16 +135,14 @@ class ShellProxy(object):
             self.shell.update_file_status(short_path)
 
     def update_prefs(self):
-        if self.enabled:
-            prefs = Preferences()
-            self.cloud_home = prefs.get('Advanced', 'Folder',
-                                        CLOUD_HOME_DEFAULT_PATH)
-            log.info(
-                'ShellProxy.update_prefs: cloud_home is ' + self.cloud_home)
-            self.socket_send("home", self.cloud_home, "0")
+        prefs = Preferences()
+        self.cloud_home = prefs.get('Advanced', 'Folder',
+                                    CLOUD_HOME_DEFAULT_PATH)
+        log.info(
+            'ShellProxy.update_prefs: cloud_home is ' + self.cloud_home)
+        self.socket_send("home", self.cloud_home, "0")
 
     def share_folder(self, path):
-        self.enable()
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
@@ -153,7 +150,6 @@ class ShellProxy(object):
             self.shell.share_folder(path)
 
     def share_link(self, path):
-        self.enable()
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
@@ -161,7 +157,6 @@ class ShellProxy(object):
             self.shell.share_link(path)
 
     def open_in_browser(self, path):
-        self.enable()
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
             path = path.replace(self.cloud_home, '')
