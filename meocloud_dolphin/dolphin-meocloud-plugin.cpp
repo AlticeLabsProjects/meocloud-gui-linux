@@ -11,7 +11,8 @@
 #include <QtCore/QtDebug>
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
-#include <QtDBus/QtDBus>
+#include <QLocalSocket>
+#include <QSettings>
 #include <KDE/KPluginFactory>
 #include <KDE/KPluginLoader>
 #include "dolphin-meocloud-plugin.h"
@@ -24,6 +25,8 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
     m_versionInfoHash()
 {
     Q_UNUSED(args);
+
+    buffer = "";
 
     QString lang = QLocale::system().uiLanguages().first().replace("-", "_");
 
@@ -55,25 +58,139 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
     connect(m_shareFileLinkAction, SIGNAL(triggered()),
             this, SLOT(shareFileLinkAction()));
 
-    ShellServer *server = new ShellServer(this);
-    new ShellAdaptor(server);
+    m_socket = new QLocalSocket(this);
 
-    QDBusConnection connection = QDBusConnection::sessionBus();
-    connection.unregisterService("pt.meocloud.shell");
-    bool registerSuccess = connection.registerService("pt.meocloud.shell");
-    if (!registerSuccess) {
-        qDebug() << "registerService failed :(";
-    }
+    connect(m_socket, SIGNAL(connected()), this, SLOT(socket_connected()));
+    connect(m_socket, SIGNAL(disconnected()), this, SLOT(socket_disconnected()));
 
-    connection.unregisterObject("/pt/meocloud/shell");
-    registerSuccess = connection.registerObject("/pt/meocloud/shell", server);
-    if (!registerSuccess) {
-        qDebug() << "registerObject failed :(";
-    }
+    connect(m_socket, SIGNAL(readyRead()), this, SLOT(socket_readReady()));
+    connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
+            this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
+
+    reloadConfig();
 }
 
 DolphinMEOCloudPlugin::~DolphinMEOCloudPlugin()
 {
+    m_socket->abort();
+    delete m_socket;
+    m_socket = NULL;
+}
+
+/* SOCKETS */
+
+void DolphinMEOCloudPlugin::subscribe() {
+    m_socket->write("subscribe\t/\n");
+    m_socket->flush();
+}
+
+void DolphinMEOCloudPlugin::requestStatus(QString path) {
+	path = path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
+	m_socket->write(("status\t" + path.replace(m_cloudDir, "") + "\n").toStdString().c_str());
+	m_socket->flush();
+}
+
+void DolphinMEOCloudPlugin::socket_connected() {
+    subscribe();
+
+    QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(reloadConfig()));
+	timer->start(30000);
+}
+
+void DolphinMEOCloudPlugin::reloadConfig() {
+    QFile checkConfig(QDir::homePath() + "/.meocloud/gui/prefs.ini");
+	if(checkConfig.exists())
+	{
+		QSettings* settings = new QSettings(QDir::homePath() + "/.meocloud/gui/prefs.ini", QSettings::IniFormat);
+		settings->beginGroup("Advanced");
+		m_cloudDir = settings->value("Folder", QDir::homePath() + "/MEOCloud").toString();
+		settings->endGroup();
+	}
+	else {
+		m_cloudDir = QDir::homePath() + "/MEOCloud";
+	}
+
+    if (m_socket->state() == QLocalSocket::UnconnectedState) {
+    	m_socket->connectToServer(QDir::homePath() + "/.meocloud/gui/meocloud_shell_proxy.socket");
+    }
+}
+
+void DolphinMEOCloudPlugin::socket_disconnected() {
+}
+
+void DolphinMEOCloudPlugin::socket_readReady() {
+    QDataStream in(m_socket);
+    in.setVersion(QDataStream::Qt_4_0);
+
+    if (m_socket->bytesAvailable() < (int)sizeof(quint64)) {
+    		return;
+    }
+
+    if (in.atEnd())
+        return;
+
+    if (m_blockSize == 0) {
+		if (m_socket->bytesAvailable() < (int)sizeof(quint64))
+			return;
+		in >> m_blockSize;
+	}
+
+    char* bufPtr = (char*)std::malloc(m_socket->bytesAvailable());
+	int read = in.readRawData(bufPtr, m_socket->bytesAvailable());
+
+	std::string stdString(bufPtr, read);
+	QString data = QString::fromStdString(stdString);
+
+	m_blockSize = 0;
+
+    while (data.length() > 0) {
+		int data_length = data.length();
+
+		for (int i = 0; i < data.length(); i++) {
+			if (data[i] == '\n') {
+				processData(buffer + data.mid(0, i));
+				buffer = "";
+				data = data.mid(i+1, data.length() - (i+1));
+				break;
+			}
+		}
+
+		if (data_length == data.length()) {
+			buffer += data;
+			data = "";
+			break;
+		}
+	}
+
+	buffer += data;
+
+	if (m_socket->bytesAvailable() >= (int)sizeof(quint64))
+		socket_readReady();
+}
+
+void DolphinMEOCloudPlugin::processData(QString data) {
+	QString command = data.split('\t')[0];
+	QString path = data.split('\t')[1];
+	QString state = data.split('\t')[2];
+
+	path = path.replace("\\t", "\t").replace("\\n", "\n").replace("\\\\", "\\");
+
+	if (path == "/")
+		path = "";
+
+	if (state == "1") {
+		m_versionInfoHash.insert(m_cloudDir + path, KVersionControlPlugin::UpdateRequiredVersion);
+	} else if (state == "2" || state == "3") {
+		m_versionInfoHash.insert(m_cloudDir + path, KVersionControlPlugin::ConflictingVersion);
+	} else if (state == "0") {
+		m_versionInfoHash.insert(m_cloudDir + path, KVersionControlPlugin::NormalVersion);
+	}
+
+	setVersionState();
+}
+
+void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
 }
 
 QString DolphinMEOCloudPlugin::fileName() const
@@ -85,95 +202,43 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
 {
     Q_ASSERT(directory.endsWith(QLatin1Char('/')));
 
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "GetCloudHome");
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-    QString cloudHome;
-
-    if (response.type() == QDBusMessage::ReplyMessage) {
-        cloudHome = response.arguments().at(0).value<QString>();
-    } else {
-        return true;
-    }
-
     bool cloudIsHere = false;
     QDir dir(directory);
     QStringList files = dir.entryList();
 
     for(int i = 2; i < files.size(); ++i) {
-        QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
+		QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
 
-        if(filename == cloudHome) {
-            cloudIsHere = true;
-            break;
-        }
-    }
+		if (filename == m_cloudDir) {
+			cloudIsHere = true;
+			break;
+		}
+	}
 
-    if (!directory.startsWith(cloudHome) && !cloudIsHere) {
+    if (!directory.startsWith(m_cloudDir) && !cloudIsHere) {
         return true;
     }
 
-    m_versionInfoHash.clear();
+    if (m_lastDir != dir.absolutePath()) {
+    	m_lastDir = dir.absolutePath();
+    	m_versionInfoHash.clear();
+    }
 
     for(int i = 2; i < files.size(); ++i) {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
         KVersionControlPlugin::VersionState versionState;
 
-        if (filename == cloudHome) {
-            QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                            "/pt/meocloud/dbus",
-                                                            "",
-                                                            "Status");
-            QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-            if (response.type() == QDBusMessage::ReplyMessage) {
-                int status = response.arguments().at(0).value<int>();
-
-                switch (status) {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    versionState = KVersionControlPlugin::UpdateRequiredVersion;
-                    break;
-                default:
-                    versionState = KVersionControlPlugin::NormalVersion;
-                    break;
-                }
-
-                m_versionInfoHash.insert(filename, versionState);
-            }
-
+        if (filename == m_cloudDir) {
+        	if (!m_versionInfoHash.contains(filename)) {
+				versionState = KVersionControlPlugin::UnversionedVersion;
+				requestStatus(filename + "/");
+			}
             return true;
-        } else {
-            versionState = KVersionControlPlugin::UnversionedVersion;
-        }
-
-        QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                        "/pt/meocloud/dbus",
-                                                        "",
-                                                        "FileInCloud");
-        m << filename;
-        QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-        if (response.type() == QDBusMessage::ReplyMessage) {
-            bool inCloud = response.arguments().at(0).value<bool>();
-            bool isSyncing = response.arguments().at(1).value<bool>();
-            bool isIgnored = response.arguments().at(2).value<bool>();
-
-            if (inCloud && isSyncing) {
-                versionState = KVersionControlPlugin::UpdateRequiredVersion;
-                m_versionInfoHash.insert(filename, versionState);
-            } else if (inCloud && isIgnored) {
-                versionState = KVersionControlPlugin::ConflictingVersion;
-                m_versionInfoHash.insert(filename, versionState);
-            } else if (inCloud) {
-                versionState = KVersionControlPlugin::NormalVersion;
-                m_versionInfoHash.insert(filename, versionState);
-            }
+        } else if (!cloudIsHere) {
+        	if (!m_versionInfoHash.contains(filename)) {
+        		versionState = KVersionControlPlugin::UnversionedVersion;
+        		requestStatus(filename);
+        	}
         }
     }
 
@@ -223,22 +288,8 @@ QList<QAction *>DolphinMEOCloudPlugin::getActions(QString path, bool isDir)
 {
     QList<QAction *>actions;
 
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "FileInCloud");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
-
-    if (response.type() == QDBusMessage::ReplyMessage) {
-        bool inCloud = response.arguments().at(0).value<bool>();
-
-        if (!inCloud) {
-            return actions;
-        }
-    } else {
-        return actions;
-    }
+    if (!path.startsWith(m_cloudDir + "/"))
+    	return actions;
 
     m_contextUrl = path;
 
@@ -273,30 +324,21 @@ void DolphinMEOCloudPlugin::shareFileLinkAction()
 
 void DolphinMEOCloudPlugin::requestLink(QString path)
 {
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "ShareLink");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
+	path = path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
+	m_socket->write(("link\t" + path.replace(m_cloudDir, "") + "\n").toStdString().c_str());
+	m_socket->flush();
 }
 
 void DolphinMEOCloudPlugin::requestShare(QString path)
 {
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "ShareFolder");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
+	path = path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
+	m_socket->write(("folder\t" + path.replace(m_cloudDir, "") + "\n").toStdString().c_str());
+	m_socket->flush();
 }
 
 void DolphinMEOCloudPlugin::requestOpen(QString path)
 {
-    QDBusMessage m = QDBusMessage::createMethodCall("pt.meocloud.dbus",
-                                                    "/pt/meocloud/dbus",
-                                                    "",
-                                                    "OpenInBrowser");
-    m << path;
-    QDBusMessage response = QDBusConnection::sessionBus().call(m);
+	path = path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
+	m_socket->write(("browser\t" + path.replace(m_cloudDir, "") + "\n").toStdString().c_str());
+	m_socket->flush();
 }

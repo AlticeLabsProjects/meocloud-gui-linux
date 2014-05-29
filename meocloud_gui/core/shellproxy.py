@@ -58,12 +58,9 @@ class ShellProxy(object):
                         data = sock.recv(self.RECV_BUFFER)
                         data_len = len(data)
                         
-                        print data
-                        
                         while data:
                             for i, c in enumerate(data):
                                 if c == '\n':
-                                    print "buffer is " + self.buffer
                                     self.process_msg(self.buffer + data[:i])
                                     self.buffer = ''
                                     data = data[i + 1:]
@@ -86,8 +83,6 @@ class ShellProxy(object):
         command = data.split('\t')[0]
         path = self.unescape(data.split('\t')[1])
         
-        print "processing " + path
-        
         if command == "status":
             self.broadcast_file(path)
         elif command == "link":
@@ -109,7 +104,6 @@ class ShellProxy(object):
             msg = cmd + "\t" + self.escape(parm) + "\t" + parm2 + "\n";
             
             try:
-                print "sending " + msg
                 sock.send(msg)
             except socket.error:
                 self.remove_connection(sock)

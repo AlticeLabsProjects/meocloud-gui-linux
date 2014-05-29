@@ -69,7 +69,7 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         		return false;
         	}
         	
-        	uint8 tbuffer[8192];
+        	uint8 tbuffer[32768];
 			ssize_t len;
 			len = socket.receive (tbuffer);
 			string data = (string) tbuffer;
@@ -158,8 +158,10 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     private void send_message(string cmd, string arg) {
     	if (disconnected)
     		return;
+
     	
     	string full = cmd + "\t" + this.escape(arg) + "\n";
+    	debug("TESTE3: " + full);
 		socket.send(full.data);
 	}
 
