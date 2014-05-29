@@ -159,7 +159,6 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     	if (disconnected)
     		return;
 
-    	
     	string full = cmd + "\t" + this.escape(arg) + "\n";
     	debug("TESTE3: " + full);
 		socket.send(full.data);
@@ -262,6 +261,15 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
 					
 					map.set (path, file);
 					this.request_file_status(short_path);
+					
+					GLib.Timeout.add(1000, () => {
+						if (!status.has_key (cloud_home + short_path)) {
+							this.request_file_status(short_path);
+							return true;
+						}
+						
+						return false;
+					});
 				}
         	}
         }

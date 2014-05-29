@@ -72,8 +72,7 @@ class ShellProxy(object):
 
                     except:
                         print "Client (%s) is offline" % addr
-                        sock.close()
-                        self.CONNECTION_LIST.remove(sock)
+                        self.remove_connection(sock)
                         continue
              
         self.server_socket.close()
