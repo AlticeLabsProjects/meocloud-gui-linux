@@ -56,7 +56,6 @@ class ShellProxy(object):
                 if sock == self.server_socket:
                     sockfd, addr = self.server_socket.accept()
                     self.CONNECTION_LIST.append(sockfd)
-                    print "Client (%s) connected" % addr
                 else:
                     try:
                         data = sock.recv(self.RECV_BUFFER)
@@ -76,7 +75,6 @@ class ShellProxy(object):
                                 data_len = len(data)
 
                     except:
-                        print "Client (%s) is offline" % addr
                         self.remove_connection(sock)
                         continue
 
