@@ -25,7 +25,6 @@ PACKAGES
 OPTIONS
     --thread
     --vapidir=${CMAKE_SOURCE_DIR}/vapi
-    --target-glib=${TARGET_GLIB}
 )
 
 # C stuff
