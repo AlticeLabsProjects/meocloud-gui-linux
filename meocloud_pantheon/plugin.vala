@@ -78,10 +78,18 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
         		return false;
         	}
 
-        	uint8 tbuffer[32768];
+        	uint8 tbuffer[8192];
 			ssize_t len;
-			len = socket.receive (tbuffer);
-			string data = (string) tbuffer;
+			string data = "";
+
+			while (true) {
+				try {
+					len = socket.receive (tbuffer);
+					data += (string) tbuffer;
+				} catch (GLib.IOError.WOULD_BLOCK e) {
+					break;
+				}
+			}
 
 			while (data.length > 0) {
 				int data_length = data.length;
