@@ -14,7 +14,6 @@ ensure_vala_version("0.22.0" MINIMUM)
 include(ValaPrecompile)
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
-set (TARGET_GLIB 2.32)
 
 vala_precompile(VALA_C marlin-meocloud
     plugin.vala
@@ -22,7 +21,6 @@ PACKAGES
     gtk+-3.0
     gio-2.0
     marlincore
-    python
     gio-unix-2.0
 OPTIONS
     --thread
@@ -36,7 +34,6 @@ pkg_check_modules(DEPS REQUIRED
     gtk+-3.0
     gio-2.0
     marlincore
-    python
     gio-unix-2.0
 )
 set(CFLAGS

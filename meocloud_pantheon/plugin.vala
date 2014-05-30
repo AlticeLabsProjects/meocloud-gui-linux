@@ -303,19 +303,10 @@ public class Marlin.Plugins.MEOCloud : Marlin.Plugins.Base {
     }
 
     public override void update_sidebar (Gtk.Widget sidebar) {
-        string cloud_home, app_path;
-
-        try {
-            cloud_home = this.core.get_cloud_home();
-            app_path = this.core.get_app_path();
-        } catch (Error e) {
-            return;
-        }
-
         AbstractSidebar _sidebar = (AbstractSidebar) sidebar;
         Gtk.TreeStore store = _sidebar.store;
 
-        Gdk.Pixbuf icon = new Gdk.Pixbuf.from_file_at_size (app_path + "/icons/meocloud.svg", 18, 18);
+        Gdk.Pixbuf icon = new Gdk.Pixbuf.from_file_at_size ("/opt/meocloud/gui/icons/meocloud.svg", 18, 18);
 
         Gtk.TreeIter cloud_category;
         store.append (out cloud_category, null);

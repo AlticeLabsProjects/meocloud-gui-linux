@@ -21,6 +21,7 @@ PACKAGES
     gtk+-3.0
     gio-2.0
     marlincore
+    gio-unix-2.0
 OPTIONS
     --thread
     --vapidir=${CMAKE_SOURCE_DIR}/vapi
@@ -32,6 +33,7 @@ pkg_check_modules(DEPS REQUIRED
     gtk+-3.0
     gio-2.0
     marlincore
+    gio-unix-2.0
 )
 set(CFLAGS
     ${DEPS_CFLAGS} ${DEPS_CFLAGS_OTHER}
