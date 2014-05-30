@@ -79,7 +79,7 @@ class Shell(object):
         except socket.error as error:
             return False
         else:
-            GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN|GLib.IO_HUP,
+            GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN | GLib.IO_HUP,
                               self.on_msg_read, priority=GLib.PRIORITY_LOW)
             return True
 

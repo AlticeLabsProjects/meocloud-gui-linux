@@ -27,12 +27,12 @@ def get_account_dict(ui_config):
                 account_dict['authKey'] = keyring.get_password('meocloud',
                                                                AUTH_KEY)
                 account_dict['email'] = ui_config.get('Account', 'email',
-                                                           None)
+                                                      None)
                 account_dict['name'] = ui_config.get('Account', 'name',
-                                                          None)
+                                                     None)
                 account_dict['deviceName'] = ui_config.get('Account',
-                                                                'deviceName',
-                                                                None)
+                                                           'deviceName',
+                                                           None)
             finally:
                 Gdk.flush()
                 Gdk.threads_leave()

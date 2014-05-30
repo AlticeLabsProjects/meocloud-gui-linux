@@ -256,10 +256,12 @@ class PrefsWindow(Gtk.Window):
         self.selective_button = Gtk.Button(_("Select Synced Folders"))
 
         folder_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")), False, False, 0)
+        folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")),
+                              False, False, 0)
         folder_box.pack_start(folder_button, True, True, 0)
         selective_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        selective_box.pack_start(Gtk.Label(_("Selective Sync: ")), False, False, 0)
+        selective_box.pack_start(Gtk.Label(_("Selective Sync: ")),
+                                 False, False, 0)
         selective_box.pack_start(self.selective_button, True, True, 0)
 
         advanced_box.pack_start(folder_box, False, True, 10)
