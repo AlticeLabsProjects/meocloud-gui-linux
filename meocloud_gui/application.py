@@ -244,6 +244,7 @@ class Application(Gtk.Application):
                 menuitem_bug.connect("activate", self.report_bug)
                 menuitem_quit.connect("activate", lambda w: self.quit())
 
+                self.shell_proxy.start()
                 self.restart_core()
 
                 self.hold()

@@ -43,7 +43,6 @@ class ShellProxy(object):
         self.CONNECTION_LIST.append(self.server_socket)
 
         self.thread = StoppableThread(target=self.listen)
-        self.thread.start()
 
     def listen(self):
         while not self.thread.stopped():
@@ -166,3 +165,6 @@ class ShellProxy(object):
             path = path.replace(self.cloud_home, '')
         if self.shell is not None:
             self.shell.open_in_browser(path)
+
+    def start():
+        self.thread.start()
