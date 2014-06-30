@@ -157,7 +157,7 @@ class ShellProxy(object):
         if self.shell is not None:
             self.shell.open_in_browser(path)
 
-    def start():
+    def start(self):
         self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
                                       1)
