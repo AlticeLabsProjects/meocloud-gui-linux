@@ -33,15 +33,6 @@ class ShellProxy(object):
 
         self.update_prefs()
 
-        self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
-                                      1)
-        self.server_socket.bind(SHELL_PROXY_SOCKET_ADDRESS)
-        self.server_socket.listen(10)
-
-        # Add server socket to the list of readable connections
-        self.CONNECTION_LIST.append(self.server_socket)
-
         self.thread = StoppableThread(target=self.listen)
 
     def listen(self):
@@ -167,4 +158,13 @@ class ShellProxy(object):
             self.shell.open_in_browser(path)
 
     def start():
+        self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
+                                      1)
+        self.server_socket.bind(SHELL_PROXY_SOCKET_ADDRESS)
+        self.server_socket.listen(10)
+
+        # Add server socket to the list of readable connections
+        self.CONNECTION_LIST.append(self.server_socket)
+
         self.thread.start()
