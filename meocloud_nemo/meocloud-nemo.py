@@ -140,10 +140,10 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
 
         try:
             import platform
-            if platform.dist() == ('Ubuntu', '12.04', 'precise'):
+            if platform.dist()[0].lower() == 'ubuntu':
                 FILE_STATE_TO_EMBLEM[FileState.SYNCING] = \
                     'emblem-synchronizing-symbolic'
-        except ImportError:
+        except (ImportError, IndexError):
             pass
 
         self.update_config()
