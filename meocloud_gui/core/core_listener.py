@@ -72,6 +72,8 @@ class CoreListenerHandler(UI.Iface):
 
         account_dict = api.get_account_dict(self.ui_config)
 
+        log.debug('CoreListener.account(): {0} <<<<'.format(account_dict))
+
         return Account(**account_dict)
 
     def beginAuthorization(self):
@@ -113,7 +115,6 @@ class CoreListenerHandler(UI.Iface):
             self.setup.pages.set_current_page(1)
 
     def authorized(self, account):
-        log.debug('CoreListener.authorized({0}) <<<<'.format(account))
         account_dict = {
             'clientID': account.clientID,
             'authKey': account.authKey,
@@ -122,6 +123,10 @@ class CoreListenerHandler(UI.Iface):
             'deviceName': account.deviceName
         }
 
+        if account.authKey:
+            account.authKey = '*' * len(account.authKey)
+        log.debug('CoreListener.authorized({0}) <<<<'.format(account))
+ 
         GLib.idle_add(lambda: keyring.set_password("meocloud", CLIENT_ID,
                                                    account_dict['clientID']))
         GLib.idle_add(lambda: keyring.set_password("meocloud", AUTH_KEY,
