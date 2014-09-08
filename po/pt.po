@@ -57,7 +57,7 @@ msgstr "Iniciar automaticamente"
 
 #: ../meocloud_gui/gui/prefswindow.py:124
 #, python-brace-format
-msgid "You are logged in with {0}."
+msgid "You are logged in as {0}."
 msgstr "Este computador está ligado à conta {0}."
 
 #: ../meocloud_gui/gui/prefswindow.py:126
