@@ -23,10 +23,7 @@ def init_logging(log_handler):
     debug_off = os.path.isfile(DEBUG_OFF_PATH)
 
     if debug_off:
-        try:
-            os.remove(DEBUG_ON_PATH)
-        except OSError:
-            pass
+        force_unlink(DEBUG_ON_PATH)
     elif DEV_MODE or BETA_MODE:
         logger = logging.getLogger(LOGGER_NAME)
         logger.propagate = False
@@ -40,21 +37,15 @@ def init_logging(log_handler):
         logger.addHandler(handler)
         logger.addHandler(log_handler)
         logger.setLevel(logging.DEBUG)
-        # touch
-        with open(DEBUG_ON_PATH, 'a'):
-            pass
+        touch(DEBUG_ON_PATH)
 
 
 def purge_all():
-    if os.path.exists(CONFIG_PATH):
-        purge_file = open(PURGEALL_PATH, 'w')
-        purge_file.close()
+    touch(PURGEALL_PATH)
 
 
 def purge_meta():
-    if os.path.exists(CONFIG_PATH):
-        purge_file = open(PURGEMETA_PATH, 'w')
-        purge_file.close()
+    touch(PURGEMETA_PATH)
 
 
 def create_required_folders():
@@ -115,7 +106,7 @@ def create_startup_file(base_path=None):
         desktop_file.write("Exec=" + os.path.join(base_path,
                            "meocloud-gui") + "\n")
         desktop_file.close()
-    except (IOError, OSError):
+    except EnvironmentError:
         logging.getLogger(LOGGER_NAME).warning(
             "utils.create_startup_file: error creating startup file")
 
@@ -172,7 +163,7 @@ def create_bookmark():
             f = open(file_path, 'w')
             f.write(cloud_home + " MEOCloud\n")
             f.close()
-    except (IOError, OSError):
+    except EnvironmentError:
         logging.getLogger(LOGGER_NAME).warning(
             "utils.create_bookmark: error creating gtk bookmark")
 
@@ -290,13 +281,13 @@ def get_sync_code(status_code):
 
 
 def use_headerbar():
-    if os.path.isfile("/etc/lsb-release"):
-        lsb_f = open("/etc/lsb-release", "r")
-        lsb = lsb_f.read()
-        lsb_f.close()
-
-        if "elementary OS" in lsb:
-            return True
+    try:
+        with open('/etc/lsb-release', 'rb') as lsb_f:
+            lsb = lsb_f.read()
+            if 'elementary OS' in lsb:
+                return True
+    except EnvironmentError:
+        pass
 
     try:
         bus = dbus.SessionBus()
@@ -304,11 +295,7 @@ def use_headerbar():
         properties_manager = dbus.Interface(
             versionservice, 'org.freedesktop.DBus.Properties')
         version = properties_manager.Get('org.gnome.Shell', 'ShellVersion')
-
-        if version is not None:
-            return True
-        else:
-            return False
+        return True if version is not None else False
     except dbus.exceptions.DBusException:
         return False
 
@@ -355,3 +342,22 @@ def decrypt(data, key, decode=base64.b64decode):
         data = decode(data)
 
     return rc4_crypt(data, key)
+
+
+def force_unlink(path, log=None):
+    try:
+        import os
+        os.unlink(path)
+    except EnvironmentError as enve:
+        if log:
+            log('Could not unlink {0!r}: {1}'.format(path, enve))
+
+
+def touch(path, log=None):
+    try:
+        with open(path, 'a') as fobj:
+            pass
+    except EnvironmentError as enve:
+        if log:
+            log('Could not touch {0!r}: {1}'.format(path, enve))
+

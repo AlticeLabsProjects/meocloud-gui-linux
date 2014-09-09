@@ -1,37 +1,36 @@
 import ConfigParser
 import os
+import errno
+
 from meocloud_gui.constants import UI_CONFIG_PATH
 
 
 class Preferences(object):
     def __init__(self):
-        path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
+        self.path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
         self.config = ConfigParser.ConfigParser()
-        self.config.read(path)
+        self.config.read(self.path)
 
     def get(self, section, option, default=None):
         try:
             val = self.config.get(section, option)
-
-            if val is None:
-                return default
-            else:
-                return val
+            return val if val is not None else default
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return default
 
     def put(self, section, option, val):
-        file_path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
+        for i in xrange(2):
+            try:
+                prefsfile = open(self.path, 'wb')
+            except EnvironmentError as enve:
+                if enve.errno == errno.ENOENT and i == 0:
+                    parent = os.path.dirname(self.path)
+                    os.makedirs(parent)
+            else: 
+                if not self.config.has_section(section):
+                    self.config.add_section(section)
+                self.config.set(section, option, val)
+                self.config.write(prefsfile)
+                prefsfile.close()
+                break
 
-        if not os.path.exists(UI_CONFIG_PATH):
-            os.makedirs(UI_CONFIG_PATH)
-
-        prefsfile = open(file_path, 'w')
-
-        if not self.config.has_section(section):
-            self.config.add_section(section)
-
-        self.config.set(section, option, val)
-        self.config.write(prefsfile)
-
-        prefsfile.close()

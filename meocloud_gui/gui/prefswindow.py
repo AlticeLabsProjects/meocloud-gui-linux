@@ -121,7 +121,7 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(start_at_login, False, True, 10)
 
         # account
-        login_label = Gtk.Label(_("You are logged in as {0}.").format(
+        login_label = Gtk.Label(_("You are logged in with {0}.").format(
             prefs.get('Account', 'email', '')))
         self.logout_button = Gtk.Button(_("Unlink"))
         account_box.pack_start(login_label, False, True, 10)
@@ -250,22 +250,25 @@ class PrefsWindow(Gtk.Window):
             self.proxy_none.set_active(True)
 
         # advanced
-        folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
-                                   CLOUD_HOME_DEFAULT_PATH))
-
+        if not embed:
+            folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
+                                       CLOUD_HOME_DEFAULT_PATH))
+            folder_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")),
+                                  False, False, 0)
+            folder_box.pack_start(folder_button, True, True, 0)
+            advanced_box.pack_start(folder_box, False, True, 10)
+            folder_button.connect("clicked", self.on_choose_folder)
+            selective_box_pad = 0
+        else:
+            selective_box_pad = 10
+ 
         self.selective_button = Gtk.Button(_("Select Synced Folders"))
-
-        folder_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")),
-                              False, False, 0)
-        folder_box.pack_start(folder_button, True, True, 0)
         selective_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         selective_box.pack_start(Gtk.Label(_("Selective Sync: ")),
                                  False, False, 0)
         selective_box.pack_start(self.selective_button, True, True, 0)
-
-        advanced_box.pack_start(folder_box, False, True, 10)
-        advanced_box.pack_start(selective_box, False, True, 0)
+        advanced_box.pack_start(selective_box, False, True, selective_box_pad)
 
         # change the contents according to where the preferences will be
         if embed:
@@ -325,7 +328,6 @@ class PrefsWindow(Gtk.Window):
                              self.throttle_value_changed(w, "Upload"))
         upload_check.connect("toggled", lambda w:
                              self.toggle_throttle(upload_entry, "Upload"))
-        folder_button.connect("clicked", self.on_choose_folder)
         self.selective_button.connect("clicked", self.on_selective_sync)
         self.connect("destroy", self.destroy)
 

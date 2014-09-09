@@ -128,19 +128,17 @@ class Application(Gtk.Application):
                     Gdk.threads_leave()
 
             # cli migration
+            cli_config_path = os.path.join(CONFIG_PATH, "ui/ui_config.yaml")
             try:
                 import yaml
-                migrate_from_cli = \
-                    os.path.isfile(os.path.join(
-                        CONFIG_PATH, "ui/ui_config.yaml"))
-            except ImportError:
-                migrate_from_cli = False
-
-            if migrate_from_cli:
-                stream = open(
-                    os.path.join(CONFIG_PATH, "ui/ui_config.yaml"), 'r')
+                stream = open(cli_config_path, 'rb')
                 cli_config = yaml.load(stream)
-
+            except (ImportError, EnvironmentError):
+                pass
+            except yaml.YAMLError:
+                log.info('Found invalid CLI configuration.')
+                utils.force_unlink(cli_config_path, log.warn)
+            else:
                 cli_rc4_key = '8025c571541a64bccd00135f87dec11a' \
                               '83a8c5de69c94ec6b642dbdc6a2aebdd'
                 account_dict = cli_config['account']
@@ -163,20 +161,16 @@ class Application(Gtk.Application):
                           unicode(cli_config['cloud_home']).encode("utf-8"))
 
                 utils.purge_meta()
-                os.remove(os.path.join(CONFIG_PATH, "ui/ui_config.yaml"))
+                utils.force_unlink(cli_config_path, log.warn)
 
             if not self.missing_quit:
                 try:
                     self.shared = set()
-
-                    if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                                   'shared_directories')):
-                        f = open(os.path.join(UI_CONFIG_PATH,
-                                              'shared_directories'), "r")
-                        for line in f.readlines():
+                    path = os.path.join(UI_CONFIG_PATH, 'shared_directories')
+                    with open(path, 'rb') as fobj:
+                        for line in fobj.readlines():
                             self.shared.add(line.rstrip('\n'))
-                        f.close()
-                except (OSError, IOError):
+                except EnvironmentError:
                     self.shared = set()
 
                 utils.create_required_folders()
@@ -252,16 +246,21 @@ class Application(Gtk.Application):
             self.show_prefs(None)
 
     def update_app_version(self):
-        version_file = open(
-            os.path.join(self.app_path, "meocloud_gui/VERSION"), "r")
-
-        if version_file.read().strip() != VERSION:
-            cmd = "kill {0} && {1} &".format(
-                os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
-            os.system(cmd)
-            return False
-        else:
+        try:
+            version_file = open(
+                os.path.join(self.app_path, 'meocloud_gui/VERSION'), 'rb')
+        except IOError:
             return True
+        else:
+            version = version_file.read().strip()
+            version_file.close()
+            if version != VERSION:
+                cmd = "kill {0} && {1} &".format(
+                    os.getpid(), os.path.join(self.app_path, "meocloud-gui"))
+                os.system(cmd)
+                return False
+            else:
+                return True
 
     def report_bug(self, w):
         webbrowser.open("http://ajuda.cld.pt")
