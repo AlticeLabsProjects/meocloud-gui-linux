@@ -69,7 +69,9 @@ class MissingDialog(Gtk.Dialog):
                 return
 
             meocloud_gui.utils.purge_meta()
-            Preferences().put("Advanced", "Folder", new_path)
+            preferences = Preferences()
+            preferences.put("Advanced", "Folder", new_path)
+            preferences.save()
 
             self.destroy()
         else:

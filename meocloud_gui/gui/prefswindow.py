@@ -349,6 +349,7 @@ class PrefsWindow(Gtk.Window):
         prefs.put("Network", "ProxyPort", self.proxy["ProxyPort"])
         prefs.put("Network", "ProxyUser", self.proxy["ProxyUser"])
         prefs.put("Network", "ProxyPassword", self.proxy["ProxyPassword"])
+        prefs.save()
 
         try:
             self.update_network()
@@ -445,6 +446,7 @@ class PrefsWindow(Gtk.Window):
                     self.app.restart_core()
                     w.set_label(new_path)
                     prefs.put("Advanced", "Folder", new_path)
+                    prefs.save()
                     meocloud_gui.utils.create_bookmark()
                     GLib.source_remove(timeout)
                     prog.destroy()

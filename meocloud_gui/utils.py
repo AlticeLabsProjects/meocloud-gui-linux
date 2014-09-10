@@ -23,7 +23,7 @@ def init_logging(log_handler):
     debug_off = os.path.isfile(DEBUG_OFF_PATH)
 
     if debug_off:
-        force_unlink(DEBUG_ON_PATH)
+        force_remove(DEBUG_ON_PATH)
     elif DEV_MODE or BETA_MODE:
         logger = logging.getLogger(LOGGER_NAME)
         logger.propagate = False
@@ -344,13 +344,13 @@ def decrypt(data, key, decode=base64.b64decode):
     return rc4_crypt(data, key)
 
 
-def force_unlink(path, log=None):
+def force_remove(path, log=None):
     try:
         import os
-        os.unlink(path)
+        os.remove(path)
     except EnvironmentError as enve:
         if log:
-            log('Could not unlink {0!r}: {1}'.format(path, enve))
+            log('Could not remove {0!r}: {1}'.format(path, enve))
 
 
 def touch(path, log=None):

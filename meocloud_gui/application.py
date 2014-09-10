@@ -1,5 +1,4 @@
 import os
-import keyring
 import webbrowser
 from gi.repository import Gtk, Gio, Gdk, GLib, Notify
 from meocloud_gui import utils
@@ -15,6 +14,7 @@ from meocloud_gui.core.shell import Shell
 from meocloud_gui.core.core_client import CoreClient
 from meocloud_gui.core.core_listener import CoreListener
 from meocloud_gui.core.shellproxy import ShellProxy
+from meocloud_gui.credentials import CredentialStore
 import meocloud_gui.core.api
 
 from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
@@ -95,73 +95,93 @@ class Application(Gtk.Application):
                                                    self.update_app_version)
         self.update_sync_status_timeout = None
 
+        self.prefs = Preferences()
+        creds = CredentialStore(self.prefs, utils.encrypt, utils.decrypt)
+        self.prefs.set_credential_store(creds)
+
+    def _migrate_keyring_credentials(self):
+        try:
+            import keyring
+        except ImportError:
+            return
+
+        cid = keyring.get_password('meocloud', CLIENT_ID)
+        ckey = keyring.get_password('meocloud', AUTH_KEY)
+  
+        # TODO: remove credentials from the keyring
+ 
+        if cid and ckey:
+            self.prefs.creds.cid = cid
+            self.prefs.creds.ckey = ckey
+            self.prefs.save()
+
+    def _migrate_cli_settings(self):
+        cli_config_path = os.path.join(CONFIG_PATH, "ui/ui_config.yaml")
+        try:
+            import yaml
+            stream = open(cli_config_path, 'rb')
+            cli_config = yaml.load(stream)
+        except (ImportError, EnvironmentError):
+            return
+        except yaml.YAMLError:
+            log.info('Found invalid CLI configuration.')
+            utils.force_unlink(cli_config_path, log.warn)
+        else:
+            cli_rc4_key = '8025c571541a64bccd00135f87dec11a' \
+                         '83a8c5de69c94ec6b642dbdc6a2aebdd'
+            account_dict = cli_config['account']
+            account_dict['authKey'] = utils.decrypt(
+                account_dict['authKey'], cli_rc4_key)
+            account_dict['clientID'] = utils.decrypt(
+                account_dict['clientID'], cli_rc4_key)
+
+            self.prefs.creds.cid = account_dict['clientID']
+            self.prefs.creds.ckey = account_dict['authKey']
+
+            self.prefs.put('Account', 'email',
+                unicode(account_dict['email']).encode("utf-8"))
+            self.prefs.put('Account', 'name',
+                unicode(account_dict['name']).encode("utf-8"))
+            self.prefs.put('Account', 'deviceName',
+                unicode(account_dict['deviceName']).encode("utf-8"))
+            self.prefs.put('Advanced', 'Folder',
+                unicode(cli_config['cloud_home']).encode("utf-8"))
+            self.prefs.save()
+
+            utils.purge_meta()
+            utils.force_unlink(cli_config_path, log.warn)
+ 
     def on_activate(self, data=None):
         if not self.running:
             self.running = True
-            prefs = Preferences()
 
-            self.icon_type = prefs.get("General", "Icons", "")
+            self.icon_type = self.prefs.get("General", "Icons", "")
             self.trayicon.set_icon("meocloud-init")
 
             self.force_preferences_visible = \
-                prefs.get("Network", "Proxy", "None") != "None"
+                self.prefs.get("Network", "Proxy", "None") != "None"
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 log.info('Application.on_activate: prefs.ini missing')
-
-                if keyring.get_password('meocloud', CLIENT_ID) is not None:
-                    keyring.delete_password('meocloud', CLIENT_ID)
-                if keyring.get_password('meocloud', AUTH_KEY) is not None:
-                    keyring.delete_password('meocloud', AUTH_KEY)
 
                 if os.path.isfile(os.path.join(UI_CONFIG_PATH,
                                                'shared_directories')):
                     os.remove(os.path.join(UI_CONFIG_PATH,
                                            'shared_directories'))
             else:
-                if not os.path.exists(prefs.get("Advanced", "Folder",
-                                                CLOUD_HOME_DEFAULT_PATH)):
+                if not os.path.exists(self.prefs.get("Advanced", "Folder",
+                                                     CLOUD_HOME_DEFAULT_PATH)):
                     log.info('Application.on_activate: cloud_home missing')
                     missing = MissingDialog(self)
                     Gdk.threads_enter()
                     missing.run()
                     Gdk.threads_leave()
 
-            # cli migration
-            cli_config_path = os.path.join(CONFIG_PATH, "ui/ui_config.yaml")
-            try:
-                import yaml
-                stream = open(cli_config_path, 'rb')
-                cli_config = yaml.load(stream)
-            except (ImportError, EnvironmentError):
-                pass
-            except yaml.YAMLError:
-                log.info('Found invalid CLI configuration.')
-                utils.force_unlink(cli_config_path, log.warn)
-            else:
-                cli_rc4_key = '8025c571541a64bccd00135f87dec11a' \
-                              '83a8c5de69c94ec6b642dbdc6a2aebdd'
-                account_dict = cli_config['account']
-                account_dict['authKey'] = utils.decrypt(
-                    account_dict['authKey'], cli_rc4_key)
-                account_dict['clientID'] = utils.decrypt(
-                    account_dict['clientID'], cli_rc4_key)
-
-                keyring.set_password("meocloud", "clientID",
-                                     account_dict['clientID'])
-                keyring.set_password("meocloud", "authKey",
-                                     account_dict['authKey'])
-                prefs.put('Account', 'email',
-                          unicode(account_dict['email']).encode("utf-8"))
-                prefs.put('Account', 'name',
-                          unicode(account_dict['name']).encode("utf-8"))
-                prefs.put('Account', 'deviceName',
-                          unicode(account_dict['deviceName']).encode("utf-8"))
-                prefs.put('Advanced', 'Folder',
-                          unicode(cli_config['cloud_home']).encode("utf-8"))
-
-                utils.purge_meta()
-                utils.force_unlink(cli_config_path, log.warn)
+            # migrations
+            if self.prefs.creds.cid is None:
+                self._migrate_cli_settings()
+            if self.prefs.creds.cid is None:
+                self._migrate_keyring_credentials()
 
             if not self.missing_quit:
                 try:
@@ -607,9 +627,13 @@ class Application(Gtk.Application):
         self.restart_core()
 
     def open_folder(self, w):
-        prefs = Preferences()
-        webbrowser.open(prefs.get('Advanced', 'Folder',
-                                  CLOUD_HOME_DEFAULT_PATH))
+        if self.prefs:
+            cloud_home = self.prefs.get('Advanced', 'Folder',
+                                        CLOUD_HOME_DEFAULT_PATH)
+        else:
+            cloud_home = CLOUD_HOME_DEFAULT_PATH
+
+        webbrowser.open(cloud_home)
 
     def open_website(self, w):
         webbrowser.open(self.core_client.webLoginURL())
@@ -617,6 +641,8 @@ class Application(Gtk.Application):
     def restart_core(self, ignore_sync=False):
         log.info('Application.restart_core: initiating core restart')
         prefs = Preferences()
+        creds = CredentialStore(prefs, utils.encrypt, utils.decrypt)
+        prefs.set_credential_store(creds)
 
         self.trayicon.wrapper(lambda: self.hide_gui_elements())
         self.trayicon.set_icon("meocloud-init")

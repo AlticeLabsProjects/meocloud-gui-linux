@@ -1,14 +1,43 @@
-import fnctl
+import fcntl
 import socket
 import struct
 import hashlib
+import base64
+import os
 
 from time import time
 
+
+KEY_SIZE = 16
+ENCODED_KEY_SIZE = 26
+DERIVE_ROUNDS = 2500
+
+
+def fetch_hwaddr_fcntl(iface):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', iface[:15]))
+    except (socket.error, EnvironmentError):
+        result = None
+    else:
+        result = ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1]
+    return result
+
+
+def fetch_hwaddr_sysfs(iface):
+    try:
+        with open('/sys/class/net/' + iface) as ifile:
+            result = ifile.read()
+    except EnvironmentError:
+        result = None
+    return result
+
+
 def fetch_hwaddr(iface):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', iface[:15]))
-    return info
+    addr = fetch_hwaddr_sysfs(iface)
+    if addr is not None:
+        return addr
+    return fetch_hwaddr_fcntl(iface)
 
 
 def fetch_uptime():
@@ -19,9 +48,9 @@ def fetch_uptime():
     except IOError:
         pass
     else:
-        seconds, _ = data.split()[0]
+        seconds, _ = data.split()
         try:
-            seconds = float(seconds)
+            seconds = int(float(seconds))
         except (ValueError, TypeError):
             pass
 
@@ -30,16 +59,18 @@ def fetch_uptime():
 
 def has_rebooted(saved_reboot):
     try:
-        saved_reboot = float(saved_reboot)
+        saved_reboot = saved_reboot
     except (ValueError, TypeError):
         return False        
 
-    now = time()
-    cur_uptime = fetch_uptime()
+    now = int(time())
+    uptime = fetch_uptime()
     if uptime == -1:
         return False
 
-    last_reboot = now - cur_uptime
+    min_reboot_secs = 300
+    last_reboot = (now - uptime) / min_reboot_seconds
+    saved_reboot /= min_reboot_seconds
 
     return last_reboot != saved_reboot
 
@@ -65,8 +96,10 @@ class CredentialStore(object):
     able to access stored credentials.
     '''
 
-    def __init__(self, prefs):
+    def __init__(self, prefs, encrypt, decrypt):
         self.prefs = prefs
+        self.__encrypt = encrypt
+        self.__decrypt = decrypt
         self.key = None
 
         altkey = prefs.get('Account', 'altkey')
@@ -74,9 +107,22 @@ class CredentialStore(object):
             self.key = self._derive_key(altkey)
             return
 
-        syskey = self._derive_key(attrs)
-        use_sys_key = prefs.get('Account', 'syskey'):
-        if use_sys_key:
+        attrs = fetch_hwaddr('eth0')
+        if attrs:
+            try:
+                import platform
+                dist = platform.dist()[0]
+            except ImportError:
+                dist = None
+            else:
+                if dist:
+                    attrs += dist
+            syskey = self._derive_key(attrs)
+        else:
+            syskey = None
+
+        use_sys_key = prefs.get('Account', 'syskey')
+        if syskey and use_sys_key:
             self.key = syskey
             return
 
@@ -85,61 +131,114 @@ class CredentialStore(object):
         ecid = prefs.get('Account', 'id')
         eckey = prefs.get('Account', 'key')
         if ecid is None or eckey is None or altkey is None:
-            reboot = time() - uptime()
+            reboot = int(time()) - fetch_uptime()
             altkey = self._new_key()
-            syshash = self._hash_key(syskey)
+            syshash = self._encode(self._hash(syskey))
             prefs.put('Account', 'probe', '{0}{1}{2}'.
                       format(self._encode(altkey), syshash, reboot))
+            prefs.save()
             self.key = altkey
             return
 
-        attrs = fetch_hwaddr('eth0')
         altkey = self._derive_key(altkey)
+        self.key = altkey
 
-        if self._hash_key(syskey) != syshash:
+        if self._encode(self._hash(syskey)) != syshash:
             prefs.put('Account', 'altkey', self._encode(altkey))
             prefs.remove('Account', 'probe')
-            self.key = altkey
+            prefs.save()
             return 
  
-         if not has_rebooted(reboot):
-            self.key = altkey
+        if not has_rebooted(reboot):
             return
 
-        cid = self._decrypt(altkey, ecid)
-        ckey = self._decrypt(altkey, eckey)
-        ecid = self._encrypt(syskey, cid)
-        eckey = self._encrypt(syskey, ckey)
+        cid = self._decrypt(ecid)
+        ckey = self._decrypt(eckey)
+
+        self.key = syskey
+
+        ecid = self._encrypt(cid)
+        eckey = self._encrypt(ckey)
 
         prefs.put('Account', 'id', ecid)
         prefs.put('Account', 'key', eckey)
         prefs.put('Account', 'syskey', self._encode(altkey))
         prefs.remove('Account', 'probe')
+        prefs.save()
 
-    def _new_key(self, key):
-        pass
+    def _new_key(self):
+        return os.urandom(KEY_SIZE)
 
     def _derive_key(self, data):
-        pass
+        hasher = hashlib.sha256(data)
+        for _ in xrange(DERIVE_ROUNDS):
+             hasher.update(hasher.digest())
+        return hasher.digest()[:KEY_SIZE]
+
+    def _hash(self, data):
+        hasher = hashlib.sha256(data)
+        return hasher.digest()[:KEY_SIZE]
+
+    def _parse_probe(self, probe):
+        invalid_probe = (None, None, None)
+        if probe is None:
+            return invalid_probe
+
+        try:
+            start = 0
+            end = ENCODED_KEY_SIZE
+            altkey = probe[start:end]
+            start += ENCODED_KEY_SIZE
+            end += ENCODED_KEY_SIZE
+            syshash = probe[start:end]
+            start += ENCODED_KEY_SIZE
+            reboot = int(probe[start:])
+        except IndexError:
+            return invalid_probe
+
+        return altkey, syshash, reboot
 
     def _encrypt(self, value):
-        pass
+        if self.key is None or value is None:
+            return None
+
+        return self.__encrypt(value, self.key, encode=None)
 
     def _decrypt(self, value):
-        pass
+        if self.key is None or value is None:
+            return None
+        return self.__decrypt(value, self.key, decode=None)
+
+    def _encode(self, data):
+        if data is None:
+            return None
+        return base64.b32encode(data).strip('=').lower()
+
+    def _decode(self, data):
+        if data is None:
+            return None
+        data += '=' * (8 - len(data) % 8)
+        return base64.b32decode(data.upper())
 
     @property
     def cid(self):
-        pass
+        ecid = self.prefs.get('Account', 'id')
+        return self._decrypt(self._decode(ecid))
 
-    @cid.setter(self, value)
-        pass
+    @cid.setter
+    def cid(self, value):
+        ecid = self._encode(self._encrypt(value))
+        self.prefs.put('Account', 'id', ecid)
+        self.prefs.save()
 
     @property
     def ckey(self):
-        pass
+        eckey = self.prefs.get('Account', 'key')
+        return self._decrypt(self._decode(eckey))
 
-    @key.setter
+    @ckey.setter
     def ckey(self, value):
-        pass
+        eckey = self._encode(self._encrypt(value))
+        self.prefs.put('Account', 'key', eckey)
+        self.prefs.save()
 
