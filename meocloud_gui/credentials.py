@@ -151,13 +151,13 @@ class CredentialStore(object):
         if not has_rebooted(reboot):
             return
 
-        cid = self._decrypt(ecid)
-        ckey = self._decrypt(eckey)
+        cid = self._decrypt(self._decode(ecid))
+        ckey = self._decrypt(self._decode(eckey))
 
         self.key = syskey
 
-        ecid = self._encrypt(cid)
-        eckey = self._encrypt(ckey)
+        ecid = self._encode(self._encrypt(cid))
+        eckey = self._encode(self._encrypt(ckey))
 
         prefs.put('Account', 'id', ecid)
         prefs.put('Account', 'key', eckey)
