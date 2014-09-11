@@ -7,9 +7,14 @@ from meocloud_gui import thrift_utils
 from meocloud_gui import utils
 
 from meocloud_gui.preferences import Preferences
-from meocloud_gui.constants import (UI_CONFIG_PATH, CLOUD_HOME_DEFAULT_PATH,
-                                    LOGGER_NAME, SHELL_LISTENER_SOCKET_ADDRESS,
-                                    CHUNK_SIZE, MAX_WRITE_BATCH_SIZE)
+from meocloud_gui.constants import (
+    UI_CONFIG_PATH,
+    CLOUD_HOME_DEFAULT_PATH,
+    LOGGER_NAME,
+    SHELL_LISTENER_SOCKET_ADDRESS,
+    CHUNK_SIZE,
+    MAX_WRITE_BATCH_SIZE)
+
 from meocloud_gui.protocol.shell.ttypes import (
     Message,
     MessageType,
@@ -26,8 +31,9 @@ from meocloud_gui.protocol.shell.ttypes import (
 
 # Logging
 import logging
-from meocloud_gui.thrift_utils import serialize_thrift_msg, \
-    deserialize_thrift_msg
+from meocloud_gui.thrift_utils import (
+    serialize_thrift_msg,
+    deserialize_thrift_msg)
 
 log = logging.getLogger(LOGGER_NAME)
 

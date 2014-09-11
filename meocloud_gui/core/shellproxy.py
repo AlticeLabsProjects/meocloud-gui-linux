@@ -1,6 +1,8 @@
 import os
 import socket
 import select
+import threading
+
 from meocloud_gui.stoppablethread import StoppableThread
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH,
@@ -13,6 +15,15 @@ from meocloud_gui.protocol.shell.ttypes import FileState
 
 log = logging.getLogger(LOGGER_NAME)
 
+class Client(object):
+    __slots__ = ('recvbuf', 'sendbuf', 'socket', 'epoll')
+
+    def __init__(self, socket, epoll):
+        self.socket = socket
+        self.epoll = epoll
+        self.recvbuf = b''
+        self.sendbuf = b''
+
 
 class ShellProxy(object):
     def __init__(self, status, app):
@@ -21,92 +32,108 @@ class ShellProxy(object):
         self.shell = None
         self.app_path = app.app_path
         self.cloud_home = None
-        self.buffer = ''
 
-        self.CONNECTION_LIST = []    # list of socket clients
-        self.RECV_BUFFER = 8192      # Advisable to keep it as an exponent of 2
+        self.clients = {}
 
         try:
             os.remove(SHELL_PROXY_SOCKET_ADDRESS)
-        except (OSError, IOError):
+        except EnvironmentError:
             pass
 
         self.update_prefs()
 
         self.thread = StoppableThread(target=self.listen)
 
+        self.command_to_handler = {
+            'status': self.broadcast_file,
+            'link': self.share_link,
+            'folder': self.share_folder,
+            'browser': self.open_in_browser,
+            'home': self.send_cloud_home,
+            'subscribe': self.subscribe_path, 
+        }
+
     def listen(self):
+        server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.bind(SHELL_PROXY_SOCKET_ADDRESS)
+        server_socket.listen(10)
+        server_socket.setblocking(0)
+
+        errormask = select.EPOLLERR|select.EPOLLHUP
+        readmask = select.EPOLLIN|errormask
+        writemask = select.EPOLLOUT
+
+        epoll = select.epoll()
+        epoll.register(serversock.fileno(), readmask)
+
         while not self.thread.stopped():
-            # Get the list sockets which are ready to be read through select
-            read_sockets, write_sockets, error_sockets = select.select(
-                self.CONNECTION_LIST, [], [])
+            events = epoll.poll(10)
+            for fd, event in events:
+                # New connection
+                if fd == serversocket.fileno():
+                    sock, addr = serversocket.accept()
+                    sock.setblocking(0)
+                    epoll.register(sock.fileno(), readmask)
+                    self.clients[socket.fileno()] = Client(socket, epoll)
+                    continue
 
-            for sock in read_sockets:
-                #New connection
-                if sock == self.server_socket:
-                    sockfd, addr = self.server_socket.accept()
-                    self.CONNECTION_LIST.append(sockfd)
-                else:
-                    try:
-                        data = sock.recv(self.RECV_BUFFER)
-                        data_len = len(data)
+               client = self.clients.get(fd)
+               if client is None:
+                    log.warn('Got activity for unknown client.')
+                    epoll.unregister(fd)
+                    continue
 
-                        while data:
-                            for i, c in enumerate(data):
-                                if c == '\n':
-                                    self.process_msg(self.buffer + data[:i])
-                                    self.buffer = ''
-                                    data = data[i + 1:]
-                                    break
-                            if len(data) == data_len:
-                                self.buffer += data
-                                break
-                            else:
-                                data_len = len(data)
+                # Socket has data to read
+                if event & select.EPOLLIN:
+                    client.recvbuf += client.socket.recv(CHUNK_SIZE)
+                    bytes_consumed = self.process_client_requests(client)
 
-                    except:
-                        self.remove_connection(sock)
-                        continue
+                    # Check if we want to send responses
+                    if client.sendbuf:
+                        epoll.modify(fd, readmask|writemask)
 
-        self.server_socket.close()
+                # Socket is ready to write
+                elif event & select.EPOLLOUT:
+                    bytes_sent = client.socket.send(client.sendbuf)
+                    client.sendbuf = client.sendbuf[:bytes_sent]
+                    if not client.sendbuf:
+                        # No more data to write. Wait for requests only
+                        epoll.modify(fd, readmask)
 
-    def process_msg(self, data):
-        command = data.split('\t')[0]
-        path = self.unescape(data.split('\t')[1])
+                # Errors and disconnects
+                elif event & errormask:
+                    epoll.unregister(fd)
+                    client.socket.close()
+                    del self.clients[fd]
 
-        if command == "status":
-            self.broadcast_file(path)
-        elif command == "link":
-            self.share_link(path)
-        elif command == "folder":
-            self.share_folder(path)
-        elif command == "browser":
-            self.open_in_browser(path)
-        elif command == "home":
-            self.socket_send("home", self.cloud_home, "0")
-        elif command == "subscribe":
-            self.shell.subscribe_path(path)
+        epoll.unregister(serversocket.fileno())
+        for fd, client in self.clients.iteritems():
+            epoll.unregiser(fd)
+            client.socket.close()
 
-    def socket_send(self, cmd, parm, parm2):
-        for sock in self.CONNECTION_LIST:
-            if sock is self.server_socket:
-                continue
+        self.clients.clear()
+        epoll.close()
+        serversocket.close()
 
-            msg = cmd + "\t" + self.escape(parm) + "\t" + parm2 + "\n"
+    def process_client_requests(self, client):
+       while True:
+            eol_offset = client.recvbuf.find('\n')
+            if eol_offset == -1:
+                return
 
-            try:
-                sock.send(msg)
-            except socket.error:
-                self.remove_connection(sock)
+            msg = client.recvbuf[:eol_offset]
+            # + 1 to strip EOL character
+            client.recvbuf = client.recvbuf[:eol_offset + 1]
 
-    def remove_connection(self, sock):
-        sock.close()
+            parts = client.split('\t')
+            command = parts[0]
+            path = self.unescape(parts[1])
 
-        try:
-            self.CONNECTION_LIST.remove(sock)
-        except ValueError:
-            pass
-
+            handler = self.command_to_handler.get(command)
+            if handler:
+                handler(client, path)
+ 
     def unescape(self, path):
         return path.replace(
             '\\t', '\t').replace('\\n', '\n').replace('\\\\', '\\')
@@ -115,16 +142,18 @@ class ShellProxy(object):
         return path.replace(
             '\\', '\\\\').replace('\t', '\\t').replace('\n', '\\n')
 
+    filestate_to_code = {
+        FileState.SYNCING: '1',
+        FileState.IGNORED: '2',
+        FileState.ERROR: '2',
+    }
+
     def broadcast_file(self, short_path):
-        if short_path in self.shell.file_states:
-            if self.shell.file_states[short_path] == FileState.SYNCING:
-                self.socket_send("status", short_path, "1")
-            elif self.shell.file_states[short_path] == FileState.IGNORED:
-                self.socket_send("status", short_path, "2")
-            elif self.shell.file_states[short_path] == FileState.ERROR:
-                self.socket_send("status", short_path, "2")
-            else:
-                self.socket_send("status", short_path, "0")
+        state = self.shell.file_states.get(short_path, None)
+        if state is not None:
+            code = filestate_to_code.get(state, '0')
+            
+                self.socket_send('status', short_path, code)
         else:
             self.shell.update_file_status(short_path)
 
@@ -133,8 +162,9 @@ class ShellProxy(object):
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
         log.info(
-            'ShellProxy.update_prefs: cloud_home is ' + self.cloud_home)
-        self.socket_send("home", self.cloud_home, "0")
+            'ShellProxy.update_prefs: cloud_home is {0!r}'.
+            format(self.cloud_home))
+        self.socket_send('home', self.cloud_home, '0')
 
     def share_folder(self, path):
         path = unicode(path).encode('utf-8')
@@ -158,13 +188,4 @@ class ShellProxy(object):
             self.shell.open_in_browser(path)
 
     def start(self):
-        self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
-                                      1)
-        self.server_socket.bind(SHELL_PROXY_SOCKET_ADDRESS)
-        self.server_socket.listen(10)
-
-        # Add server socket to the list of readable connections
-        self.CONNECTION_LIST.append(self.server_socket)
-
-        self.thread.start()
+       self.thread.start()
