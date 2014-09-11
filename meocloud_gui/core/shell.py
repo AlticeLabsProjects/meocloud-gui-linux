@@ -40,14 +40,14 @@ log = logging.getLogger(LOGGER_NAME)
 
 # TODO: Kill ShellHelper socket handling. Requires D-Bus to be killed.
 class Shell(object):
-    def __init__(self):
+    def __init__(self, proxy):
+        self.proxy = proxy
         self.file_states = {}
 
         self.read_buffer = None
         self.write_buffer = None
         self.writing = False
         self.sock = None
-        self.proxy = None
 
         self.recv_msg = Message()
         self.file_status_msg = \
@@ -172,31 +172,46 @@ class Shell(object):
             return self.writing
 
     def update_file_status(self, path):
+        Glib.idle_add(lambda: self._update_file_status(path))
+
+    def open_in_browser(self, path):
+        Glib.idle_add(lambda: self._open_in_browser(path))
+
+    def share_link(self path):
+        Glib.idle_add(lambda: self._share_link(path))
+ 
+    def share_folder(self path):
+        Glib.idle_add(lambda: self._share_folder(path))
+ 
+    def subscribe_path(self path):
+        Glib.idle_add(lambda: self._subscribe_path(path))
+ 
+    def _update_file_status(self, path):
         msg = self.file_status_msg
         msg.fileStatus.status.path = path
         self._send(serialize_thrift_msg(msg))
 
-    def open_in_browser(self, open_path):
+    def _open_in_browser(self, open_path):
         data = Message(type=MessageType.OPEN,
                        open=OpenMessage(type=OpenType.BROWSER, path=open_path))
 
         self._send(thrift_utils.serialize_thrift_msg(data))
-
-    def share_link(self, share_path):
+       
+    def _share_link(self, share_path):
         data = Message(type=MessageType.SHARE,
                        share=ShareMessage(type=ShareType.LINK,
                                           path=share_path))
 
         self._send(thrift_utils.serialize_thrift_msg(data))
 
-    def share_folder(self, share_path):
+    def _share_folder(self, share_path):
         data = Message(type=MessageType.SHARE,
                        share=ShareMessage(type=ShareType.FOLDER,
                                           path=share_path))
 
         self._send(thrift_utils.serialize_thrift_msg(data))
 
-    def subscribe_path(self, sub_path):
+    def _subscribe_path(self, sub_path):
         data = Message(type=MessageType.SUBSCRIBE_PATH,
                        subscribe=SubscribeMessage(type=SubscribeType.SUBSCRIBE,
                                                   path=sub_path))
