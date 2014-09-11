@@ -66,8 +66,11 @@ def _get_current_version():
     if not DEV_MODE:
         own_dir = get_own_dir(__file__)
         version_path = os.path.join(own_dir, 'VERSION')
-        with open(version_path) as f:
-            current_version = f.read().strip()
+        try:
+            with open(version_path) as f:
+                current_version = f.read().strip()
+        except IOError:
+            current_version = 'unknown version'
     else:
         current_version = '0.0.0 dev'
     return current_version

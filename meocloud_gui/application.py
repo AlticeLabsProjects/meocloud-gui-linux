@@ -108,12 +108,12 @@ class Application(Gtk.Application):
         cid = keyring.get_password('meocloud', CLIENT_ID)
         ckey = keyring.get_password('meocloud', AUTH_KEY)
   
-        # TODO: remove credentials from the keyring
- 
         if cid and ckey:
             self.prefs.creds.cid = cid
             self.prefs.creds.ckey = ckey
             self.prefs.save()
+            keyring.delete_password('meocloud', CLIENT_ID)
+            keyring.delete_password('meocloud', AUTH_KEY)
 
     def _migrate_cli_settings(self):
         cli_config_path = os.path.join(CONFIG_PATH, "ui/ui_config.yaml")
@@ -139,13 +139,13 @@ class Application(Gtk.Application):
             self.prefs.creds.ckey = account_dict['authKey']
 
             self.prefs.put('Account', 'email',
-                unicode(account_dict['email']).encode("utf-8"))
+                unicode(account_dict['email']).encode('utf-8'))
             self.prefs.put('Account', 'name',
-                unicode(account_dict['name']).encode("utf-8"))
+                unicode(account_dict['name']).encode('utf-8'))
             self.prefs.put('Account', 'deviceName',
-                unicode(account_dict['deviceName']).encode("utf-8"))
+                unicode(account_dict['deviceName']).encode('utf-8'))
             self.prefs.put('Advanced', 'Folder',
-                unicode(cli_config['cloud_home']).encode("utf-8"))
+                unicode(cli_config['cloud_home']).encode('utf-8'))
             self.prefs.save()
 
             utils.purge_meta()

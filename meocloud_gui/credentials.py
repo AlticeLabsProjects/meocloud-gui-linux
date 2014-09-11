@@ -69,8 +69,8 @@ def has_rebooted(saved_reboot):
         return False
 
     min_reboot_secs = 300
-    last_reboot = (now - uptime) / min_reboot_seconds
-    saved_reboot /= min_reboot_seconds
+    last_reboot = (now - uptime) / min_reboot_secs
+    saved_reboot /= min_reboot_secs
 
     return last_reboot != saved_reboot
 
@@ -102,9 +102,9 @@ class CredentialStore(object):
         self.__decrypt = decrypt
         self.key = None
 
-        altkey = prefs.get('Account', 'altkey')
-        if altkey:
-            self.key = self._derive_key(altkey)
+        altseed = prefs.get('Account', 'altkey')
+        if altseed:
+            self.key = self._derive_key(altseed)
             return
 
         attrs = fetch_hwaddr('eth0')
@@ -127,24 +127,23 @@ class CredentialStore(object):
             return
 
         probe = prefs.get('Account', 'probe')
-        altkey, syshash, reboot = self._parse_probe(probe)
+        altseed, syshash, reboot = self._parse_probe(probe)
         ecid = prefs.get('Account', 'id')
         eckey = prefs.get('Account', 'key')
-        if ecid is None or eckey is None or altkey is None:
+        if ecid is None or eckey is None or altseed is None:
             reboot = int(time()) - fetch_uptime()
-            altkey = self._new_key()
+            altseed = self._encode(self._new_key())
             syshash = self._encode(self._hash(syskey))
             prefs.put('Account', 'probe', '{0}{1}{2}'.
-                      format(self._encode(altkey), syshash, reboot))
+                      format(altseed, syshash, reboot))
             prefs.save()
-            self.key = altkey
+            self.key = self._derive_key(altseed)
             return
 
-        altkey = self._derive_key(altkey)
-        self.key = altkey
+        self.key = self._derive_key(altseed)
 
         if self._encode(self._hash(syskey)) != syshash:
-            prefs.put('Account', 'altkey', self._encode(altkey))
+            prefs.put('Account', 'altkey', altseed)
             prefs.remove('Account', 'probe')
             prefs.save()
             return 
@@ -162,7 +161,7 @@ class CredentialStore(object):
 
         prefs.put('Account', 'id', ecid)
         prefs.put('Account', 'key', eckey)
-        prefs.put('Account', 'syskey', self._encode(altkey))
+        prefs.put('Account', 'syskey', altseed)
         prefs.remove('Account', 'probe')
         prefs.save()
 
@@ -187,7 +186,7 @@ class CredentialStore(object):
         try:
             start = 0
             end = ENCODED_KEY_SIZE
-            altkey = probe[start:end]
+            altseed = probe[start:end]
             start += ENCODED_KEY_SIZE
             end += ENCODED_KEY_SIZE
             syshash = probe[start:end]
@@ -196,7 +195,7 @@ class CredentialStore(object):
         except IndexError:
             return invalid_probe
 
-        return altkey, syshash, reboot
+        return altseed, syshash, reboot
 
     def _encrypt(self, value):
         if self.key is None or value is None:
@@ -210,15 +209,28 @@ class CredentialStore(object):
         return self.__decrypt(value, self.key, decode=None)
 
     def _encode(self, data):
-        if data is None:
+        if not data:
             return None
-        return base64.b32encode(data).strip('=').lower()
+        try:
+            result = base64.b32encode(data).strip('=').lower()
+        except (ValueError, TypeError):
+            result = None
+        return result
 
     def _decode(self, data):
-        if data is None:
+        if not data:
             return None
         data += '=' * (8 - len(data) % 8)
-        return base64.b32decode(data.upper())
+        try:
+            result = base64.b32decode(data.upper())
+        except (ValueError, TypeError):
+            result = None
+        return result
+
+    def clear(self):
+        if self.prefs:
+            for attr in ('id', 'key', 'syskey', 'altkey', 'probe'):
+                self.prefs.remove('Account', attr)
 
     @property
     def cid(self):

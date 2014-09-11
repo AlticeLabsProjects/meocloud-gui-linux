@@ -71,20 +71,19 @@ class CoreListenerHandler(UI.Iface):
         log.debug('CoreListener.account() <<<<')
 
         account_dict = api.get_account_dict(self.ui_config)
-
+        account = Account(**account_dict)
+        account_dict['authKey'] = '*' * 10
         log.debug('CoreListener.account(): {0} <<<<'.format(account_dict))
 
-        return Account(**account_dict)
+        return account
 
     def beginAuthorization(self):
         log.debug('CoreListener.beginAuthorization() <<<<')
 
-        if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                       'prefs.ini')):
-            try:
-                os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
-            except (OSError, IOError):
-                pass
+        try:
+            os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
+        except EnvironmentError:
+            pass
 
         GLib.idle_add(self.beginAuthorizationIdle)
 

@@ -1,6 +1,5 @@
 import urlparse
 import threading
-import keyring
 
 # GLib and Gdk
 from gi.repository import GLib, Gdk
@@ -22,10 +21,8 @@ def get_account_dict(ui_config):
         def __call__(self):
             Gdk.threads_enter()
             try:
-                account_dict['clientID'] = keyring.get_password('meocloud',
-                                                                CLIENT_ID)
-                account_dict['authKey'] = keyring.get_password('meocloud',
-                                                               AUTH_KEY)
+                account_dict['clientID'] = ui_config.creds.cid
+                account_dict['authKey'] = ui_config.creds.ckey
                 account_dict['email'] = ui_config.get('Account', 'email',
                                                       None)
                 account_dict['name'] = ui_config.get('Account', 'name',
@@ -39,8 +36,7 @@ def get_account_dict(ui_config):
                 self.event.set()
             return False
 
-    # Keyring must run in the main thread,
-    # otherwise we segfault.
+    # Fetch settings in the main thread
     account_callback = AccountCallback()
     account_callback.event.clear()
     GLib.idle_add(account_callback)
@@ -53,13 +49,13 @@ def unlink(core_client, ui_config):
     account_dict = get_account_dict(ui_config)
     if account_dict['clientID'] and account_dict['authKey']:
         account = Account(**account_dict)
-        GLib.idle_add(lambda: keyring.delete_password('meocloud', CLIENT_ID))
-        GLib.idle_add(lambda: keyring.delete_password('meocloud', AUTH_KEY))
-        ui_config.put('Account', 'email', '')
-        ui_config.put('Account', 'name', '')
-        ui_config.put('Account', 'deviceName', '')
+        ui_config.creds.clear()
+        for attr in ('email', 'name', 'deviceName'):
+            ui_config.remove('Account', attr)
+        ui_config.save()
         core_client.unlink(account)
         return True
+
     return False
 
 
