@@ -2,7 +2,7 @@ import os
 import socket
 import select
 import threading
-import string
+import errno
 
 from meocloud_gui.stoppablethread import StoppableThread
 from meocloud_gui.preferences import Preferences
@@ -39,8 +39,8 @@ class Client(object):
 
 
 class ShellProxy(object):
-    errormask = select.EPOLLERR|select.EPOLLHUP
-    readmask = select.EPOLLIN|errormask
+    errormask = select.EPOLLERR | select.EPOLLHUP
+    readmask = select.EPOLLIN | errormask
     writemask = select.EPOLLOUT
 
     def __init__(self, status, app):
@@ -67,11 +67,10 @@ class ShellProxy(object):
             'folder': self.share_folder,
             'browser': self.open_in_browser,
             'home': self.send_cloud_home,
-            'subscribe': self.subscribe_path, 
+            'subscribe': self.subscribe_path,
         }
 
     def _disconnect(self, client):
-        print(repr(client) + ' disconnected...')
         fd = client.socket.fileno()
         try:
             client.epoll.unregister(fd)
@@ -85,7 +84,7 @@ class ShellProxy(object):
             with self.clients_lock:
                 del self.clients[fd]
         except KeyError:
-           pass
+            pass
 
     def listen(self):
         server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -98,11 +97,17 @@ class ShellProxy(object):
         epoll.register(server_socket.fileno(), self.readmask)
 
         while not self.thread.stopped():
-            events = epoll.poll(10)
+            try:
+                events = epoll.poll(10)
+            except (IOError, OSError) as ioe:
+                if ioe.errno == errno.EINTR:
+                    continue
+                break
+
             for fd, event in events:
                 # New connection
                 if fd == server_socket.fileno():
-                    sock, addr = server_socket.accept()
+                    sock, _ = server_socket.accept()
                     sock.setblocking(0)
                     epoll.register(sock.fileno(), self.readmask)
                     with self.clients_lock:
@@ -111,16 +116,17 @@ class ShellProxy(object):
 
                 client = self.clients.get(fd)
                 if client is None:
-                     log.warn('Got activity for unknown client.')
-                     epoll.unregister(fd)
-                     continue
+                    log.warn('Got activity for unknown client.')
+                    epoll.unregister(fd)
+                    continue
 
                 # Socket has data to read
                 if event & select.EPOLLIN:
                     try:
                         received = client.socket.recv(CHUNK_SIZE)
-                    except socket.error:
-                        self._disconnect(client)
+                    except socket.error as se:
+                        if se.errno != errno.EINTR:
+                            self._disconnect(client)
                         continue
 
                     # Check for EOF (0 bytes read)
@@ -130,38 +136,33 @@ class ShellProxy(object):
                         self._disconnect(client)
                         continue
 
-                    bytes_consumed = self.process_client_requests(client)
+                    self.process_client_requests(client)
 
                     # Check if there is data to send
                     if client.sendbuf:
-                        epoll.modify(fd, self.readmask|self.writemask)
+                        epoll.modify(fd, self.readmask | self.writemask)
 
                 # Socket is ready to write
                 elif event & select.EPOLLOUT:
                     with self.clients_lock:
                         try:
                             bytes_sent = client.socket.send(client.sendbuf)
-                            print 'Sent: ' + repr(client.sendbuf[:bytes_sent])
-                        except socket.error:
-                            self._disconnect(client)
+                        except socket.error as se:
+                            if se.errno != errno.EINTR:
+                                self._disconnect(client)
                             continue
 
                         client.sendbuf = client.sendbuf[bytes_sent:]
                         if not client.sendbuf:
-                            print 'All sent!'
                             # No more data to write. Wait for requests only
                             epoll.modify(fd, self.readmask)
 
                 # Errors and disconnects
                 elif event & self.errormask:
-                    print 'ERROR...'
                     self._disconnect(client)
-                else:
-                    print('Unknown event: {0}'.format(hex(event)))
 
-        epoll.unregister(server_socket.fileno())
         for fd, client in self.clients.iteritems():
-            epoll.unregiser(fd)
+            epoll.unregister(fd)
             client.socket.close()
 
         self.clients.clear()
@@ -169,13 +170,12 @@ class ShellProxy(object):
         server_socket.close()
 
     def process_client_requests(self, client):
-       while True:
+        while True:
             eol_offset = client.recvbuf.find(PROTO_EOL)
             if eol_offset == -1:
                 return
 
             msg = client.recvbuf[:eol_offset]
-            print 'Got message: ' + msg
             # + 1 to skip the EOL character
             client.recvbuf = client.recvbuf[eol_offset + 1:]
 
@@ -184,12 +184,10 @@ class ShellProxy(object):
                 command = parts[0]
                 path = self.unescape(parts[1])
             else:
-                print 'INVALID MESSAGE: ' + repr(msg)
                 continue
 
             handler = self.command_to_handler.get(command)
             if self.shell and handler:
-                print 'Calling ' + str(handler)
                 handler(path, client)
  
     def unescape(self, path):
