@@ -9,7 +9,9 @@ import logging
 import logging.handlers
 import shutil
 import dbus
-from gi.repository import GLib, Gio, Gtk
+from contextlib import contextmanager
+
+from gi.repository import GLib, Gio, Gtk, Gdk
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     UI_CONFIG_PATH, LOGGER_NAME, LOG_PATH,
@@ -18,6 +20,14 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     PURGEMETA_PATH, PURGEALL_PATH)
 from meocloud_gui.stoppablethread import StoppableThread
 
+
+@contextmanager
+def gdk_threads_lock():
+    Gdk.threads_enter()
+    try:
+        yield
+    finally:
+        Gdk.threads_leave() 
 
 def init_logging(log_handler):
     debug_off = os.path.isfile(DEBUG_OFF_PATH)

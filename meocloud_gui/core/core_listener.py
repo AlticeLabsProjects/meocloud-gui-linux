@@ -26,7 +26,7 @@ from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
 from meocloud_gui.strings import NOTIFICATIONS
 from meocloud_gui.exceptions import ListenerConnectionFailedException
-import meocloud_gui.utils
+from meocloud_gui import utils
 
 from meocloud_gui import codes
 
@@ -63,10 +63,11 @@ class CoreListenerHandler(UI.Iface):
         self.ignore_sync = ignore_sync
         self.last_notify = 0
 
+        self.app_icon_path = os.path.join(self.app.app_path,
+                                          'icons/meocloud.svg')
         Notify.init('MEOCloud')
 
     ### THRIFT METHODS ###
-
     def account(self):
         log.debug('CoreListener.account() <<<<')
 
@@ -87,20 +88,22 @@ class CoreListenerHandler(UI.Iface):
 
         GLib.idle_add(self.beginAuthorizationIdle)
 
+    # Runs in the GUI thread
     def beginAuthorizationIdle(self):
         self.setup = SetupWindow(self.app)
-        self.setup.login_button.connect("clicked",
+        self.setup.login_button.connect('clicked',
                                         self.beginAuthorizationBrowser)
         self.setup.show_all()
 
+    # Runs in the GUI thread
     def beginAuthorizationBrowser(self, w):
         if not self.setup.setup_easy.get_active():
             self.ui_config.put('Advanced', 'Folder',
                                self.setup.cloud_home_select.get_label())
 
         try:
-            meocloud_gui.utils.clean_cloud_path()
-        except (OSError, IOError, AssertionError):
+            utils.clean_cloud_path()
+        except (EnvironmentError, AssertionError):
             return
 
         self.setup.start_waiting()
@@ -138,12 +141,12 @@ class CoreListenerHandler(UI.Iface):
             self.app.enable_sync = True
             GLib.idle_add(self.setup.spinner.stop)
             GLib.idle_add(self.setup.pages.last_page)
-            meocloud_gui.utils.create_startup_file(self.app.app_path)
-            meocloud_gui.utils.create_bookmark()
+            utils.create_startup_file(self.app.app_path)
+            utils.create_bookmark()
         else:
             self.app.enable_sync = False
-            meocloud_gui.utils.create_startup_file(self.app.app_path)
-            meocloud_gui.utils.create_bookmark()
+            utils.create_startup_file(self.app.app_path)
+            utils.create_bookmark()
             GLib.idle_add(self.setup.pages.next_page)
 
         GLib.idle_add(lambda: self.setup.present())
@@ -151,114 +154,96 @@ class CoreListenerHandler(UI.Iface):
     def endAuthorization(self):
         log.debug('CoreListener.endAuthorization() <<<<')
 
+    def _build_notification(self, msg, title):
+        title = title if title else 'MEO Cloud'
+        return Notify.Notification.new(title, msg, self.app_icon_path)
+
+    def _build_notify_and_clipboard_cb(self, msg, title=None, url=None):
+        def callback():
+            with utils.gdk_threads_lock():
+                if url:
+                    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                    clipboard.set_text(url, -1)
+                notification = self._build_notification(msg, title)
+                notification.show()
+
+        return callback
+
     def notifySystem(self, note):
         log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code,
                   note.parameters))
 
         if note.code == codes.SHARE_LINK:
-            if note.parameters[0] == codes.STR_OK:
-                def set_clipboard(text):
-                    Gdk.threads_enter()
-                    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-                    clipboard.set_text(text, -1)
-                    Gdk.threads_leave()
+            result = note.parameters[0]
+            path = os.path.basename(note.parameters[1])
+            url = note.parameters[2]
 
-                GLib.idle_add(lambda: set_clipboard(note.parameters[2]))
+            if result == codes.STR_OK:
+                msg = (_('A link to "{0}" was copied to the clipboard.').
+                       format(path))
+                cb = self._build_notify_and_clipboard_cb(msg, url=url)
+                GLib.idle_add(cb)
 
-                Gdk.threads_enter()
-                notification = Notify.Notification.new("MEO Cloud",
-                                                       _("Link copied to "
-                                                         "clipboard."),
-                                                       os.path.join(
-                                                           self.app.app_path,
-                                                           "icons/"
-                                                           "meocloud.svg"))
-                notification.show()
-                Gdk.threads_leave()
-            elif note.parameters[0] == codes.STR_NOTFOUND:
-                Gdk.threads_enter()
-                notification = Notify.Notification.new(
-                    "MEO Cloud",
-                    _("File isn't synchronized yet. "
-                      "Please try again once synchronization finishes."),
-                    os.path.join(
-                        self.app.app_path,
-                        "icons/"
-                        "meocloud.svg"))
-                notification.show()
-                Gdk.threads_leave()
-            elif note.parameters[0] == codes.STR_ERROR:
-                Gdk.threads_enter()
-                notification = Notify.Notification.new(
-                    "MEO Cloud",
-                    _("An error ocurred while trying to complete the "
-                      "operation. Please try again later."),
-                    os.path.join(
-                        self.app.app_path,
-                        "icons/"
-                        "meocloud.svg"))
-                notification.show()
-                Gdk.threads_leave()
+            elif result == codes.STR_NOTFOUND:
+                msg = _("\"{0}\" isn't synchronized yet. "
+                        "Please try again once the synchronization finishes.")
+                msg = msg.format(path)
+                cb = self._build_notify_and_clipboard_cb(msg, url=url)
+                GLib.idle_add(cb)
+
+            elif result == codes.STR_ERROR:
+                msg = _('An error occurred while trying to complete the '
+                        'operation. Please try again later.')
+                cb = self._build_notify_and_clipboard_cb(msg, url=url)
+                GLib.idle_add(cb)
+
         elif (note.code == codes.SHARE_FOLDER or
-                note.code == codes.OPEN_IN_BROWSER):
-            if note.parameters[0] == codes.STR_OK:
-                webbrowser.open(note.parameters[2])
-            elif note.parameters[0] == codes.STR_NOTFOUND:
-                Gdk.threads_enter()
-                notification = Notify.Notification.new(
-                    "MEO Cloud",
-                    _("File isn't synchronized yet. "
-                      "Please try again once synchronization finishes."),
-                    os.path.join(
-                        self.app.app_path,
-                        "icons/"
-                        "meocloud.svg"))
-                notification.show()
-                Gdk.threads_leave()
-            elif note.parameters[0] == codes.STR_ERROR:
-                Gdk.threads_enter()
-                notification = Notify.Notification.new(
-                    "MEO Cloud",
-                    _("An error ocurred while trying to complete the "
-                      "operation. Please try again later."),
-                    os.path.join(
-                        self.app.app_path,
-                        "icons/"
-                        "meocloud.svg"))
-                notification.show()
-                Gdk.threads_leave()
+              note.code == codes.OPEN_IN_BROWSER):
+            result = note.parameters[0]
+            path = os.path.basename(note.parameters[1])
+            url = note.parameters[2]
+
+            if result == codes.STR_OK:
+                GLib.idle_add(lambda: webbrowser.open(url))
+
+            elif result == codes.STR_NOTFOUND:
+                msg = ("\"{0}\" isn't synchronized yet. "
+                       "Please try again once the synchronization finishes.")
+                msg = msg.format(path)
+                cb = self._build_notify_and_clipboard_cb(msg, url)
+                GLib.idle_add(cb)
+
+            elif result == codes.STR_ERROR:
+                msg = _("An error occurred while trying to complete the "
+                        "operation. Please try again later.")
+                msg = msg.format(path)
+                cb = self._build_notify_and_clipboard_cb(msg, url)
+                GLib.idle_add(cb)
+
         elif note.code == codes.SHARED_FOLDER_ADDED:
-            if not note.parameters[0] in self.app.shared:
-                if self.app.shared is not None:
-                    self.app.shared.add(note.parameters[0])
+            path = note.parameters[0]
+            if self.app.shared is not None and path not in self.app.shared:
+                self.app.shared.add(path)
+                self._save_shared_folders()
 
-                    try:
-                        f = open(os.path.join(UI_CONFIG_PATH,
-                                              'shared_directories'), "w")
-                        for directory in self.app.shared:
-                            f.write(directory + "\n")
-                        f.close()
-                    except (OSError, IOError):
-                        log.warning(
-                            'CoreListener.notifySystem: unable to save '
-                            'shared directories list')
         elif note.code == codes.SHARED_FOLDER_UNSHARED:
-            if note.parameters[0] in self.app.shared:
-                if self.app.shared is not None:
-                    self.app.shared.remove(note.parameters[0])
+            path = note.parameters[0]
+            if self.app.shared is not None and path in self.app.shared:
+                self.app.shared.remove(path)
+                self._save_shared_folders()
 
-                    try:
-                        f = open(os.path.join(UI_CONFIG_PATH,
-                                              'shared_directories'), "w")
-                        for directory in self.app.shared:
-                            f.write(directory + "\n")
-                        f.close()
-                    except (OSError, IOError):
-                        log.warning(
-                            'CoreListener.notifySystem: unable to save '
-                            'shared directories list')
+        GLib.idle_add(self.app.update_menu)
 
-        self.app.update_menu()
+    def _save_shared_folders(self):
+        try:
+            f = open(os.path.join(UI_CONFIG_PATH, 'shared_directories'), 'wb')
+            for directory in self.app.shared:
+                f.write(directory + '\n')
+            f.close()
+        except EnvironmentError as err:
+            log.warning(
+                'CoreListener.notifySystem: unable to save '
+                'shared directories list: {0}'.format(err))
 
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
@@ -268,13 +253,17 @@ class CoreListenerHandler(UI.Iface):
 
         if (self.last_notify != USER_NOTIFY_CANNOT_WATCH_FS or (
                 self.last_notify == USER_NOTIFY_CANNOT_WATCH_FS and
-                self.code != self.last_notify)):
+                note.code != self.last_notify)):
             if note.type != 0:
                 loc = locale.getlocale()
                 if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
                     lang = 'pt'
                 else:
                     lang = 'en'
+
+                # Shorten path name
+                if note.code in (200, 201, 202, 250, 251, 252):
+                    note.parameters[0] = os.path.basename(note.parameters[0])
 
                 notif_title = NOTIFICATIONS[lang][
                     str(note.code) + "_title"].format(*note.parameters)
@@ -289,18 +278,14 @@ class CoreListenerHandler(UI.Iface):
                         lambda: self.app.menuitem_moreinfo.show())
 
                 if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
-                    self.app.trayicon.set_icon("meocloud-activity")
+                    GLib.add_idle(self.app.trayicon.set_icon("meocloud-activity"))
 
                 if (note.type & USER_NOTIFY_TYPE_MASK_BALLOON and
                         display_notifications == "True"):
-                    notif_icon = os.path.join(
-                        self.app.app_path, "icons/meocloud.svg")
-                    Gdk.threads_enter()
-                    notification = Notify.Notification.new(notif_title,
-                                                           notif_string,
-                                                           notif_icon)
-                    notification.show()
-                    Gdk.threads_leave()
+                    cb = self._build_notify_and_clipboard_cb(
+                        notif_string, notif_title)
+                    GLib.idle_add(cb)
+
             elif note.type == 0:
                 self.app.trayicon.wrapper(
                     lambda: self.app.menuitem_problem.hide())
