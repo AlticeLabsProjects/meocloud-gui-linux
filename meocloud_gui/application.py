@@ -163,11 +163,8 @@ class Application(Gtk.Application):
 
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 log.info('Application.on_activate: prefs.ini missing')
-
-                if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                               'shared_directories')):
-                    os.remove(os.path.join(UI_CONFIG_PATH,
-                                           'shared_directories'))
+                utils.force_remove(os.path.join(UI_CONFIG_PATH,
+                                  'shared_directories'))
             else:
                 if not os.path.exists(self.prefs.get("Advanced", "Folder",
                                                      CLOUD_HOME_DEFAULT_PATH)):
@@ -351,9 +348,7 @@ class Application(Gtk.Application):
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
-            self.shell = Shell()
-            self.shell.proxy = self.shell_proxy
-            self.shell_proxy.shell = self.shell
+            self.shell = Shell(self.shell_proxy)
             self.shell_proxy.update_prefs()
 
         if ((status.state == codes.CORE_SYNCING or
@@ -611,11 +606,8 @@ class Application(Gtk.Application):
     def on_logout_thread(self):
         meocloud_gui.core.api.unlink(self.core_client, Preferences())
 
-        if os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
-            os.remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
-        if os.path.isfile(os.path.join(UI_CONFIG_PATH,
-                                       'shared_directories')):
-            os.remove(os.path.join(UI_CONFIG_PATH, 'shared_directories'))
+        utils.force_remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
+        utils.force_remove(os.path.join(UI_CONFIG_PATH, 'shared_directories'))
         utils.purge_all()
 
         self.requires_authorization = True

@@ -42,6 +42,8 @@ log = logging.getLogger(LOGGER_NAME)
 class Shell(object):
     def __init__(self, proxy):
         self.proxy = proxy
+        self.proxy.shell = self
+
         self.file_states = {}
 
         self.read_buffer = None
@@ -172,19 +174,19 @@ class Shell(object):
             return self.writing
 
     def update_file_status(self, path):
-        Glib.idle_add(lambda: self._update_file_status(path))
+        GLib.idle_add(lambda: self._update_file_status(path))
 
     def open_in_browser(self, path):
-        Glib.idle_add(lambda: self._open_in_browser(path))
+        GLib.idle_add(lambda: self._open_in_browser(path))
 
-    def share_link(self path):
-        Glib.idle_add(lambda: self._share_link(path))
+    def share_link(self, path):
+        GLib.idle_add(lambda: self._share_link(path))
  
-    def share_folder(self path):
-        Glib.idle_add(lambda: self._share_folder(path))
+    def share_folder(self, path):
+        GLib.idle_add(lambda: self._share_folder(path))
  
-    def subscribe_path(self path):
-        Glib.idle_add(lambda: self._subscribe_path(path))
+    def subscribe_path(self, path):
+        GLib.idle_add(lambda: self._subscribe_path(path))
  
     def _update_file_status(self, path):
         msg = self.file_status_msg
@@ -237,7 +239,7 @@ class Shell(object):
             data = remaining
 
         while paths:
-            self.proxy.broadcast_file(paths.pop())
+            self.proxy.broadcast_file_status(paths.pop())
 
     def _send(self, data):
         if not self._check_connection():

@@ -7,9 +7,16 @@ from meocloud_gui.constants import UI_CONFIG_PATH
 class Preferences(object):
     def __init__(self):
         self.path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
+        self._set_permissions()
         self.config = ConfigParser.ConfigParser()
         self.creds = None
         self._load()
+
+    def _set_permissions(self):
+        try:
+            os.chmod(self.path, 0600)
+        except OSError:
+            pass
  
     def _load(self):
         self.config.read(self.path)
@@ -18,6 +25,7 @@ class Preferences(object):
         self.creds = creds
 
     def save(self):
+        self._set_permissions()
         for i in xrange(2):
             try:
                 prefsfile = open(self.path, 'wb')
