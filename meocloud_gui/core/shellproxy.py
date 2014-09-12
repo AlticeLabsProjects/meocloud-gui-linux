@@ -180,7 +180,7 @@ class ShellProxy(object):
             client.recvbuf = client.recvbuf[eol_offset + 1:]
 
             parts = msg.split(PROTO_SEP)
-            if len(parts) > 1: 
+            if len(parts) > 1:
                 command = parts[0]
                 path = self.unescape(parts[1])
             else:
@@ -189,7 +189,7 @@ class ShellProxy(object):
             handler = self.command_to_handler.get(command)
             if self.shell and handler:
                 handler(path, client)
- 
+
     def unescape(self, path):
         return path.replace(
             '\\t', '\t').replace('\\n', '\n').replace('\\\\', '\\')
