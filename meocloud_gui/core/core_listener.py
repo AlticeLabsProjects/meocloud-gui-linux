@@ -1,7 +1,6 @@
 # Python standard library imports
 import os
 import webbrowser
-import keyring
 import locale
 
 # GLib, Gdk and Gtk
@@ -19,8 +18,7 @@ from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH, CLIENT_ID,
-                                    AUTH_KEY)
+from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
 from meocloud_gui.core import api
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
@@ -127,12 +125,10 @@ class CoreListenerHandler(UI.Iface):
 
         if account.authKey:
             account.authKey = '*' * len(account.authKey)
+
         log.debug('CoreListener.authorized({0}) <<<<'.format(account))
- 
-        GLib.idle_add(lambda: keyring.set_password("meocloud", CLIENT_ID,
-                                                   account_dict['clientID']))
-        GLib.idle_add(lambda: keyring.set_password("meocloud", AUTH_KEY,
-                                                   account_dict['authKey']))
+        self.ui_config.creds.cid = account_dict['clientID']
+        self.ui_config.creds.ckey = account_dict['authKey']
         self.ui_config.put('Account', 'email', account_dict['email'])
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
@@ -149,7 +145,7 @@ class CoreListenerHandler(UI.Iface):
             utils.create_bookmark()
             GLib.idle_add(self.setup.pages.next_page)
 
-        GLib.idle_add(lambda: self.setup.present())
+        GLib.idle_add(self.setup.present)
 
     def endAuthorization(self):
         log.debug('CoreListener.endAuthorization() <<<<')
@@ -278,7 +274,7 @@ class CoreListenerHandler(UI.Iface):
                         lambda: self.app.menuitem_moreinfo.show())
 
                 if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
-                    GLib.add_idle(self.app.trayicon.set_icon("meocloud-activity"))
+                    GLib.idle_add(lambda: self.app.trayicon.set_icon("meocloud-activity"))
 
                 if (note.type & USER_NOTIFY_TYPE_MASK_BALLOON and
                         display_notifications == "True"):

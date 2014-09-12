@@ -107,7 +107,7 @@ class Application(Gtk.Application):
 
         cid = keyring.get_password('meocloud', CLIENT_ID)
         ckey = keyring.get_password('meocloud', AUTH_KEY)
-  
+
         if cid and ckey:
             self.prefs.creds.cid = cid
             self.prefs.creds.ckey = ckey
