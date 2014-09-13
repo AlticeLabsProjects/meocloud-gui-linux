@@ -1,5 +1,5 @@
 import os.path
-import os
+
 from gi.repository import Gtk, GLib
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.progressdialog import ProgressDialog
@@ -55,7 +55,7 @@ class PrefsWindow(Gtk.Window):
             except AttributeError:
                 pass
 
-        prefs = Preferences()
+        self.prefs = app.prefs
         self.app = app
         self.selective_sync = None
 
@@ -79,7 +79,7 @@ class PrefsWindow(Gtk.Window):
         icons_label.set_alignment(0, 0)
         icons_label.set_margin_bottom(5)
         icons_label.set_margin_top(5)
-        self.icon_type = prefs.get("General", "Icons", "")
+        self.icon_type = self.prefs.get("General", "Icons", "")
 
         self.icon_normal = Gtk.RadioButton.new_with_label(
             None, _("Use default icons"))
@@ -101,7 +101,7 @@ class PrefsWindow(Gtk.Window):
             self.icon_normal.set_active(True)
 
         # display notifications
-        self.display_notif = prefs.get("General",
+        self.display_notif = self.prefs.get("General",
                                        "Notifications", "True") == "True"
         display_notifications = Gtk.CheckButton(_("Display notifications"))
         display_notifications.set_active(self.display_notif)
@@ -121,8 +121,8 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(start_at_login, False, True, 10)
 
         # account
-        login_label = Gtk.Label(_("You are logged in with {0}.").format(
-            prefs.get('Account', 'email', '')))
+        login_label = Gtk.Label(_("You are logged in as {0}.").format(
+            self.prefs.get('Account', 'email', '')))
         self.logout_button = Gtk.Button(_("Unlink"))
         account_box.pack_start(login_label, False, True, 10)
         account_box.pack_start(self.logout_button, False, True, 10)
@@ -141,37 +141,30 @@ class PrefsWindow(Gtk.Window):
         self.proxy_manual = Gtk.RadioButton.new_with_label_from_widget(
             self.proxy_none, _("Manual"))
 
-        # proxy automatic configuration
-        self.proxy_automatic_url = Gtk.Entry()
-        self.proxy_automatic_url.set_placeholder_text("http://www.example.com")
-        self.proxy = dict()
-        self.proxy["ProxyURL"] = prefs.get("Network", "ProxyURL", "")
-        self.proxy_automatic_url.set_text(self.proxy["ProxyURL"])
-        self.proxy_automatic_url.set_no_show_all(True)
-
         # proxy manual configuration
+        self.proxy = {}
         self.proxy_manual_address = Gtk.Entry()
         self.proxy_manual_address.set_placeholder_text("Address")
-        self.proxy["ProxyAddress"] = prefs.get("Network", "ProxyAddress", "")
+        self.proxy["ProxyAddress"] = self.prefs.get("Network", "ProxyAddress", "")
         self.proxy_manual_address.set_text(self.proxy["ProxyAddress"])
         self.proxy_manual_address.set_no_show_all(True)
 
         self.proxy_manual_port = Gtk.Entry()
         self.proxy_manual_port.set_placeholder_text("Port")
-        self.proxy["ProxyPort"] = prefs.get("Network", "ProxyPort", "")
+        self.proxy["ProxyPort"] = self.prefs.get("Network", "ProxyPort", "")
         self.proxy_manual_port.set_text(self.proxy["ProxyPort"])
         self.proxy_manual_port.set_no_show_all(True)
 
         self.proxy_manual_user = Gtk.Entry()
         self.proxy_manual_user.set_placeholder_text("User")
-        self.proxy["ProxyUser"] = prefs.get("Network", "ProxyUser", "")
+        self.proxy["ProxyUser"] = self.prefs.get("Network", "ProxyUser", "")
         self.proxy_manual_user.set_text(self.proxy["ProxyUser"])
         self.proxy_manual_user.set_no_show_all(True)
 
         self.proxy_manual_password = Gtk.Entry()
         self.proxy_manual_password.set_visibility(False)
         self.proxy_manual_password.set_placeholder_text("Password")
-        self.proxy["ProxyPassword"] = prefs.get("Network", "ProxyPassword", "")
+        self.proxy["ProxyPassword"] = self.prefs.creds.proxy_password
         self.proxy_manual_password.set_text(self.proxy["ProxyPassword"])
         self.proxy_manual_password.set_no_show_all(True)
 
@@ -184,8 +177,8 @@ class PrefsWindow(Gtk.Window):
         download_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         download_entry = Gtk.Entry()
         self.throttle = dict()
-        self.throttle["Download"] = prefs.get("Network",
-                                              "ThrottleDownload", "0")
+        self.throttle["Download"] = self.prefs.get(
+            "Network", "ThrottleDownload", "0")
         download_entry.set_sensitive(int(self.throttle["Download"]) > 0)
         download_text = self.throttle["Download"]
         if download_text == "0":
@@ -200,7 +193,7 @@ class PrefsWindow(Gtk.Window):
         # upload limit
         upload_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         upload_entry = Gtk.Entry()
-        self.throttle["Upload"] = prefs.get("Network", "ThrottleUpload", "0")
+        self.throttle["Upload"] = self.prefs.get("Network", "ThrottleUpload", "0")
         upload_entry.set_sensitive(int(self.throttle["Upload"]) > 0)
         upload_text = self.throttle["Upload"]
         if upload_text == "0":
@@ -225,7 +218,6 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(proxy_label, False, False, 5)
         network_box.pack_start(self.proxy_none, False, False, 0)
         network_box.pack_start(self.proxy_automatic, False, False, 0)
-        network_box.pack_start(self.proxy_automatic_url, False, False, 5)
         network_box.pack_start(self.proxy_manual, False, False, 0)
         network_box.pack_start(self.proxy_manual_address, False, False, 5)
         network_box.pack_start(self.proxy_manual_port, False, False, 5)
@@ -236,22 +228,22 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(upload_box, False, False, 5)
 
         # set the proxy settings
-        self.proxy["Proxy"] = prefs.get("Network", "Proxy", "None")
-        if self.proxy["Proxy"] == "Automatic":
-            self.proxy_automatic.set_active(True)
-            self.proxy_automatic_url.show()
-        elif self.proxy["Proxy"] == "Manual":
+        self.proxy["Proxy"] = self.prefs.get("Network", "Proxy", "Automatic")
+
+        if self.proxy["Proxy"] == "Manual":
             self.proxy_manual.set_active(True)
             self.proxy_manual_address.show()
             self.proxy_manual_port.show()
             self.proxy_manual_user.show()
             self.proxy_manual_password.show()
+        elif self.proxy['Proxy'] == "Automatic":
+            self.proxy_automatic.set_active(True)
         else:
             self.proxy_none.set_active(True)
 
         # advanced
         if not embed:
-            folder_button = Gtk.Button(prefs.get("Advanced", "Folder",
+            folder_button = Gtk.Button(self.prefs.get("Advanced", "Folder",
                                        CLOUD_HOME_DEFAULT_PATH))
             folder_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")),
@@ -262,7 +254,7 @@ class PrefsWindow(Gtk.Window):
             selective_box_pad = 0
         else:
             selective_box_pad = 10
- 
+
         self.selective_button = Gtk.Button(_("Select Synced Folders"))
         selective_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         selective_box.pack_start(Gtk.Label(_("Selective Sync: ")),
@@ -305,8 +297,6 @@ class PrefsWindow(Gtk.Window):
                                      self.set_proxy(w, "Automatic"))
         self.proxy_manual.connect("toggled", lambda w:
                                   self.set_proxy(w, "Manual"))
-        self.proxy_automatic_url.connect("changed",
-                                         self.proxy_automatic_value_changed)
         self.proxy_manual_address.connect(
             "changed", lambda w: self.proxy_manual_value_changed(
                 w, "ProxyAddress"))
@@ -335,7 +325,7 @@ class PrefsWindow(Gtk.Window):
         self.set_size_request(300, 360)
 
     def destroy(self, w=None):
-        prefs = Preferences()
+        prefs = self.prefs
 
         prefs.put("General", "Notifications", self.display_notif)
         prefs.put("General", "Icons", self.icon_type)
@@ -344,11 +334,12 @@ class PrefsWindow(Gtk.Window):
         prefs.put("Network", "ThrottleDownload", self.throttle["Download"])
 
         prefs.put("Network", "Proxy", self.proxy["Proxy"])
-        prefs.put("Network", "ProxyURL", self.proxy["ProxyURL"])
         prefs.put("Network", "ProxyAddress", self.proxy["ProxyAddress"])
         prefs.put("Network", "ProxyPort", self.proxy["ProxyPort"])
         prefs.put("Network", "ProxyUser", self.proxy["ProxyUser"])
-        prefs.put("Network", "ProxyPassword", self.proxy["ProxyPassword"])
+
+        prefs.creds.proxy_password = self.proxy["ProxyPassword"]
+
         prefs.save()
 
         try:
@@ -362,7 +353,7 @@ class PrefsWindow(Gtk.Window):
     def update_network(self):
         self.app.core_client.networkSettingsChanged(
             api.get_network_settings(
-                Preferences(), upload=int(self.throttle["Upload"]),
+                self.prefs, upload=int(self.throttle["Upload"]),
                 download=int(self.throttle["Download"])))
 
     def toggle_display_notifications(self, w):
@@ -415,7 +406,6 @@ class PrefsWindow(Gtk.Window):
         if response == Gtk.ResponseType.OK:
             new_path = os.path.join(dialog.get_filename())
             dialog.destroy()
-            prefs = Preferences()
             self.app.stop_threads()
             meocloud_gui.utils.purge_meta()
 
@@ -442,12 +432,12 @@ class PrefsWindow(Gtk.Window):
                     error_dialog.run()
                     error_dialog.destroy()
                 else:
-                    meocloud_gui.utils.clean_bookmark()
+                    meocloud_gui.utils.clean_bookmark(self.prefs)
                     self.app.restart_core()
                     w.set_label(new_path)
-                    prefs.put("Advanced", "Folder", new_path)
-                    prefs.save()
-                    meocloud_gui.utils.create_bookmark()
+                    self.prefs.put("Advanced", "Folder", new_path)
+                    self.prefs.save()
+                    meocloud_gui.utils.create_bookmark(self.prefs)
                     GLib.source_remove(timeout)
                     prog.destroy()
 
@@ -456,7 +446,8 @@ class PrefsWindow(Gtk.Window):
                 return True
             timeout = GLib.timeout_add(200, pulse)
 
-            old_path = prefs.get("Advanced", "Folder", CLOUD_HOME_DEFAULT_PATH)
+            old_path = self.prefs.get("Advanced", "Folder",
+                                      CLOUD_HOME_DEFAULT_PATH)
             meocloud_gui.utils.move_folder_async(old_path, new_path,
                                                  lambda p, e:
                                                  end(prog, timeout, p, e))
@@ -487,9 +478,6 @@ class PrefsWindow(Gtk.Window):
         self.throttle[throttle] = str(val)
         self.update_network()
 
-    def proxy_automatic_value_changed(self, w):
-        self.proxy["ProxyURL"] = self.proxy_automatic_url.get_text()
-
     def proxy_manual_value_changed(self, w, pref_name):
         self.proxy[pref_name] = w.get_text()
 
@@ -498,12 +486,10 @@ class PrefsWindow(Gtk.Window):
             self.proxy["Proxy"] = proxy
 
             if proxy == "None":
-                self.proxy_automatic_url.hide()
                 self.proxy_manual_address.hide()
                 self.proxy_manual_port.hide()
                 self.proxy_manual_user.hide()
                 self.proxy_manual_password.hide()
-                self.proxy["ProxyURL"] = ""
                 self.proxy["ProxyAddress"] = ""
                 self.proxy["ProxyPort"] = ""
                 self.proxy["ProxyUser"] = ""
@@ -517,12 +503,8 @@ class PrefsWindow(Gtk.Window):
                 self.proxy["ProxyPort"] = ""
                 self.proxy["ProxyUser"] = ""
                 self.proxy["ProxyPassword"] = ""
-                self.proxy_automatic_url.show()
-                self.proxy["ProxyURL"] = self.proxy_automatic_url.get_text()
             else:
-                self.proxy_automatic_url.hide()
                 self.proxy_manual_address.show()
                 self.proxy_manual_port.show()
                 self.proxy_manual_user.show()
                 self.proxy_manual_password.show()
-                self.proxy["ProxyURL"] = ""

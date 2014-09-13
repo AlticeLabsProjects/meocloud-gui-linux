@@ -27,6 +27,8 @@ ESCAPE_MAP = {
     '\\': '\\\\',
 }
 
+NONFATAL_SOCKET_ERRORS = frozenset((errno.EINTR, errno.EAGAIN))
+
 
 class Client(object):
     __slots__ = ('recvbuf', 'sendbuf', 'socket', 'epoll')
@@ -45,6 +47,7 @@ class ShellProxy(object):
 
     def __init__(self, status, app):
         self.app = app
+        self.prefs = app.prefs
         self.status = status
         self.shell = None
         self.app_path = app.app_path
@@ -100,7 +103,7 @@ class ShellProxy(object):
             try:
                 events = epoll.poll(10)
             except (IOError, OSError) as ioe:
-                if ioe.errno == errno.EINTR:
+                if ioe.errno in NONFATAL_SOCKET_ERRORS:
                     continue
                 break
 
@@ -125,7 +128,7 @@ class ShellProxy(object):
                     try:
                         received = client.socket.recv(CHUNK_SIZE)
                     except socket.error as se:
-                        if se.errno != errno.EINTR:
+                        if se.errno not in NONFATAL_SOCKET_ERRORS:
                             self._disconnect(client)
                         continue
 
@@ -148,7 +151,7 @@ class ShellProxy(object):
                         try:
                             bytes_sent = client.socket.send(client.sendbuf)
                         except socket.error as se:
-                            if se.errno != errno.EINTR:
+                            if se.errno not in NONFATAL_SOCKET_ERRORS:
                                 self._disconnect(client)
                             continue
 
@@ -207,11 +210,11 @@ class ShellProxy(object):
     }
 
     def broadcast_file_status(self, path, client=None):
-        state = self.shell.file_states.get(path, None)
+        state = self.shell.file_states.get(path)
         if state is not None:
             code = self.filestate_to_code.get(state, '0')
-            msg = PROTO_SEP.join(('status', self.escape(path), code)) + \
-                  PROTO_EOL
+            path = self.escape(path)
+            msg = PROTO_SEP.join(('status', path, code)) + PROTO_EOL
             self._broadcast_msg(msg)
         else:
             self.shell.update_file_status(path)
@@ -220,10 +223,11 @@ class ShellProxy(object):
         with self.clients_lock:
             for client in self.clients.itervalues():
                 client.sendbuf += msg
-                client.epoll.modify(client.socket.fileno(), self.readmask|self.writemask)
+                client.epoll.modify(client.socket.fileno(),
+                                    self.readmask | self.writemask)
 
     def update_prefs(self):
-        prefs = Preferences()
+        prefs = self.prefs
         self.cloud_home = prefs.get('Advanced', 'Folder',
                                     CLOUD_HOME_DEFAULT_PATH)
         log.info(
@@ -256,8 +260,8 @@ class ShellProxy(object):
         with self.clients_lock:
             client.sendbuf += msg
             client.epoll.modify(client.socket.fileno(),
-                                self.readmask|self.writemask)
- 
+                                self.readmask | self.writemask)
+
     def subscribe_path(self, path, client=None):
         path = unicode(path).encode('utf-8')
         if path.startswith(self.cloud_home):
@@ -265,4 +269,4 @@ class ShellProxy(object):
         self.shell.subscribe_path(path)
 
     def start(self):
-       self.thread.start()
+        self.thread.start()

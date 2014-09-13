@@ -27,7 +27,8 @@ def gdk_threads_lock():
     try:
         yield
     finally:
-        Gdk.threads_leave() 
+        Gdk.threads_leave()
+
 
 def init_logging(log_handler):
     debug_off = os.path.isfile(DEBUG_OFF_PATH)
@@ -58,9 +59,7 @@ def purge_meta():
     touch(PURGEMETA_PATH)
 
 
-def create_required_folders():
-    prefs = Preferences()
-
+def create_required_folders(prefs):
     cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
 
     if not os.path.exists(cloud_home):
@@ -75,13 +74,12 @@ def create_required_folders():
         os.chmod(UI_CONFIG_PATH, 0700)
 
 
-def clean_cloud_path():
-    prefs = Preferences()
+def clean_cloud_path(prefs):
 
     cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
 
     if os.path.exists(cloud_home):
-        if os.listdir(cloud_home) != []:
+        if os.listdir(cloud_home):
             dialog = Gtk.MessageDialog(
                 None, 0, Gtk.MessageType.QUESTION,
                 Gtk.ButtonsType.YES_NO,
@@ -121,9 +119,8 @@ def create_startup_file(base_path=None):
             "utils.create_startup_file: error creating startup file")
 
 
-def clean_bookmark():
-    cloud_home = Preferences().get('Advanced', 'Folder',
-                                   CLOUD_HOME_DEFAULT_PATH)
+def clean_bookmark(prefs):
+    cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
     cloud_home = urlparse.urljoin('file:', urllib.pathname2url(cloud_home))
 
     folder_path = os.path.join(os.path.expanduser('~'),
@@ -143,13 +140,11 @@ def clean_bookmark():
         f.close()
 
 
-def create_bookmark():
-    cloud_home = Preferences().get('Advanced', 'Folder',
-                                   CLOUD_HOME_DEFAULT_PATH)
+def create_bookmark(prefs):
+    cloud_home = prefs.get('Advanced', 'Folder', CLOUD_HOME_DEFAULT_PATH)
     cloud_home = urlparse.urljoin('file:', urllib.pathname2url(cloud_home))
 
-    folder_path = os.path.join(os.path.expanduser('~'),
-                               '.config/gtk-3.0')
+    folder_path = os.path.join(os.path.expanduser('~'), '.config/gtk-3.0')
     file_path = os.path.join(folder_path, 'bookmarks')
 
     if not os.path.exists(folder_path):
@@ -202,9 +197,7 @@ def get_own_dir(own_filename):
 
 
 def get_proxy(ui_config):
-    proxy_url = ui_config.get('Network', 'ProxyURL', None)
-    if proxy_url is None or proxy_url == "":
-        proxy_url = os.getenv('http_proxy') or os.getenv('https_proxy')
+    proxy_url = os.getenv('http_proxy') or os.getenv('https_proxy')
     return proxy_url
 
 
@@ -220,7 +213,7 @@ def convert_size(size):
         size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
         i = int(math.floor(math.log(size, 1024)))
         p = math.pow(1024, i)
-        s = round(size/p, 2)
+        s = round(size / p, 2)
         if s > 0:
             return '%s %s' % (s, size_name[i])
         else:
@@ -252,29 +245,26 @@ def convert_time(n):
 
 def move_folder_async(src, dst, callback=None):
     def move_folder_thread(src, dst, callback):
-        if os.listdir(dst) == []:
+        error = True
+        if not os.listdir(dst):
             os.rmdir(dst)
             cloud_home = dst
         else:
-            cloud_home = os.path.join(dst, "MEOCloud")
+            srcname = os.path.basename(src)
+            cloud_home = os.path.join(dst, srcname)
             dst = cloud_home
 
         try:
+            log = logging.getLogger(LOGGER_NAME)
             shutil.move(src, dst)
+            log.info('Moved folder {0!r} to {1!r}'.format(src, dst))
+            error = False
+        except EnvironmentError as err:
+            log.warn('Error while moving folder {0!r} to {1!r}: {2}'.
+                     format(src, dst, err))
 
-            logging.getLogger(LOGGER_NAME).info(
-                "utils.move_folder_async: Moved folder " +
-                src + " to " + dst)
-
-            if callback is not None:
-                GLib.idle_add(lambda: callback(cloud_home, False))
-        except (OSError, IOError, Exception):
-            logging.getLogger(LOGGER_NAME).warning(
-                "utils.move_folder_async: Error while moving folder " +
-                src + " to " + dst)
-
-            if callback is not None:
-                GLib.idle_add(lambda: callback(cloud_home, True))
+        if callback is not None:
+            GLib.idle_add(lambda: callback(cloud_home, error))
 
     StoppableThread(
         target=move_folder_thread, args=(src, dst, callback)).start()
@@ -356,7 +346,6 @@ def decrypt(data, key, decode=base64.b64decode):
 
 def force_remove(path, log=None):
     try:
-        import os
         os.remove(path)
     except EnvironmentError as enve:
         if log:
@@ -365,9 +354,9 @@ def force_remove(path, log=None):
 
 def touch(path, log=None):
     try:
-        with open(path, 'a') as fobj:
+        with open(path, 'a') as _:
             pass
     except EnvironmentError as enve:
         if log:
-            log('Could not touch {0!r}: {1}'.format(path, enve))
-
+            log('Could not touch {0!r}: {1}'.
+                format(path, enve))

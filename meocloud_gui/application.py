@@ -49,6 +49,10 @@ class Application(Gtk.Application):
         self.app_path = app_path
         self.prefs_window = None
 
+        self.prefs = Preferences()
+        creds = CredentialStore(self.prefs, utils.encrypt, utils.decrypt)
+        self.prefs.set_credential_store(creds)
+
         # for some reason this only works in __init__
         self.trayicon = TrayIcon(self)
         self.trayicon.show()
@@ -95,10 +99,6 @@ class Application(Gtk.Application):
                                                    self.update_app_version)
         self.update_sync_status_timeout = None
 
-        self.prefs = Preferences()
-        creds = CredentialStore(self.prefs, utils.encrypt, utils.decrypt)
-        self.prefs.set_credential_store(creds)
-
     def _migrate_keyring_credentials(self):
         try:
             import keyring
@@ -125,10 +125,10 @@ class Application(Gtk.Application):
             return
         except yaml.YAMLError:
             log.info('Found invalid CLI configuration.')
-            utils.force_unlink(cli_config_path, log.warn)
+            utils.force_remove(cli_config_path, log.warn)
         else:
             cli_rc4_key = '8025c571541a64bccd00135f87dec11a' \
-                         '83a8c5de69c94ec6b642dbdc6a2aebdd'
+                          '83a8c5de69c94ec6b642dbdc6a2aebdd'
             account_dict = cli_config['account']
             account_dict['authKey'] = utils.decrypt(
                 account_dict['authKey'], cli_rc4_key)
@@ -139,18 +139,18 @@ class Application(Gtk.Application):
             self.prefs.creds.ckey = account_dict['authKey']
 
             self.prefs.put('Account', 'email',
-                unicode(account_dict['email']).encode('utf-8'))
+                           unicode(account_dict['email']).encode('utf-8'))
             self.prefs.put('Account', 'name',
-                unicode(account_dict['name']).encode('utf-8'))
+                           unicode(account_dict['name']).encode('utf-8'))
             self.prefs.put('Account', 'deviceName',
-                unicode(account_dict['deviceName']).encode('utf-8'))
+                           unicode(account_dict['deviceName']).encode('utf-8'))
             self.prefs.put('Advanced', 'Folder',
-                unicode(cli_config['cloud_home']).encode('utf-8'))
+                           unicode(cli_config['cloud_home']).encode('utf-8'))
             self.prefs.save()
 
             utils.purge_meta()
-            utils.force_unlink(cli_config_path, log.warn)
- 
+            utils.force_remove(cli_config_path, log.warn)
+
     def on_activate(self, data=None):
         if not self.running:
             self.running = True
@@ -164,7 +164,7 @@ class Application(Gtk.Application):
             if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
                 log.info('Application.on_activate: prefs.ini missing')
                 utils.force_remove(os.path.join(UI_CONFIG_PATH,
-                                  'shared_directories'))
+                                                'shared_directories'))
             else:
                 if not os.path.exists(self.prefs.get("Advanced", "Folder",
                                                      CLOUD_HOME_DEFAULT_PATH)):
@@ -190,7 +190,7 @@ class Application(Gtk.Application):
                 except EnvironmentError:
                     self.shared = set()
 
-                utils.create_required_folders()
+                utils.create_required_folders(self.prefs)
                 self.log_handler = LogHandler(self.core_client)
                 utils.init_logging(self.log_handler)
 
@@ -208,7 +208,7 @@ class Application(Gtk.Application):
                 problem_moreinfo_menu = Gtk.Menu()
                 self.menuitem_moreinfo = Gtk.MenuItem(_("More info"))
                 self.menuitem_problem = Gtk.MenuItem(
-                    _("There is a problem synchronizing your files."))
+                    _("There is a problem synchronizing your files"))
                 problem_moreinfo_menu.append(self.menuitem_moreinfo)
                 self.menuitem_problem.set_submenu(problem_moreinfo_menu)
                 self.menuitem_status.append(Gtk.MenuItem(_("Unauthorized")))
@@ -330,8 +330,8 @@ class Application(Gtk.Application):
         status = self.core_client.currentStatus()
         self.update_storage(status.usedQuota, status.totalQuota)
 
-        cloud_home = Preferences().get('Advanced', 'Folder',
-                                       CLOUD_HOME_DEFAULT_PATH)
+        cloud_home = self.prefs.get('Advanced', 'Folder',
+                                    CLOUD_HOME_DEFAULT_PATH)
 
         self.shell_proxy.status = status.state
 
@@ -365,14 +365,14 @@ class Application(Gtk.Application):
         if (status.state == codes.CORE_INITIALIZING or
            status.state == codes.CORE_AUTHORIZING or
            status.state == codes.CORE_WAITING):
-            self.trayicon.wrapper(lambda: self.hide_gui_elements())
+            self.trayicon.wrapper(self.hide_gui_elements)
             self.trayicon.set_icon("meocloud-init")
             self.paused = True
             self.update_sync_status_stop()
             self.update_status(_("Initializing"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_SYNCING:
-            self.trayicon.wrapper(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(self.show_gui_elements)
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
 
@@ -395,7 +395,7 @@ class Application(Gtk.Application):
                 lambda: self.update_recent_files(recently_changed, cloud_home))
         elif status.state == codes.CORE_PAUSED:
             self.paused = True
-            self.trayicon.wrapper(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(self.show_gui_elements)
             self.trayicon.set_icon("meocloud-pause")
             self.update_sync_status_stop()
             self.update_status(_("Paused"))
@@ -406,12 +406,12 @@ class Application(Gtk.Application):
                 GLib.idle_add(
                     lambda: self.prefs_window.selective_button.set_sensitive(
                         False))
-            self.trayicon.wrapper(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(self.show_gui_elements)
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
             self.update_menu_action(_("Applying selective sync settings..."))
         elif status.state == codes.CORE_OFFLINE:
-            self.trayicon.wrapper(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(self.show_gui_elements)
             self.trayicon.set_icon("meocloud-offline")
             self.paused = True
             self.offline = True
@@ -419,7 +419,7 @@ class Application(Gtk.Application):
             self.update_status(_("Offline"))
             self.update_menu_action(_("Resume"))
         elif status.state == codes.CORE_ERROR:
-            self.trayicon.wrapper(lambda: self.show_gui_elements())
+            self.trayicon.wrapper(self.show_gui_elements)
             self.trayicon.set_icon("meocloud-error")
             self.paused = True
             self.update_sync_status_stop()
@@ -604,7 +604,7 @@ class Application(Gtk.Application):
         StoppableThread(target=self.on_logout_thread).start()
 
     def on_logout_thread(self):
-        meocloud_gui.core.api.unlink(self.core_client, Preferences())
+        meocloud_gui.core.api.unlink(self.core_client, self.prefs)
 
         utils.force_remove(os.path.join(UI_CONFIG_PATH, 'prefs.ini'))
         utils.force_remove(os.path.join(UI_CONFIG_PATH, 'shared_directories'))
@@ -613,8 +613,8 @@ class Application(Gtk.Application):
         self.requires_authorization = True
         self.update_status(_("Unauthorized"))
         self.update_menu_action(_("Authorize"))
-        self.trayicon.wrapper(lambda: self.clean_recent_files())
-        self.trayicon.wrapper(lambda: self.hide_gui_elements())
+        self.trayicon.wrapper(self.clean_recent_files)
+        self.trayicon.wrapper(self.hide_gui_elements)
         log.info('Application.on_logout_thread: completing logout')
         self.restart_core()
 
@@ -632,16 +632,13 @@ class Application(Gtk.Application):
 
     def restart_core(self, ignore_sync=False):
         log.info('Application.restart_core: initiating core restart')
-        prefs = Preferences()
-        creds = CredentialStore(prefs, utils.encrypt, utils.decrypt)
-        prefs.set_credential_store(creds)
 
-        self.trayicon.wrapper(lambda: self.hide_gui_elements())
+        self.trayicon.wrapper(self.hide_gui_elements)
         self.trayicon.set_icon("meocloud-init")
 
         self.core_client = CoreClient()
         self.core_listener = CoreListener(CORE_LISTENER_SOCKET_ADDRESS,
-                                          self.core_client, prefs, self,
+                                          self.core_client, self.prefs, self,
                                           ignore_sync)
         self.core = Core(self.core_client)
 

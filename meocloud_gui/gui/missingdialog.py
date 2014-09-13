@@ -1,7 +1,6 @@
 import os.path
-import os
+
 from gi.repository import Gtk
-from meocloud_gui.preferences import Preferences
 import meocloud_gui.utils
 
 
@@ -9,6 +8,8 @@ class MissingDialog(Gtk.Dialog):
     __gtype_name__ = 'MissingDialog'
 
     def __init__(self, app):
+        self.app = app
+
         Gtk.Dialog.__init__(self, title=_("MEO Cloud Folder Missing"))
 
         self.set_resizable(False)
@@ -69,9 +70,8 @@ class MissingDialog(Gtk.Dialog):
                 return
 
             meocloud_gui.utils.purge_meta()
-            preferences = Preferences()
-            preferences.put("Advanced", "Folder", new_path)
-            preferences.save()
+            self.app.prefs.put("Advanced", "Folder", new_path)
+            self.app.prefs.save()
 
             self.destroy()
         else:

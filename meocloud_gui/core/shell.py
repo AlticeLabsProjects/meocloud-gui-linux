@@ -1,14 +1,11 @@
 import socket
-import os
 
 from gi.repository import GLib
 import errno
 from meocloud_gui import thrift_utils
-from meocloud_gui import utils
 
 from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (
-    UI_CONFIG_PATH,
     CLOUD_HOME_DEFAULT_PATH,
     LOGGER_NAME,
     SHELL_LISTENER_SOCKET_ADDRESS,
@@ -24,10 +21,11 @@ from meocloud_gui.protocol.shell.ttypes import (
     OpenMessage,
     ShareType,
     OpenType,
-    FileState,
     FileStatusMessage,
     FileStatusType,
     FileStatus)
+
+from meocloud_gui.data_structures import BoundedOrderedDict
 
 # Logging
 import logging
@@ -44,7 +42,9 @@ class Shell(object):
         self.proxy = proxy
         self.proxy.shell = self
 
-        self.file_states = {}
+        self.prefs = proxy.prefs
+
+        self.file_states = BoundedOrderedDict(maxsize=10000)
 
         self.read_buffer = None
         self.write_buffer = None
@@ -61,9 +61,8 @@ class Shell(object):
         self.disconnected = False
         self.failed = 0
 
-        prefs = Preferences()
-        self.cloud_home = prefs.get('Advanced', 'Folder',
-                                    CLOUD_HOME_DEFAULT_PATH)
+        self.cloud_home = self.prefs.get('Advanced', 'Folder',
+                                         CLOUD_HOME_DEFAULT_PATH)
 
         log.info('Shell: started the shell listener')
 
@@ -84,7 +83,7 @@ class Shell(object):
         self.sock.setblocking(0)
         try:
             self.sock.connect(SHELL_LISTENER_SOCKET_ADDRESS)
-        except socket.error as error:
+        except socket.error:
             return False
         else:
             GLib.io_add_watch(self.sock.fileno(), GLib.IO_IN | GLib.IO_HUP,
@@ -181,13 +180,13 @@ class Shell(object):
 
     def share_link(self, path):
         GLib.idle_add(lambda: self._share_link(path))
- 
+
     def share_folder(self, path):
         GLib.idle_add(lambda: self._share_folder(path))
- 
+
     def subscribe_path(self, path):
         GLib.idle_add(lambda: self._subscribe_path(path))
- 
+
     def _update_file_status(self, path):
         msg = self.file_status_msg
         msg.fileStatus.status.path = path
@@ -198,7 +197,7 @@ class Shell(object):
                        open=OpenMessage(type=OpenType.BROWSER, path=open_path))
 
         self._send(thrift_utils.serialize_thrift_msg(data))
-       
+
     def _share_link(self, share_path):
         data = Message(type=MessageType.SHARE,
                        share=ShareMessage(type=ShareType.LINK,

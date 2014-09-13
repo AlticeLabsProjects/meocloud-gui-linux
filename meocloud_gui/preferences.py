@@ -4,6 +4,7 @@ import errno
 
 from meocloud_gui.constants import UI_CONFIG_PATH
 
+
 class Preferences(object):
     def __init__(self):
         self.path = os.path.join(UI_CONFIG_PATH, 'prefs.ini')
@@ -17,7 +18,7 @@ class Preferences(object):
             os.chmod(self.path, 0600)
         except OSError:
             pass
- 
+
     def _load(self):
         self.config.read(self.path)
 
@@ -53,7 +54,6 @@ class Preferences(object):
 
     def remove(self, section, option):
         try:
-           self.config.remove_option(section, option)
+            self.config.remove_option(section, option)
         except ConfigParser.NoSectionError:
             pass
-
