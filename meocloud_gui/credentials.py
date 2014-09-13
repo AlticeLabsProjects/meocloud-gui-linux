@@ -9,14 +9,16 @@ from time import time
 
 
 KEY_SIZE = 16
+IV_SIZE = 16
 ENCODED_KEY_SIZE = 26
+ENCODED_IV_SIZE = 26
 DERIVE_ROUNDS = 2500
 
 
 def fetch_hwaddr_fcntl(iface):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', iface[:15]))
+        info = fcntl.ioctl(s.fileno(), 0x8927, struct.pack('256s', iface[:15]))
     except (socket.error, EnvironmentError):
         result = None
     else:
@@ -61,7 +63,7 @@ def has_rebooted(saved_reboot):
     try:
         saved_reboot = saved_reboot
     except (ValueError, TypeError):
-        return False        
+        return False
 
     now = int(time())
     uptime = fetch_uptime()
@@ -146,13 +148,19 @@ class CredentialStore(object):
             prefs.put('Account', 'altkey', altseed)
             prefs.remove('Account', 'probe')
             prefs.save()
-            return 
- 
+            return
+
         if not has_rebooted(reboot):
             return
 
         cid = self._decrypt(self._decode(ecid))
         ckey = self._decrypt(self._decode(eckey))
+
+        eproxypwd = prefs.get('Network', 'proxypassword')
+        if eproxypwd and eproxypwd[0] == '[' and eproxypwd[-1] == ']':
+            proxypwd = self._decrypt(self._decode(eproxypwd))
+        else:
+            proxypwd = None
 
         self.key = syskey
 
@@ -163,6 +171,11 @@ class CredentialStore(object):
         prefs.put('Account', 'key', eckey)
         prefs.put('Account', 'syskey', altseed)
         prefs.remove('Account', 'probe')
+
+        if proxypwd:
+            proxypwd = self._encode(self._encrypt(proxypwd))
+            prefs.put('Network', 'proxypassword', proxypwd)
+
         prefs.save()
 
     def _new_key(self):
@@ -171,7 +184,7 @@ class CredentialStore(object):
     def _derive_key(self, data):
         hasher = hashlib.sha256(data)
         for _ in xrange(DERIVE_ROUNDS):
-             hasher.update(hasher.digest())
+            hasher.update(hasher.digest())
         return hasher.digest()[:KEY_SIZE]
 
     def _hash(self, data):
@@ -201,12 +214,25 @@ class CredentialStore(object):
         if self.key is None or value is None:
             return None
 
-        return self.__encrypt(value, self.key, encode=None)
+        iv = os.urandom(IV_SIZE)
+        key = hashlib.sha256(iv + self.key).digest()
+        encrypted = self.__encrypt(value, key, encode=None)
+
+        return iv + encrypted
 
     def _decrypt(self, value):
         if self.key is None or value is None:
             return None
-        return self.__decrypt(value, self.key, decode=None)
+
+        if len(value) < IV_SIZE + 1:
+            return None
+
+        iv = value[:IV_SIZE]
+
+        key = hashlib.sha256(iv + self.key).digest()
+        encrypted = value[IV_SIZE:]
+
+        return self.__decrypt(encrypted, key, decode=None)
 
     def _encode(self, data):
         if not data:
@@ -254,3 +280,25 @@ class CredentialStore(object):
         self.prefs.put('Account', 'key', eckey)
         self.prefs.save()
 
+    @property
+    def proxy_password(self):
+        password = self.prefs.get('Network', 'proxypassword')
+        if not password:
+            return ''
+
+        try:
+            password = password[1: -1]
+        except IndexError:
+            return password
+
+        decrypted = self._decrypt(self._decode(password))
+        return decrypted if decrypted is not None else password
+
+    @proxy_password.setter
+    def proxy_password(self, value):
+        if value:
+            password = '[{0}]'.format(self._encode(self._encrypt(value)))
+        else:
+            password = ''
+        self.prefs.put('Network', 'proxypassword', password)
+        self.prefs.save()

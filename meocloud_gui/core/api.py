@@ -1,13 +1,12 @@
 import urlparse
+import urllib
 import threading
 
 # GLib and Gdk
 from gi.repository import GLib, Gdk
-from meocloud_gui.constants import CLIENT_ID, AUTH_KEY
 
 from meocloud_gui.protocol.daemon_core.ttypes import NetworkSettings, Account
-from meocloud_gui.utils import get_proxy, get_ratelimits
-from meocloud_gui.preferences import Preferences
+from meocloud_gui.utils import get_ratelimits
 
 
 def get_account_dict(ui_config):
@@ -59,6 +58,26 @@ def unlink(core_client, ui_config):
     return False
 
 
+def auto_configure_proxy(settings):
+    proxies = urllib.getproxies()
+    if 'http' not in proxies:
+        return
+
+    proxy = urlparse.urlparse(proxies['http'])
+
+    settings.proxyType = 'http'
+    settings.proxyAddress = proxy.hostname
+    settings.proxyPort = proxy.port
+    if settings.proxyPort is None:
+        settings.proxyPort = 3128
+
+    user = proxy.username
+    passwd = proxy.password
+
+    settings.proxyUser = user if user is not None else ''
+    settings.proxyPassword = passwd if passwd is not None else ''
+
+
 def get_network_settings(ui_config, download=None, upload=None):
     network_settings = NetworkSettings()
 
@@ -71,44 +90,26 @@ def get_network_settings(ui_config, download=None, upload=None):
     if upload is not None:
         network_settings.uploadBandwidth = upload * 1024
 
-    proxy_url = get_proxy(ui_config)
-    if proxy_url:
-        try:
-            parsed = urlparse.urlparse(proxy_url)
-        except Exception:
-            # Something went wrong while trying to parse proxy_url
-            # Ignore and just don't use any proxy
-            pass
-        else:
-            if parsed.hostname:
-                network_settings.proxyAddress = parsed.hostname
-                network_settings.proxyType = 'http'
-                network_settings.proxyPort = parsed.port or 3128
-                network_settings.proxyUser = \
-                    parsed.user if hasattr(parsed, 'user') else ''
-                network_settings.proxyPassword = \
-                    parsed.password if hasattr(parsed, 'password') else ''
-    else:
-        prefs = Preferences()
+    use_proxy = ui_config.get('Network', 'Proxy', 'None')
 
-        use_proxy = prefs.get('Network', 'Proxy', 'None')
+    if use_proxy == 'Manual':
+        address = ui_config.get('Network', 'ProxyAddress', '')
+        port = ui_config.get('Network', 'ProxyPort', '')
+        user = ui_config.get('Network', 'ProxyUser', '')
+        password = ui_config.get('Network', 'ProxyPassword', '')
 
-        if use_proxy == 'Manual':
-            address = prefs.get('Network', 'ProxyAddress', '')
-            port = prefs.get('Network', 'ProxyPort', '')
-            user = prefs.get('Network', 'ProxyUser', '')
-            password = prefs.get('Network', 'ProxyPassword', '')
+        if address:
+            network_settings.proxyAddress = address
+            network_settings.proxyType = 'http'
 
-            if len(address) > 0 and len(port) > 0:
-                network_settings.proxyAddress = address
-                network_settings.proxyType = 'http'
+            try:
+                network_settings.proxyPort = int(port)
+            except (TypeError, ValueError):
+                network_settings.proxyPort = 3128
 
-                try:
-                    network_settings.proxyPort = int(port)
-                except ValueError:
-                    network_settings.proxyPort = 3128
-
-                network_settings.proxyUser = user
-                network_settings.proxyPassword = password
+            network_settings.proxyUser = user
+            network_settings.proxyPassword = password
+    elif use_proxy == 'Automatic':
+        auto_configure_proxy(network_settings)
 
     return network_settings

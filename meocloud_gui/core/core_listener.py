@@ -20,7 +20,6 @@ from meocloud_gui.thrift_utils import ThriftListener
 # Application specific imports
 from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
 from meocloud_gui.core import api
-from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.setupwindow import SetupWindow
 from meocloud_gui.strings import NOTIFICATIONS
 from meocloud_gui.exceptions import ListenerConnectionFailedException
@@ -31,6 +30,11 @@ from meocloud_gui import codes
 # Logging
 import logging
 log = logging.getLogger(LOGGER_NAME)
+
+
+SHORTEN_PATH_CODES = frozenset((
+    200, 201, 202, 250, 251, 252
+))
 
 
 class CoreListener(ThriftListener):
@@ -48,7 +52,7 @@ class CoreListener(ThriftListener):
             pass
         except Exception:
             log.exception(
-                '{0}: An uncatched error occurred!'.format(self.name))
+                '{0}: An uncaught error occurred!'.format(self.name))
 
 
 class CoreListenerHandler(UI.Iface):
@@ -98,9 +102,10 @@ class CoreListenerHandler(UI.Iface):
         if not self.setup.setup_easy.get_active():
             self.ui_config.put('Advanced', 'Folder',
                                self.setup.cloud_home_select.get_label())
+            self.ui_config.save()
 
         try:
-            utils.clean_cloud_path()
+            utils.clean_cloud_path(self.ui_config)
         except (EnvironmentError, AssertionError):
             return
 
@@ -132,17 +137,18 @@ class CoreListenerHandler(UI.Iface):
         self.ui_config.put('Account', 'email', account_dict['email'])
         self.ui_config.put('Account', 'name', account_dict['name'])
         self.ui_config.put('Account', 'deviceName', account_dict['deviceName'])
+        self.ui_config.save()
 
         if self.setup.setup_easy.get_active():
             self.app.enable_sync = True
             GLib.idle_add(self.setup.spinner.stop)
             GLib.idle_add(self.setup.pages.last_page)
             utils.create_startup_file(self.app.app_path)
-            utils.create_bookmark()
+            utils.create_bookmark(self.ui_config)
         else:
             self.app.enable_sync = False
             utils.create_startup_file(self.app.app_path)
-            utils.create_bookmark()
+            utils.create_bookmark(self.ui_config)
             GLib.idle_add(self.setup.pages.next_page)
 
         GLib.idle_add(self.setup.present)
@@ -161,7 +167,10 @@ class CoreListenerHandler(UI.Iface):
                     clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
                     clipboard.set_text(url, -1)
                 notification = self._build_notification(msg, title)
-                notification.show()
+                try:
+                    notification.show()
+                except GLib.GError:
+                    log.warn('Timeout during notification.')
 
         return callback
 
@@ -175,21 +184,21 @@ class CoreListenerHandler(UI.Iface):
             url = note.parameters[2]
 
             if result == codes.STR_OK:
-                msg = (_('A link to "{0}" was copied to the clipboard.').
+                msg = (_("A link to \"{0}\" was copied to the clipboard").
                        format(path))
                 cb = self._build_notify_and_clipboard_cb(msg, url=url)
                 GLib.idle_add(cb)
 
             elif result == codes.STR_NOTFOUND:
                 msg = _("\"{0}\" isn't synchronized yet. "
-                        "Please try again once the synchronization finishes.")
+                        "Please try again once the synchronization finishes")
                 msg = msg.format(path)
                 cb = self._build_notify_and_clipboard_cb(msg, url=url)
                 GLib.idle_add(cb)
 
             elif result == codes.STR_ERROR:
-                msg = _('An error occurred while trying to complete the '
-                        'operation. Please try again later.')
+                msg = _("An error occurred while trying to complete the "
+                        "operation. Please try again later")
                 cb = self._build_notify_and_clipboard_cb(msg, url=url)
                 GLib.idle_add(cb)
 
@@ -204,14 +213,14 @@ class CoreListenerHandler(UI.Iface):
 
             elif result == codes.STR_NOTFOUND:
                 msg = ("\"{0}\" isn't synchronized yet. "
-                       "Please try again once the synchronization finishes.")
+                       "Please try again once the synchronization finishes")
                 msg = msg.format(path)
                 cb = self._build_notify_and_clipboard_cb(msg, url)
                 GLib.idle_add(cb)
 
             elif result == codes.STR_ERROR:
                 msg = _("An error occurred while trying to complete the "
-                        "operation. Please try again later.")
+                        "operation. Please try again later")
                 msg = msg.format(path)
                 cb = self._build_notify_and_clipboard_cb(msg, url)
                 GLib.idle_add(cb)
@@ -244,8 +253,8 @@ class CoreListenerHandler(UI.Iface):
     def notifyUser(self, note):  # UserNotification note
         log.debug('CoreListener.notifyUser({0}) <<<<'.format(note))
 
-        display_notifications = Preferences().get("General", "Notifications",
-                                                  "True")
+        display_notifications = self.ui_config.get("General", "Notifications",
+                                                   "True")
 
         if (self.last_notify != USER_NOTIFY_CANNOT_WATCH_FS or (
                 self.last_notify == USER_NOTIFY_CANNOT_WATCH_FS and
@@ -258,7 +267,7 @@ class CoreListenerHandler(UI.Iface):
                     lang = 'en'
 
                 # Shorten path name
-                if note.code in (200, 201, 202, 250, 251, 252):
+                if note.code in SHORTEN_PATH_CODES:
                     note.parameters[0] = os.path.basename(note.parameters[0])
 
                 notif_title = NOTIFICATIONS[lang][
