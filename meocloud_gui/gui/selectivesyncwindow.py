@@ -112,7 +112,7 @@ class SelectiveSyncWindow(Gtk.Window):
                 col.destroy()
                 self.columns.remove(col)
 
-            for i in range(len(path.split('/')) - 2, len(self.separators)):
+            for i in xrange(len(path.split('/')) - 2, len(self.separators)):
                 self.hbox.remove(self.separators[len(path.split('/')) - 2])
                 sep = self.separators[len(path.split('/')) - 2]
                 sep.destroy()

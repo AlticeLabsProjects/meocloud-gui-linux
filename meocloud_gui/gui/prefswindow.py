@@ -1,7 +1,6 @@
 import os.path
 
 from gi.repository import Gtk, GLib
-from meocloud_gui.preferences import Preferences
 from meocloud_gui.gui.progressdialog import ProgressDialog
 from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
 import meocloud_gui.utils
@@ -227,7 +226,7 @@ class PrefsWindow(Gtk.Window):
         network_box.pack_start(download_box, False, False, 0)
         network_box.pack_start(upload_box, False, False, 5)
 
-        # set the proxy settings
+        # proxy settings
         self.proxy["Proxy"] = self.prefs.get("Network", "Proxy", "Automatic")
 
         if self.proxy["Proxy"] == "Manual":
