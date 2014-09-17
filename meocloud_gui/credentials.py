@@ -77,6 +77,16 @@ def has_rebooted(saved_reboot):
     return last_reboot != saved_reboot
 
 
+def fetch_plaftorm_info():
+    dist = None
+    try:
+        import platform
+        dist = platform.dist()[0]
+    except ImportError:
+        dist = None
+    return dist if dist else None
+
+
 class CredentialStore(object):
     '''
     Simple file-based credential store
@@ -109,16 +119,16 @@ class CredentialStore(object):
             self.key = self._derive_key(altseed)
             return
 
-        attrs = fetch_hwaddr('eth0')
+        addr = fetch_hwaddr('eth0')
+        distro = fetch_plaftorm_info()
+        attrs = ''
+
+        if addr:
+            attrs += addr
+        if distro:
+            attrs += distro
+
         if attrs:
-            try:
-                import platform
-                dist = platform.dist()[0]
-            except ImportError:
-                dist = None
-            else:
-                if dist:
-                    attrs += dist
             syskey = self._derive_key(attrs)
         else:
             syskey = None
@@ -144,7 +154,7 @@ class CredentialStore(object):
 
         self.key = self._derive_key(altseed)
 
-        if self._encode(self._hash(syskey)) != syshash:
+        if not syskey or self._encode(self._hash(syskey)) != syshash:
             prefs.put('Account', 'altkey', altseed)
             prefs.remove('Account', 'probe')
             prefs.save()
