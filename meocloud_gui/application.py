@@ -17,11 +17,12 @@ from meocloud_gui.core.shellproxy import ShellProxy
 from meocloud_gui.credentials import CredentialStore
 import meocloud_gui.core.api
 
-from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
-                                    LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH,
-                                    CONFIG_PATH, UI_CONFIG_PATH, VERSION,
-                                    CLIENT_ID, AUTH_KEY)
-
+from meocloud_gui.constants import (
+    CORE_LISTENER_SOCKET_ADDRESS,
+    LOGGER_NAME,
+    CLOUD_HOME_DEFAULT_PATH,
+    CONFIG_PATH, UI_CONFIG_PATH,
+    VERSION)
 from meocloud_gui import codes
 
 # Logging
@@ -99,22 +100,6 @@ class Application(Gtk.Application):
                                                    self.update_app_version)
         self.update_sync_status_timeout = None
 
-    def _migrate_keyring_credentials(self):
-        try:
-            import keyring
-        except ImportError:
-            return
-
-        cid = keyring.get_password('meocloud', CLIENT_ID)
-        ckey = keyring.get_password('meocloud', AUTH_KEY)
-
-        if cid and ckey:
-            self.prefs.creds.cid = cid
-            self.prefs.creds.ckey = ckey
-            self.prefs.save()
-            keyring.delete_password('meocloud', CLIENT_ID)
-            keyring.delete_password('meocloud', AUTH_KEY)
-
     def _migrate_cli_settings(self):
         cli_config_path = os.path.join(CONFIG_PATH, "ui/ui_config.yaml")
         try:
@@ -177,8 +162,6 @@ class Application(Gtk.Application):
             # migrations
             if self.prefs.creds.cid is None:
                 self._migrate_cli_settings()
-            if self.prefs.creds.cid is None:
-                self._migrate_keyring_credentials()
 
             if not self.missing_quit:
                 try:

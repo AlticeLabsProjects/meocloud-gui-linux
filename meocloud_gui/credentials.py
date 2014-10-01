@@ -5,14 +5,26 @@ import hashlib
 import base64
 import os
 
+import keyring
+
 from time import time
 
+from meocloud_gui.constants import (
+    CLIENT_ID,
+    AUTH_KEY
+)
 
 KEY_SIZE = 16
 IV_SIZE = 16
 ENCODED_KEY_SIZE = 26
 ENCODED_IV_SIZE = 26
 DERIVE_ROUNDS = 2500
+
+
+CREDS_MAP = {
+    'id': CLIENT_ID,
+    'key': AUTH_KEY
+}
 
 
 def fetch_hwaddr_fcntl(iface):
@@ -87,51 +99,35 @@ def fetch_plaftorm_info():
     return dist if dist else None
 
 
+def fetch_attrs():
+    addr = fetch_hwaddr('eth0')
+    distro = fetch_plaftorm_info()
+    attrs = ''
+
+    if addr:
+        attrs += addr
+    if distro:
+        attrs += distro
+
+    return attrs
+
+
 class CredentialStore(object):
-    '''
-    Simple file-based credential store
-
-    This store is intended as an alternative to keyring/kwallet
-    based solutions, as their usage is not without issues, especially
-    during desktop manager startup. I.e., the application may start
-    before the "keyring" (or equivalent) mechanism is available,
-    resulting in a forced client reauthorization.
-
-    Credentials are encrypted using key material derived from machine
-    attributes.
-
-    Please note that the sole purpose of this mechanism is to ensure
-    that credentials are better protected if they happen to be
-    stored in other systems (e.g., backup copies).
-
-    A process running with the same priviledge level as the user is
-    able to access stored credentials.
-    '''
-
     def __init__(self, prefs, encrypt, decrypt):
         self.prefs = prefs
         self.__encrypt = encrypt
         self.__decrypt = decrypt
         self.key = None
+        self.used_keyring = False
+        self.kwallet_enabled = str(keyring.get_keyring()).lower()
 
         altseed = prefs.get('Account', 'altkey')
         if altseed:
             self.key = self._derive_key(altseed)
             return
 
-        addr = fetch_hwaddr('eth0')
-        distro = fetch_plaftorm_info()
-        attrs = ''
-
-        if addr:
-            attrs += addr
-        if distro:
-            attrs += distro
-
-        if attrs:
-            syskey = self._derive_key(attrs)
-        else:
-            syskey = None
+        attrs = fetch_attrs()
+        syskey = self._derive_key(attrs) if attrs else None
 
         use_sys_key = prefs.get('Account', 'syskey')
         if syskey and use_sys_key:
@@ -140,9 +136,7 @@ class CredentialStore(object):
 
         probe = prefs.get('Account', 'probe')
         altseed, syshash, reboot = self._parse_probe(probe)
-        ecid = prefs.get('Account', 'id')
-        eckey = prefs.get('Account', 'key')
-        if ecid is None or eckey is None or altseed is None:
+        if altseed is None:
             reboot = int(time()) - fetch_uptime()
             altseed = self._encode(self._new_key())
             syshash = self._encode(self._hash(syskey))
@@ -162,6 +156,9 @@ class CredentialStore(object):
 
         if not has_rebooted(reboot):
             return
+
+        ecid = prefs.get('Account', 'id')
+        eckey = prefs.get('Account', 'key')
 
         cid = self._decrypt(self._decode(ecid))
         ckey = self._decrypt(self._decode(eckey))
@@ -187,6 +184,59 @@ class CredentialStore(object):
             prefs.put('Network', 'proxypassword', proxypwd)
 
         prefs.save()
+
+    def _get_keyring_password(self, key):
+        value = keyring.get_password('meocloud', key)
+        if value or self.used_keyring:
+            return value
+
+        self.used_keyring = True
+
+        # kwallet is just too much hassle. Give up.
+        if self.kwallet_enabled:
+            return None
+
+        # First time we are accessing the keyring
+        # If the client is registered, try waiting for the keyring to
+        # become available
+        if self.prefs.get('Account', 'email') is None:
+            return None
+
+        for i in xrange(5):
+            time.sleep(2 ** i)
+            value = keyring.get_password('meocloud', key)
+            if value:
+                return value
+
+        return None
+
+    def _get_(self, key):
+        if not self.kwallet_enabled:
+            return self._get_keyring_password(key)
+
+        evalue = self.prefs.get('Account', key)
+        value = self._decrypt(self._decode(evalue))
+        if value:
+            return value
+
+        value = self._get_keyring_password(key)
+        if value:
+            self._set(key, value)
+            key = CREDS_MAP.get(key)
+            if key:
+                keyring.delete_password('Account', key)
+        return value
+
+    def _set(self, key, value):
+        if not self.kwallet_enabled:
+            key = CREDS_MAP.get(key)
+            if key:
+                keyring.set_password('meocloud', key, value)
+            return
+
+        evalue = self._encode(self._encrypt(value))
+        self.prefs.put('Account', key, evalue)
+        self.prefs.save()
 
     def _new_key(self):
         return os.urandom(KEY_SIZE)
@@ -270,25 +320,19 @@ class CredentialStore(object):
 
     @property
     def cid(self):
-        ecid = self.prefs.get('Account', 'id')
-        return self._decrypt(self._decode(ecid))
+        return self._get_('id')
 
     @cid.setter
     def cid(self, value):
-        ecid = self._encode(self._encrypt(value))
-        self.prefs.put('Account', 'id', ecid)
-        self.prefs.save()
+        self._set('id', value)
 
     @property
     def ckey(self):
-        eckey = self.prefs.get('Account', 'key')
-        return self._decrypt(self._decode(eckey))
+        return self._get_('key')
 
     @ckey.setter
     def ckey(self, value):
-        eckey = self._encode(self._encrypt(value))
-        self.prefs.put('Account', 'key', eckey)
-        self.prefs.save()
+        self._set('key', value)
 
     @property
     def proxy_password(self):
