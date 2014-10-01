@@ -119,7 +119,7 @@ class CredentialStore(object):
         self.__decrypt = decrypt
         self.key = None
         self.used_keyring = False
-        self.kwallet_enabled = str(keyring.get_keyring()).lower()
+        self.kwallet_enabled = 'kwallet' in str(keyring.get_keyring()).lower()
 
         altseed = prefs.get('Account', 'altkey')
         if altseed:
