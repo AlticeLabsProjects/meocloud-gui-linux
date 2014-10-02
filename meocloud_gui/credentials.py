@@ -315,7 +315,7 @@ class CredentialStore(object):
 
     def clear(self):
         if self.prefs:
-            for attr in ('id', 'key', 'syskey', 'altkey', 'probe'):
+            for attr in ('id', 'key', 'syskey', 'altkey', 'probe', 'email'):
                 self.prefs.remove('Account', attr)
 
     @property
