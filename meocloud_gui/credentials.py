@@ -4,10 +4,10 @@ import struct
 import hashlib
 import base64
 import os
+import time
 
 import keyring
 
-from time import time
 
 from meocloud_gui.constants import (
     CLIENT_ID,
@@ -77,7 +77,7 @@ def has_rebooted(saved_reboot):
     except (ValueError, TypeError):
         return False
 
-    now = int(time())
+    now = int(time.time())
     uptime = fetch_uptime()
     if uptime == -1:
         return False
@@ -153,7 +153,7 @@ class CredentialStore(object):
         probe = prefs.get('Account', 'probe')
         altseed, syshash, reboot = self._parse_probe(probe)
         if altseed is None:
-            reboot = int(time()) - fetch_uptime()
+            reboot = int(time.time()) - fetch_uptime()
             altseed = self._encode(self._new_key())
             syshash = self._encode(self._hash(syskey))
             prefs.put('Account', 'probe', '{0}{1}{2}'.
@@ -202,7 +202,8 @@ class CredentialStore(object):
         prefs.save()
 
     def _get_keyring_password(self, key):
-        if self.ignore_keyring:
+        key = CREDS_MAP.get(key)
+        if key is None or self.ignore_keyring:
             return None
 
         value = keyring.get_password('meocloud', key)
@@ -216,17 +217,25 @@ class CredentialStore(object):
             self.ignore_keyring = True
             return None
 
-        # First time we are accessing the keyring
-        # If the client is registered, try waiting for the keyring to
-        # become available
+        # Check if credentials should exist or not
         if self.prefs.get('Account', 'email') is None:
             return None
 
+        # Try to determine if the keyring is available
         for i in xrange(5):
-            time.sleep(2 ** i)
-            value = keyring.get_password('meocloud', key)
-            if value:
-                return value
+            try:
+                keyring.set_password('meocloud', 'probe', 'PROBE')
+            except keyring.errors.PasswordSetError:
+                time.sleep(2 ** i)
+                continue
+            else:
+                # Keyring is working
+                try:
+                    keyring.delete_password('meocloud', 'probe')
+                except keyring.errors.PasswordDeleteError:
+                    pass
+
+                return keyring.get_password('meocloud', key)
 
         return None
 

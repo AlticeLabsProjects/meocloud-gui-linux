@@ -1,4 +1,9 @@
-from _ordereddict import ordereddict as OrderedDict
+try:
+    from _ordereddict import ordereddict as OrderedDict
+    have_fast_odict = True
+except ImportError:
+    have_fast_odic = False
+    from collections import OrderedDict
 
 
 class BoundedOrderedDict(OrderedDict):
@@ -8,6 +13,10 @@ class BoundedOrderedDict(OrderedDict):
         self.maxsize = kwargs.pop('maxsize', None)
         OrderedDict.__init__(self, *args, **kwargs)
         self._trim_cache()
+        if have_fast_odict:
+            self._popitem = lambda: self.popitem(0)
+        else:
+            self._popitem = lambda: self.popitem(last=True)
 
     def __setitem__(self, key, value):
         OrderedDict.__setitem__(self, key, value)
@@ -16,4 +25,4 @@ class BoundedOrderedDict(OrderedDict):
     def _trim_cache(self):
         if self.maxsize:
             while len(self) > self.maxsize:
-                self.popitem(0)
+                self._popitem()
