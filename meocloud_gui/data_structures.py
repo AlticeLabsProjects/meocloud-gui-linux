@@ -16,7 +16,7 @@ class BoundedOrderedDict(OrderedDict):
         if have_fast_odict:
             self._pop = lambda self: self.popitem(0)
         else:
-            self._pop = lambda self: self.popitem(last=True)
+            self._pop = lambda self: self.popitem(last=False)
 
     def __setitem__(self, key, value):
         OrderedDict.__setitem__(self, key, value)
