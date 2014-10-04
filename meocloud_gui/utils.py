@@ -329,6 +329,8 @@ def rc4_crypt(data, key, drop_n=0):
 
     # PRGA Phase
     for char in data:
+        if drop_n == 0:
+            i = j = 0
         i = (i + 1) % 256
         j = (j + S[i]) % 256
         S[i], S[j] = S[j], S[i]
