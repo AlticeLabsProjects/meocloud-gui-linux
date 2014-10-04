@@ -29,7 +29,10 @@ from meocloud_gui import codes
 import logging
 log = logging.getLogger(LOGGER_NAME)
 
-try:
+RUNNING_ON_KDE = os.environ.get('KDE_FULL_SESSION') == 'true'
+
+try:    
+    assert(not RUNNING_ON_KDE)
     from gi import Repository
     if not Repository.get_default().enumerate_versions('AppIndicator3'):
         assert False
