@@ -15,14 +15,16 @@ class TrayIcon (GObject.Object):
 
         self.icon = Gtk.StatusIcon()
         self.icon.connect("activate", self.tray_popup)
-        self.icon.connect("popup_menu", self.tray_popup)
+        self.icon.connect("popup-menu", self.tray_popup)
 
         self.menu = Gtk.Menu()
 
     def wrapper_run(self, func):
         Gdk.threads_enter()
-        func()
-        Gdk.threads_leave()
+        try:
+            func()
+        finally:
+            Gdk.threads_leave()
 
     def wrapper(self, func):
         GLib.idle_add(lambda: self.wrapper_run(func))

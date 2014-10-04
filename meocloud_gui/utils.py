@@ -9,7 +9,11 @@ import logging
 import logging.handlers
 import shutil
 import dbus
+import hashlib
+import hmac
+
 from contextlib import contextmanager
+from functools import partial
 
 from gi.repository import GLib, Gio, Gtk, Gdk
 from meocloud_gui.preferences import Preferences
@@ -20,6 +24,9 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     PURGEMETA_PATH, PURGEALL_PATH)
 from meocloud_gui.stoppablethread import StoppableThread
 
+
+MACALGO = hashlib.sha256
+MACSIZE = len(MACALGO().digest())
 
 @contextmanager
 def gdk_threads_lock():
@@ -301,25 +308,35 @@ def use_headerbar():
 
 
 #RC4 Implementation
-def rc4_crypt(data, key):
+def rc4_crypt(data, key, drop_n=0):
     S = range(256)
     j = 0
     out = []
 
-    #KSA Phase
-    for i in range(256):
+    # KSA Phase
+    for i in xrange(256):
         j = (j + S[i] + ord(key[i % len(key)])) % 256
         S[i], S[j] = S[j], S[i]
 
-    #PRGA Phase
+    i = j = 0
+
+    # Ignore first bytes in keystream due to known bias
+    if drop_n > 0:
+        for b in xrange(drop_n):
+            i = (i + 1) % 256
+            j = (j + S[i]) % 256
+            S[i], S[j] = S[j], S[i]
+
+    # PRGA Phase
     for char in data:
-        i = j = 0
         i = (i + 1) % 256
         j = (j + S[i]) % 256
         S[i], S[j] = S[j], S[i]
         out.append(chr(ord(char) ^ S[(S[i] + S[j]) % 256]))
 
     return ''.join(out)
+
+rc4_drop768 = partial(rc4_crypt, drop_n=768)
 
 
 # function that encrypts data with RC4 and decodes it in base64 as default
@@ -342,6 +359,11 @@ def decrypt(data, key, decode=base64.b64decode):
         data = decode(data)
 
     return rc4_crypt(data, key)
+
+
+def mac(data, key):
+    _mac = hmac.new(key, msg=data, digestmod=MACALGO)
+    return _mac.digest()
 
 
 def force_remove(path, log=None):

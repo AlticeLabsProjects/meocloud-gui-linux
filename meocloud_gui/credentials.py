@@ -113,21 +113,36 @@ def fetch_attrs():
 
 
 class CredentialStore(object):
-    def __init__(self, prefs, encrypt, decrypt):
+    def __init__(self, prefs, encrypt, decrypt, mac, macsize):
         self.prefs = prefs
         self.__encrypt = encrypt
         self.__decrypt = decrypt
+        self.__mac = mac
+        self.macsize = macsize
         self.key = None
+        self.mac_key = None
         self.used_keyring = False
         self.kwallet_enabled = 'kwallet' in str(keyring.get_keyring()).lower()
 
+        prefs.save()
+        try:
+            ino = os.stat(prefs.path).st_ino
+        except EnvironmentError:
+            ino = '\xff' * 8
+        else:
+            import struct
+            try:
+                ino = struct.pack('Q', ino)
+            except (TypeError, ValueError):
+                ino = '\xff' * 8
+
         altseed = prefs.get('Account', 'altkey')
         if altseed:
-            self.key = self._derive_key(altseed)
+            self.key = self._derive_key(altseed + ino)
             return
 
         attrs = fetch_attrs()
-        syskey = self._derive_key(attrs) if attrs else None
+        syskey = self._derive_key(attrs + ino) if attrs else None
 
         use_sys_key = prefs.get('Account', 'syskey')
         if syskey and use_sys_key:
@@ -143,10 +158,10 @@ class CredentialStore(object):
             prefs.put('Account', 'probe', '{0}{1}{2}'.
                       format(altseed, syshash, reboot))
             prefs.save()
-            self.key = self._derive_key(altseed)
+            self.key = self._derive_key(altseed + ino)
             return
 
-        self.key = self._derive_key(altseed)
+        self.key = self._derive_key(altseed + ino)
 
         if not syskey or self._encode(self._hash(syskey)) != syshash:
             prefs.put('Account', 'altkey', altseed)
@@ -210,7 +225,7 @@ class CredentialStore(object):
 
         return None
 
-    def _get_(self, key):
+    def _get(self, key):
         if not self.kwallet_enabled:
             return self._get_keyring_password(key)
 
@@ -276,23 +291,42 @@ class CredentialStore(object):
 
         iv = os.urandom(IV_SIZE)
         key = hashlib.sha256(iv + self.key).digest()
-        encrypted = self.__encrypt(value, key, encode=None)
+        encrypted = self.__encrypt(value, key)
 
-        return iv + encrypted
+        if self.mac_key is None:
+            self.mac_key = hashlib.sha256(self.key).digest()
 
-    def _decrypt(self, value):
-        if self.key is None or value is None:
+        mac = self.__mac(iv + encrypted, self.mac_key)
+
+        return mac + iv + encrypted
+
+    def _decrypt(self, data):
+        if self.key is None or data is None:
             return None
 
-        if len(value) < IV_SIZE + 1:
+        if len(data) < IV_SIZE + self.macsize + 1:
             return None
 
-        iv = value[:IV_SIZE]
+        if self.mac_key is None:
+            self.mac_key = hashlib.sha256(self.key).digest()
+
+        offset = 0
+        mac = data[offset: offset + self.macsize]
+        offset += self.macsize
+
+        iv = data[offset: offset + IV_SIZE]
+        offset += IV_SIZE
+
+        data = data[offset:]
+        own_mac = self.__mac(iv + data, self.mac_key)
+
+        # XXX
+        if mac != own_mac:
+            return None
 
         key = hashlib.sha256(iv + self.key).digest()
-        encrypted = value[IV_SIZE:]
 
-        return self.__decrypt(encrypted, key, decode=None)
+        return self.__decrypt(data, key)
 
     def _encode(self, data):
         if not data:
@@ -306,10 +340,11 @@ class CredentialStore(object):
     def _decode(self, data):
         if not data:
             return None
-        data += '=' * (8 - len(data) % 8)
+        if len(data) % 8 > 0:
+            data += '=' * (8 - len(data) % 8)
         try:
             result = base64.b32decode(data.upper())
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as err:
             result = None
         return result
 
@@ -320,7 +355,7 @@ class CredentialStore(object):
 
     @property
     def cid(self):
-        return self._get_('id')
+        return self._get('id')
 
     @cid.setter
     def cid(self, value):
@@ -328,7 +363,7 @@ class CredentialStore(object):
 
     @property
     def ckey(self):
-        return self._get_('key')
+        return self._get('key')
 
     @ckey.setter
     def ckey(self, value):

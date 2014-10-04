@@ -51,7 +51,8 @@ class Application(Gtk.Application):
         self.prefs_window = None
 
         self.prefs = Preferences()
-        creds = CredentialStore(self.prefs, utils.encrypt, utils.decrypt)
+        creds = CredentialStore(self.prefs, utils.rc4_drop768,
+                                utils.rc4_drop768, utils.mac, utils.MACSIZE)
         self.prefs.set_credential_store(creds)
 
         # for some reason this only works in __init__
