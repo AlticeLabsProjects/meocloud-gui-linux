@@ -123,6 +123,7 @@ class CredentialStore(object):
         self.mac_key = None
         self.used_keyring = False
         self.kwallet_enabled = 'kwallet' in str(keyring.get_keyring()).lower()
+        self.ignore_keyring = False
 
         prefs.save()
         try:
@@ -201,6 +202,9 @@ class CredentialStore(object):
         prefs.save()
 
     def _get_keyring_password(self, key):
+        if self.ignore_keyring:
+            return None
+
         value = keyring.get_password('meocloud', key)
         if value or self.used_keyring:
             return value
@@ -209,6 +213,7 @@ class CredentialStore(object):
 
         # kwallet is just too much hassle. Give up.
         if self.kwallet_enabled:
+            self.ignore_keyring = True
             return None
 
         # First time we are accessing the keyring
