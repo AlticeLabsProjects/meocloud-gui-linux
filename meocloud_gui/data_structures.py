@@ -7,16 +7,16 @@ except ImportError:
 
 
 class BoundedOrderedDict(OrderedDict):
-    __slots__ = ('cache', 'maxsize')
+    __slots__ = ('_pop', 'maxsize')
 
     def __init__(self, *args, **kwargs):
         self.maxsize = kwargs.pop('maxsize', None)
         OrderedDict.__init__(self, *args, **kwargs)
         self._trim_cache()
         if have_fast_odict:
-            self._popitem = lambda: self.popitem(0)
+            self._pop = lambda self: self.popitem(0)
         else:
-            self._popitem = lambda: self.popitem(last=True)
+            self._pop = lambda self: self.popitem(last=True)
 
     def __setitem__(self, key, value):
         OrderedDict.__setitem__(self, key, value)
@@ -25,4 +25,4 @@ class BoundedOrderedDict(OrderedDict):
     def _trim_cache(self):
         if self.maxsize:
             while len(self) > self.maxsize:
-                self._popitem()
+                self._pop()
