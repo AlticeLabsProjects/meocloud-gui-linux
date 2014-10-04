@@ -113,6 +113,16 @@ def fetch_attrs():
 
 
 class CredentialStore(object):
+    '''
+    Uses python-keyring to store credentials in the user's
+    keyring/keychain/wallet.
+
+    At this time, kwallet appears to be unreliable:
+    the application frequently fails to read passwords.
+
+    We mitigate this by creating an alternate store in the user preferences.
+    '''
+
     def __init__(self, prefs, encrypt, decrypt, mac, macsize):
         self.prefs = prefs
         self.__encrypt = encrypt
@@ -122,7 +132,7 @@ class CredentialStore(object):
         self.key = None
         self.mac_key = None
         self.used_keyring = False
-        self.kwallet_enabled = 'kwallet' in str(keyring.get_keyring()).lower()
+        self.using_kwallet = 'kwallet' in str(keyring.get_keyring()).lower()
         self.ignore_keyring = False
 
         prefs.save()
@@ -131,7 +141,6 @@ class CredentialStore(object):
         except EnvironmentError:
             ino = '\xff' * 8
         else:
-            import struct
             try:
                 ino = struct.pack('Q', ino)
             except (TypeError, ValueError):
@@ -213,7 +222,7 @@ class CredentialStore(object):
         self.used_keyring = True
 
         # kwallet is just too much hassle. Give up.
-        if self.kwallet_enabled:
+        if self.using_kwallet:
             self.ignore_keyring = True
             return None
 
@@ -221,7 +230,7 @@ class CredentialStore(object):
         if self.prefs.get('Account', 'email') is None:
             return None
 
-        # Try to determine if the keyring is available
+        # Try to wait for the keyring to become available
         for i in xrange(5):
             try:
                 keyring.set_password('meocloud', 'probe', 'PROBE')
@@ -240,7 +249,7 @@ class CredentialStore(object):
         return None
 
     def _get(self, key):
-        if not self.kwallet_enabled:
+        if not self.using_kwallet:
             return self._get_keyring_password(key)
 
         evalue = self.prefs.get('Account', key)
@@ -257,7 +266,7 @@ class CredentialStore(object):
         return value
 
     def _set(self, key, value):
-        if not self.kwallet_enabled:
+        if not self.using_kwallet:
             key = CREDS_MAP.get(key)
             if key:
                 keyring.set_password('meocloud', key, value)
