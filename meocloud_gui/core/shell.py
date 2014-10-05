@@ -4,7 +4,6 @@ from gi.repository import GLib
 import errno
 from meocloud_gui import thrift_utils
 
-from meocloud_gui.preferences import Preferences
 from meocloud_gui.constants import (
     CLOUD_HOME_DEFAULT_PATH,
     LOGGER_NAME,
