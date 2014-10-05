@@ -150,8 +150,8 @@ class Application(Gtk.Application):
             self.force_preferences_visible = \
                 self.prefs.get("Network", "Proxy", "None") != "None"
 
-            if not os.path.isfile(os.path.join(UI_CONFIG_PATH, 'prefs.ini')):
-                log.info('Application.on_activate: prefs.ini missing')
+            if not self.prefs.get('Account', 'email'):
+                log.info('Application.on_activate: prefs not initialized.')
                 utils.force_remove(os.path.join(UI_CONFIG_PATH,
                                                 'shared_directories'))
             else:
