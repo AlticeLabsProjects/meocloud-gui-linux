@@ -1,3 +1,5 @@
+import gc
+
 try:
     from _ordereddict import ordereddict as OrderedDict
     have_fast_odict = True
@@ -26,3 +28,4 @@ class BoundedOrderedDict(OrderedDict):
         if self.maxsize:
             while len(self) > self.maxsize:
                 self._pop()
+            gc.collect()

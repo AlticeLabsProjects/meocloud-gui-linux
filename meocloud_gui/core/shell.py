@@ -44,7 +44,7 @@ class Shell(object):
 
         self.prefs = proxy.prefs
 
-        self.file_states = BoundedOrderedDict(maxsize=10000)
+        self.file_states = BoundedOrderedDict(maxsize=5000)
 
         self.read_buffer = None
         self.write_buffer = None
