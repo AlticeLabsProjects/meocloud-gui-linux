@@ -112,15 +112,35 @@ def fetch_attrs():
     return attrs
 
 
+def fetch_ino(path):
+    try:
+        ino = os.stat(path).st_ino
+    except EnvironmentError:
+        ino = '\xff' * 8
+    else:
+        try:
+            ino = struct.pack('Q', ino)
+        except (TypeError, ValueError):
+            ino = '\xff' * 8
+
+    return ino
+
+
 class CredentialStore(object):
     '''
     Uses python-keyring to store credentials in the user's
     keyring/keychain/wallet.
 
-    At this time, kwallet appears to be unreliable:
-    the application frequently fails to read passwords.
+    At this time, kwallet appears to be unreliable and
+    the application frequently fails to read stored credentials.
 
-    We mitigate this by creating an alternate store in the user preferences.
+    On KDE, this is mitigated by storing the encrypted user's
+    credentials on the preferences file.
+
+    Please note that, if storing the credentials outside the keyring,
+    it is imperative that the preferences file is kept secure.
+    The encryption used is meant to avoid credentials exposure if transporting
+    the file between systems (e.g., backups) and not much else.
     '''
 
     def __init__(self, prefs, encrypt, decrypt, mac, macsize):
@@ -136,15 +156,7 @@ class CredentialStore(object):
         self.ignore_keyring = False
 
         prefs.save()
-        try:
-            ino = os.stat(prefs.path).st_ino
-        except EnvironmentError:
-            ino = '\xff' * 8
-        else:
-            try:
-                ino = struct.pack('Q', ino)
-            except (TypeError, ValueError):
-                ino = '\xff' * 8
+        ino = fetch_ino(prefs.path)
 
         altseed = prefs.get('Account', 'altkey')
         if altseed:
