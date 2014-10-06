@@ -1,5 +1,3 @@
-import gc
-
 try:
     from _ordereddict import ordereddict as OrderedDict
     have_fast_odict = True
@@ -26,6 +24,6 @@ class BoundedOrderedDict(OrderedDict):
 
     def _trim_cache(self):
         if self.maxsize:
-            while len(self) > self.maxsize:
+            maxsize = self.maxsize - self.maxsize / 4
+            while len(self) > maxsize:
                 self._pop()
-            gc.collect()

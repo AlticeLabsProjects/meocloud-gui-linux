@@ -10,6 +10,7 @@
 #include <QtCore/QTimer>
 #include <QLocalSocket>
 
+#define BUFSIZE 8192
 
 class DolphinMEOCloudPlugin : public KVersionControlPlugin
 {
@@ -55,15 +56,17 @@ private:
     void requestLink(QString path);
     void requestShare(QString path);
     void requestOpen(QString path);
+    void setCloudParent(void);
 
     QString m_cloudDir;
+    QString m_cloudParentDir;
     QString m_lastDir;
     QString m_contextUrl;
     QHash<QString, KVersionControlPlugin::VersionState> m_versionInfoHash;
 
     QLocalSocket*   m_socket;
-    quint16 m_blockSize;
     QString m_message;
-    QString buffer;
+    char m_rawbuffer[BUFSIZE];
+    QString m_buffer;
 };
 #endif // DolphinMEOCloudPlugin_H

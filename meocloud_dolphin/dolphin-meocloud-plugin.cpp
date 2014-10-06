@@ -17,6 +17,9 @@
 #include <KDE/KPluginLoader>
 #include "dolphin-meocloud-plugin.h"
 
+#define PROTO_SEP '\t'
+#define PROTO_EOL '\n'
+
 K_PLUGIN_FACTORY(DolphinMEOCloudPluginFactory, registerPlugin<DolphinMEOCloudPlugin>();)
 K_EXPORT_PLUGIN(DolphinMEOCloudPluginFactory("dolphin-meocloud-plugin"))
 
@@ -26,7 +29,7 @@ DolphinMEOCloudPlugin::DolphinMEOCloudPlugin(QObject *parent, const QVariantList
 {
     Q_UNUSED(args);
 
-    buffer = "";
+    m_buffer = "";
 
     QString lang = QLocale::system().uiLanguages().first().replace("-", "_");
 
@@ -85,6 +88,9 @@ void DolphinMEOCloudPlugin::subscribe() {
 }
 
 void DolphinMEOCloudPlugin::requestStatus(QString path) {
+    if (!m_versionInfoHash.contains(path)) {
+        m_versionInfoHash.insert(path, KVersionControlPlugin::UnversionedVersion);
+    }
 	path = path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
 	m_socket->write(("status\t" + path.replace(m_cloudDir, "") + "\n").toStdString().c_str());
 	m_socket->flush();
@@ -111,6 +117,8 @@ void DolphinMEOCloudPlugin::reloadConfig() {
 		m_cloudDir = QDir::homePath() + "/MEOCloud";
 	}
 
+	this->setCloudParent();
+
     if (m_socket->state() == QLocalSocket::UnconnectedState) {
     	m_socket->connectToServer(QDir::homePath() + "/.meocloud/gui/meocloud_shell_proxy.socket");
     }
@@ -123,71 +131,82 @@ void DolphinMEOCloudPlugin::socket_readReady() {
     QDataStream in(m_socket);
     in.setVersion(QDataStream::Qt_4_0);
 
-    if (m_socket->bytesAvailable() < (int)sizeof(quint64)) {
-    		return;
+    qint64 bytes_available(m_socket->bytesAvailable());
+
+    if (bytes_available < 1 or in.atEnd()) {
+        return;
     }
 
-    if (in.atEnd())
-        return;
+    //fprintf(stderr, "Got something on the socket...\n");
 
-    if (m_blockSize == 0) {
-		if (m_socket->bytesAvailable() < (int)sizeof(quint64))
-			return;
-		in >> m_blockSize;
-	}
+    qint64 bufsize = BUFSIZE;
+    while (bytes_available > 0) {
+        qint64 toread = std::min(bufsize, bytes_available);
+        int bytes_read = in.readRawData(m_rawbuffer, toread);
+        if (bytes_read != toread) {
+            return;
+        }
+        m_buffer += QString::fromAscii(m_rawbuffer, bytes_read);
+        bytes_available -= toread;
+    }
 
-    char* bufPtr = (char*)std::malloc(m_socket->bytesAvailable());
-	int read = in.readRawData(bufPtr, m_socket->bytesAvailable());
-
-	std::string stdString(bufPtr, read);
-	QString data = QString::fromStdString(stdString);
-
-	m_blockSize = 0;
-
-    while (data.length() > 0) {
-		int data_length = data.length();
-
-		for (int i = 0; i < data.length(); i++) {
-			if (data[i] == '\n') {
-				processData(buffer + data.mid(0, i));
-				buffer = "";
-				data = data.mid(i+1, data.length() - (i+1));
-				break;
-			}
-		}
-
-		if (data_length == data.length()) {
-			buffer += data;
-			data = "";
-			break;
+    int buflen = m_buffer.length();
+    int start, offset;
+    for (offset = 0, start = 0; offset < buflen; offset++) {
+        if (m_buffer[offset] == '\n') {
+            if (start >= buflen) {
+                break;
+            }
+            if (offset == start) {
+                start += 1;
+                continue;
+            }
+            processData(m_buffer.mid(start, offset - start));
+            start = offset + 1;
 		}
 	}
 
-	buffer += data;
-
-	if (m_socket->bytesAvailable() >= (int)sizeof(quint64))
-		socket_readReady();
+    if (start >= buflen) {
+        m_buffer = "";
+    } else {
+        m_buffer = m_buffer.mid(start, buflen);
+    }
 }
 
 void DolphinMEOCloudPlugin::processData(QString data) {
-	QString command = data.split('\t')[0];
-	QString path = data.split('\t')[1];
-	QString state = data.split('\t')[2];
+    QStringList parts = data.split(PROTO_SEP);
+	QString command = parts[0];
+	QString path = parts[1];
+	int state = parts[2].toInt();
 
 	path = path.replace("\\t", "\t").replace("\\n", "\n").replace("\\\\", "\\");
 
 	if (path == "/")
 		path = "";
 
-	if (state == "1") {
-		m_versionInfoHash.insert(m_cloudDir + path, KVersionControlPlugin::UpdateRequiredVersion);
-	} else if (state == "2" || state == "3") {
-		m_versionInfoHash.insert(m_cloudDir + path, KVersionControlPlugin::ConflictingVersion);
-	} else if (state == "0") {
-		m_versionInfoHash.insert(m_cloudDir + path, KVersionControlPlugin::NormalVersion);
+	path = m_cloudDir + path;
+
+	KVersionControlPlugin::VersionState new_state;
+	switch (state) {
+	case 0:
+	    new_state = KVersionControlPlugin::NormalVersion;
+	    break;
+	case 1:
+	    new_state = KVersionControlPlugin::UpdateRequiredVersion;
+	    break;
+	default:
+	    new_state = KVersionControlPlugin::ConflictingVersion;
+		break;
 	}
 
-	setVersionState();
+	if (m_versionInfoHash.contains(path) &&
+	    m_versionInfoHash.value(path) != new_state) {
+        m_versionInfoHash.insert(path, new_state);
+        setVersionState();
+        //fprintf(stderr, "Updated state!\n");
+	}
+
+	//fprintf(stderr, "Processed info for %s\n", path.toStdString().c_str());
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
@@ -195,53 +214,40 @@ void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
 
 QString DolphinMEOCloudPlugin::fileName() const
 {
-    return QLatin1String(".meocloud");
+    return QString();
 }
 
 bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
 {
+    //fprintf(stderr, "Directory: %s\n", directory.toStdString().c_str());
+    //fprintf(stderr, "Cloud dir: %s, Parent: %s\n", m_cloudDir.toStdString().c_str(),
+    //        m_cloudParentDir.toStdString().c_str());
+
     Q_ASSERT(directory.endsWith(QLatin1Char('/')));
 
-    bool cloudIsHere = false;
-    QDir dir(directory);
-    QStringList files = dir.entryList();
-
-    for(int i = 2; i < files.size(); ++i) {
-		QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
-
-		if (filename == m_cloudDir) {
-			cloudIsHere = true;
-			break;
-		}
-	}
-
-    if (!directory.startsWith(m_cloudDir) && !cloudIsHere) {
+    if (directory == m_cloudParentDir) {
+        requestStatus(m_cloudDir + "/");
         return true;
     }
 
+    if (!directory.startsWith(m_cloudDir + "/")) {
+        return true;
+    }
+
+    QDir dir(directory);
     if (m_lastDir != dir.absolutePath()) {
     	m_lastDir = dir.absolutePath();
     	m_versionInfoHash.clear();
     }
 
+    // Set i = 2 to skip "." and ".."
+    /*
+    QStringList files = dir.entryList();
     for(int i = 2; i < files.size(); ++i) {
         QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
-        KVersionControlPlugin::VersionState versionState;
-
-        if (filename == m_cloudDir) {
-        	if (!m_versionInfoHash.contains(filename)) {
-				versionState = KVersionControlPlugin::UnversionedVersion;
-				requestStatus(filename + "/");
-			}
-            return true;
-        } else if (!cloudIsHere) {
-        	if (!m_versionInfoHash.contains(filename)) {
-        		versionState = KVersionControlPlugin::UnversionedVersion;
-        		requestStatus(filename);
-        	}
-        }
+        requestStatus(filename);
     }
-
+    */
     return true;
 }
 
@@ -253,10 +259,20 @@ KVersionControlPlugin::VersionState DolphinMEOCloudPlugin::versionState(const KF
 {
     const QString itemUrl = item.localPath();
 
+    //fprintf(stderr, "File state being requested: %s\n", itemUrl.toStdString().c_str());
+
+    if (!itemUrl.startsWith(m_cloudDir + "/") && itemUrl != m_cloudDir + "/") {
+        //fprintf(stderr, "Nope!\n");
+        return KVersionControlPlugin::UnversionedVersion;
+    }
+
     if (m_versionInfoHash.contains(itemUrl)) {
+        //fprintf(stderr, "I have it!\n");
         return m_versionInfoHash.value(itemUrl);
     }
 
+    //fprintf(stderr, "Requesting status...\n");
+    requestStatus(itemUrl);
     return KVersionControlPlugin::UnversionedVersion;
 }
 
@@ -341,4 +357,14 @@ void DolphinMEOCloudPlugin::requestOpen(QString path)
 	path = path.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n");
 	m_socket->write(("browser\t" + path.replace(m_cloudDir, "") + "\n").toStdString().c_str());
 	m_socket->flush();
+}
+
+void DolphinMEOCloudPlugin::setCloudParent(void)
+{
+    int index = m_cloudDir.lastIndexOf("/");
+    if (index > 0) {
+        m_cloudParentDir = m_cloudDir.left(index + 1);
+    } else {
+        m_cloudParentDir = QDir::homePath();
+    }
 }

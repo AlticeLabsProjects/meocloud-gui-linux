@@ -24,7 +24,6 @@ from meocloud_gui.protocol.shell.ttypes import (
     FileStatusType,
     FileStatus)
 
-from meocloud_gui.data_structures import BoundedOrderedDict
 
 # Logging
 import logging
@@ -34,6 +33,7 @@ from meocloud_gui.thrift_utils import (
 
 log = logging.getLogger(LOGGER_NAME)
 
+MAX_FILE_STATES = 5000
 
 # TODO: Kill ShellHelper socket handling. Requires D-Bus to be killed.
 class Shell(object):
@@ -43,7 +43,7 @@ class Shell(object):
 
         self.prefs = proxy.prefs
 
-        self.file_states = BoundedOrderedDict(maxsize=5000)
+        self.file_states = {}
 
         self.read_buffer = None
         self.write_buffer = None
@@ -231,6 +231,8 @@ class Shell(object):
             prev_state = self.file_states.get(path)
             state = msg.fileStatus.status.state
             if state != prev_state:
+                if len(self.file_states) > MAX_FILE_STATES:
+                    self.file_states.clear()
                 self.file_states[path] = state
                 paths.append(path)
 
