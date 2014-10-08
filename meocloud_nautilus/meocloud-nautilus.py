@@ -35,7 +35,7 @@ FILE_STATE_TO_EMBLEM = {
 
 READBUF_SIZE = 16 * 1024
 CHUNK_SIZE = 4 * 1024
-MAX_WRITE_BATCH_SIZE = 64 * 1024
+MAX_WRITE_BATCH_SIZE = 32 * 1024
 
 
 PREFS_PATH = os.path.expanduser("~/.meocloud/gui/prefs.ini")
@@ -297,6 +297,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         while paths:
             self.touch(paths.pop())
+  
 
     def on_msg_write(self, source, condition):
         # Ensure socket is alive
@@ -384,30 +385,56 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
     def valid_uri(self, uri):
         return uri.startswith(self.cloud_folder_uri)
 
-    def changed_cb(self, i):
-        del i
+    def changed_cb(self, item):
+        del item
 
-    def update_file_info(self, item):
+    def add_emblem(self, path, state):
+        try:
+            item = self.nautilus_items[path]
+        except KeyError:
+            return
+        item.add_emblem(FILE_STATE_TO_EMBLEM.get(state,
+                                                 'emblem-important'))
+        if path in self.shared:
+            item.add_emblem('emblem-shared')
+
+    def update_file_info_full(self, provider, handle, closure, item):
         uri = item.get_uri()
         if not self.valid_uri(uri):
             return Nautilus.OperationResult.FAILED
 
         path = self.uri_to_path(uri)
-
-        self.nautilus_items[path] = item
         state = self.file_states.get(path)
-        if state is not None:
-            item.add_emblem(FILE_STATE_TO_EMBLEM.get(state,
-                                                     'emblem-important'))
+        saved_item = self.nautilus_items.get(path)
+        if saved_item is None:
+            self.nautilus_items[path] = item
+            item.connect('changed', self.changed_cb)
+        elif saved_item != item:
+            del self.nautilus_items[path]
+            self.nautilus_items[path] = item
             item.connect('changed', self.changed_cb)
 
-            if path in self.shared:
-                item.add_emblem('emblem-shared')
-            return Nautilus.OperationResult.COMPLETE
+        if state is not None:
+           self.add_emblem(path, state)
+           return Nautilus.OperationResult.COMPLETE
+        
+        GLib.idle_add(self._update_file_info, provider, handle, closure, item,
+                      priority=GLib.PRIORITY_LOW)
+        return Nautilus.OperationResult.IN_PROGRESS
+
+    def _update_file_info(self, provider, handle, closure, item):
+        path = self.uri_to_path(item.get_uri())
+        state = self.file_states.get(path)
+        item.connect('changed', self.changed_cb)
 
         self.fetch_file_state(path)
-        return Nautilus.OperationResult.FAILED
- 
+        if provider is not None:
+            Nautilus.info_provider_update_complete_invoke(
+                closure, provider, handle,
+                Nautilus.OperationResult.COMPLETE)
+
+        return False 
+
     def get_file_items(self, window, files):
         if len(files) != 1:
             return
