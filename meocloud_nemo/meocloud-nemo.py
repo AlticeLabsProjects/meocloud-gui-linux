@@ -35,7 +35,7 @@ FILE_STATE_TO_EMBLEM = {
 
 READBUF_SIZE = 16 * 1024
 CHUNK_SIZE = 4 * 1024
-MAX_WRITE_BATCH_SIZE = 64 * 1024
+MAX_WRITE_BATCH_SIZE = 32 * 1024
 
 
 PREFS_PATH = os.path.expanduser("~/.meocloud/gui/prefs.ini")
@@ -121,7 +121,7 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         self.shared = set()
 
         self.read_buffer = None
-        self.write_buffer = None
+        self.write_buffer = []
         self.writing = False
         self.sock = None
         self.last_prefs_mtime = 0
@@ -304,13 +304,16 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
             return False
 
         bytes_sent = 0
-        bytes_total = len(self.write_buffer)
+        write_buffer = ''.join(self.write_buffer)
+        del self.write_buffer
+        bytes_total = len(write_buffer)
         try:
-            while self.write_buffer and bytes_sent < MAX_WRITE_BATCH_SIZE:
-                data = self.write_buffer[:CHUNK_SIZE]
+            while bytes_sent < MAX_WRITE_BATCH_SIZE:
+                data = write_buffer[bytes_sent:bytes_sent + CHUNK_SIZE]
+                if len(data) == 0:
+                    break
                 self.sock.send(data)
                 bytes_sent += len(data)
-                self.write_buffer = self.write_buffer[CHUNK_SIZE:]
         except socket.error as error:
             if error.errno == errno.EAGAIN:
                 return True
@@ -326,15 +329,14 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
         else:
             self.writing = bytes_sent < bytes_total
             return self.writing
+        finally:
+            self.write_buffer = [write_buffer[bytes_sent:], ]
 
     def _send(self, data):
         if not self._check_connection():
             return
-
-        if self.write_buffer:
-            self.write_buffer += data
-        else:
-            self.write_buffer = data
+ 
+        self.write_buffer.append(data)
 
         if self.writing:
             return
@@ -384,30 +386,54 @@ class MEOCloudNemo(Nemo.InfoProvider, Nemo.MenuProvider,
     def valid_uri(self, uri):
         return uri.startswith(self.cloud_folder_uri)
 
-    def changed_cb(self, i):
-        del i
+    def changed_cb(self, item):
+        del item
 
-    def update_file_info(self, item):
+    def add_emblem(self, path, state):
+        try:
+            item = self.nemo_items[path]
+        except KeyError:
+            return
+        item.add_emblem(FILE_STATE_TO_EMBLEM.get(state,
+                                                 'emblem-important'))
+        if path in self.shared:
+            item.add_emblem('emblem-shared')
+
+    def update_file_info_full(self, provider, handle, closure, item):
         uri = item.get_uri()
         if not self.valid_uri(uri):
             return Nemo.OperationResult.FAILED
 
         path = self.uri_to_path(uri)
-
-        self.nemo_items[path] = item
         state = self.file_states.get(path)
-        if state is not None:
-            item.add_emblem(FILE_STATE_TO_EMBLEM.get(state,
-                                                     'emblem-important'))
+        saved_item = self.nemo_items.get(path)
+        if saved_item is None:
+            self.nemo_items[path] = item
+            item.connect('changed', self.changed_cb)
+        elif saved_item != item:
+            del self.nemo_items[path]
+            self.nemo_items[path] = item
             item.connect('changed', self.changed_cb)
 
-            if path in self.shared:
-                item.add_emblem('emblem-shared')
-            return Nemo.OperationResult.COMPLETE
+        if state is not None:
+           self.add_emblem(path, state)
+           return Nemo.OperationResult.COMPLETE
+ 
+        GLib.idle_add(self._update_file_info, provider, handle, closure, item,
+                      priority=GLib.PRIORITY_LOW)
+        return Nemo.OperationResult.IN_PROGRESS
+
+    def _update_file_info(self, provider, handle, closure, item):
+        path = self.uri_to_path(item.get_uri())
+        state = self.file_states.get(path)
+        item.connect('changed', self.changed_cb)
 
         self.fetch_file_state(path)
-        return Nemo.OperationResult.FAILED
- 
+        Nemo.info_provider_update_complete_invoke(
+            closure, provider, handle, Nemo.OperationResult.COMPLETE)
+
+        return False
+
     def get_file_items(self, window, files):
         if len(files) != 1:
             return

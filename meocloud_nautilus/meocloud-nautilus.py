@@ -121,7 +121,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         self.shared = set()
 
         self.read_buffer = None
-        self.write_buffer = None
+        self.write_buffer = []
         self.writing = False
         self.sock = None
         self.last_prefs_mtime = 0
@@ -297,7 +297,6 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
 
         while paths:
             self.touch(paths.pop())
-  
 
     def on_msg_write(self, source, condition):
         # Ensure socket is alive
@@ -305,13 +304,16 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             return False
 
         bytes_sent = 0
-        bytes_total = len(self.write_buffer)
+        write_buffer = ''.join(self.write_buffer)
+        del self.write_buffer
+        bytes_total = len(write_buffer)
         try:
-            while self.write_buffer and bytes_sent < MAX_WRITE_BATCH_SIZE:
-                data = self.write_buffer[:CHUNK_SIZE]
+            while bytes_sent < MAX_WRITE_BATCH_SIZE:
+                data = write_buffer[bytes_sent:bytes_sent + CHUNK_SIZE]
+                if len(data) == 0:
+                    break
                 self.sock.send(data)
                 bytes_sent += len(data)
-                self.write_buffer = self.write_buffer[CHUNK_SIZE:]
         except socket.error as error:
             if error.errno == errno.EAGAIN:
                 return True
@@ -327,16 +329,14 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         else:
             self.writing = bytes_sent < bytes_total
             return self.writing
+        finally:
+            self.write_buffer = [write_buffer[bytes_sent:], ]
 
     def _send(self, data):
         if not self._check_connection():
             return
-
-        if self.write_buffer:
-            self.write_buffer += data
-        else:
-            self.write_buffer = data
-
+ 
+        self.write_buffer.append(data)
         if self.writing:
             return
 
@@ -417,7 +417,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         if state is not None:
            self.add_emblem(path, state)
            return Nautilus.OperationResult.COMPLETE
-        
+ 
         GLib.idle_add(self._update_file_info, provider, handle, closure, item,
                       priority=GLib.PRIORITY_LOW)
         return Nautilus.OperationResult.IN_PROGRESS
@@ -428,10 +428,9 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         item.connect('changed', self.changed_cb)
 
         self.fetch_file_state(path)
-        if provider is not None:
-            Nautilus.info_provider_update_complete_invoke(
-                closure, provider, handle,
-                Nautilus.OperationResult.COMPLETE)
+        Nautilus.info_provider_update_complete_invoke(
+            closure, provider, handle,
+            Nautilus.OperationResult.COMPLETE)
 
         return False 
 
