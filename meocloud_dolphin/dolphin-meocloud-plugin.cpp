@@ -137,8 +137,6 @@ void DolphinMEOCloudPlugin::socket_readReady() {
         return;
     }
 
-    //fprintf(stderr, "Got something on the socket...\n");
-
     qint64 bufsize = BUFSIZE;
     while (bytes_available > 0) {
         qint64 toread = std::min(bufsize, bytes_available);
@@ -203,10 +201,8 @@ void DolphinMEOCloudPlugin::processData(QString data) {
 	    m_versionInfoHash.value(path) != new_state) {
         m_versionInfoHash.insert(path, new_state);
         setVersionState();
-        //fprintf(stderr, "Updated state!\n");
 	}
 
-	//fprintf(stderr, "Processed info for %s\n", path.toStdString().c_str());
 }
 
 void DolphinMEOCloudPlugin::socket_error(QLocalSocket::LocalSocketError) {
@@ -219,10 +215,6 @@ QString DolphinMEOCloudPlugin::fileName() const
 
 bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
 {
-    //fprintf(stderr, "Directory: %s\n", directory.toStdString().c_str());
-    //fprintf(stderr, "Cloud dir: %s, Parent: %s\n", m_cloudDir.toStdString().c_str(),
-    //        m_cloudParentDir.toStdString().c_str());
-
     Q_ASSERT(directory.endsWith(QLatin1Char('/')));
 
     if (directory == m_cloudParentDir) {
@@ -240,14 +232,6 @@ bool DolphinMEOCloudPlugin::beginRetrieval(const QString &directory)
     	m_versionInfoHash.clear();
     }
 
-    // Set i = 2 to skip "." and ".."
-    /*
-    QStringList files = dir.entryList();
-    for(int i = 2; i < files.size(); ++i) {
-        QString filename = dir.absolutePath() + QDir::separator() + files.at(i);
-        requestStatus(filename);
-    }
-    */
     return true;
 }
 
@@ -259,19 +243,14 @@ KVersionControlPlugin::VersionState DolphinMEOCloudPlugin::versionState(const KF
 {
     const QString itemUrl = item.localPath();
 
-    //fprintf(stderr, "File state being requested: %s\n", itemUrl.toStdString().c_str());
-
-    if (!itemUrl.startsWith(m_cloudDir + "/") && itemUrl != m_cloudDir + "/") {
-        //fprintf(stderr, "Nope!\n");
+    if (!itemUrl.startsWith(m_cloudDir + "/") && itemUrl != m_cloudDir) {
         return KVersionControlPlugin::UnversionedVersion;
     }
 
     if (m_versionInfoHash.contains(itemUrl)) {
-        //fprintf(stderr, "I have it!\n");
         return m_versionInfoHash.value(itemUrl);
     }
 
-    //fprintf(stderr, "Requesting status...\n");
     requestStatus(itemUrl);
     return KVersionControlPlugin::UnversionedVersion;
 }
