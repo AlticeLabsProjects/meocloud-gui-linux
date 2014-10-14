@@ -32,7 +32,7 @@ class Indicator (GObject.Object):
             Gdk.threads_leave()
 
     def wrapper(self, func):
-        GLib.idle_add(lambda: self.wrapper_run(func))
+        GLib.idle_add(self.wrapper_run, func)
 
     def set_icon(self, name):
         if self.app.icon_type != "":
@@ -56,11 +56,11 @@ class Indicator (GObject.Object):
             self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
         if use_icon_name:
-            GLib.idle_add(lambda: self.ind.set_icon(name))
+            GLib.idle_add(self.ind.set_icon, name)
         else:
-            GLib.idle_add(lambda: self.ind.set_icon(os.path.join(self.app.app_path,
-                                           "icons/" + name +
-                                           ".svg")))
+            GLib.idle_add(
+                self.ind.set_icon,
+                os.path.join(self.app.app_path, "icons/" + name + ".svg"))
 
     def cycle_sync_icon(self):
         if self.syncing < 1:

@@ -209,7 +209,7 @@ class CoreListenerHandler(UI.Iface):
             url = note.parameters[2]
 
             if result == codes.STR_OK:
-                GLib.idle_add(lambda: webbrowser.open(url))
+                GLib.idle_add(webbrowser.open, url)
 
             elif result == codes.STR_NOTFOUND:
                 msg = ("\"{0}\" isn't synchronized yet. "

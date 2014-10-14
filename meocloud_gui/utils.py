@@ -271,7 +271,7 @@ def move_folder_async(src, dst, callback=None):
                      format(src, dst, err))
 
         if callback is not None:
-            GLib.idle_add(lambda: callback(cloud_home, error))
+            GLib.idle_add(callback, cloud_home, error)
 
     StoppableThread(
         target=move_folder_thread, args=(src, dst, callback)).start()

@@ -330,8 +330,7 @@ class Application(Gtk.Application):
             self.in_selective_sync = False
             if self.prefs_window is not None:
                 GLib.idle_add(
-                    lambda: self.prefs_window.selective_button.set_sensitive(
-                        True))
+                    self.prefs_window.selective_button.set_sensitive, True)
 
         if ((status.state == codes.CORE_SYNCING or
                 status.state == codes.CORE_READY) and self.shell is None):
@@ -391,8 +390,7 @@ class Application(Gtk.Application):
             self.in_selective_sync = True
             if self.prefs_window is not None:
                 GLib.idle_add(
-                    lambda: self.prefs_window.selective_button.set_sensitive(
-                        False))
+                    self.prefs_window.selective_button.set_sensitive, False)
             self.trayicon.wrapper(self.show_gui_elements)
             self.trayicon.set_icon("meocloud-sync-1")
             self.paused = False
@@ -429,12 +427,11 @@ class Application(Gtk.Application):
                     self.app_path, "icons/meocloud.svg")
                 notif_title = _('MEO Cloud Folder Missing')
                 notif_string = _('Your MEO Cloud folder is missing.')
-                Gdk.threads_enter()
-                notification = Notify.Notification.new(notif_title,
-                                                       notif_string,
-                                                       notif_icon)
-                notification.show()
-                Gdk.threads_leave()
+                with utils.gdk_threads_lock():
+                    notification = Notify.Notification.new(notif_title,
+                                                           notif_string,
+                                                           notif_icon)
+                    notification.show()
 
                 # restart the app so we can deal with the missing folder
                 cmd = "kill {0} && {1} &".format(
