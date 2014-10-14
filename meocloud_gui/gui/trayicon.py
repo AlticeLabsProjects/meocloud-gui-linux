@@ -27,7 +27,7 @@ class TrayIcon (GObject.Object):
             Gdk.threads_leave()
 
     def wrapper(self, func):
-        GLib.idle_add(lambda: self.wrapper_run(func))
+        GLib.idle_add(self.wrapper_run, func)
 
     def set_icon(self, name):
         self.last_icon = name
@@ -53,7 +53,7 @@ class TrayIcon (GObject.Object):
             self.timeout = GLib.timeout_add(500, self.cycle_sync_icon)
 
         if use_icon_name:
-            GLib.idle_add(lambda: self.icon.set_from_icon_name(name))
+            GLib.idle_add(self.icon.set_from_icon_name, name)
         else:
             icon_file = os.path.join(
                 self.app.app_path, "icons/" + name + ".svg")
