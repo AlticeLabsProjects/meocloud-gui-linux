@@ -305,7 +305,7 @@ class MEOCloudCaja(Caja.InfoProvider, Caja.MenuProvider,
 
         bytes_sent = 0
         write_buffer = ''.join(self.write_buffer)
-        del self.write_buffer
+        del self.write_buffer[:]
         bytes_total = len(write_buffer)
         try:
             while bytes_sent < MAX_WRITE_BATCH_SIZE:
