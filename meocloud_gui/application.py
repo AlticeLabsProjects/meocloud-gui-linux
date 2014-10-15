@@ -29,10 +29,10 @@ from meocloud_gui import codes
 import logging
 log = logging.getLogger(LOGGER_NAME)
 
-RUNNING_ON_KDE = os.environ.get('KDE_FULL_SESSION') == 'true'
-
-try:    
-    assert(not RUNNING_ON_KDE)
+try:
+    kde_running = os.environ.get('KDE_FULL_SESSION') == 'true'
+    gnome_running = os.environ.get('DESKTOP_SESSION') == 'gnome'
+    assert(not kde_running and not gnome_running)
     from gi import Repository
     if not Repository.get_default().enumerate_versions('AppIndicator3'):
         assert False
@@ -49,6 +49,8 @@ class Application(Gtk.Application):
         Gtk.Application.__init__(self, application_id="pt.meocloud",
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.connect("activate", self.on_activate)
+
+        Notify.init('MEO Cloud')
 
         self.app_path = app_path
         self.prefs_window = None

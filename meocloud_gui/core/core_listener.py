@@ -65,9 +65,8 @@ class CoreListenerHandler(UI.Iface):
         self.ignore_sync = ignore_sync
         self.last_notify = 0
 
-        self.app_icon_path = os.path.join(self.app.app_path,
-                                          'icons/meocloud.svg')
-        Notify.init('MEOCloud')
+        image_path = os.path.join(self.app.app_path, 'icons/meocloud.svg')
+        self.app_icon_path = image_path
 
     ### THRIFT METHODS ###
     def account(self):
@@ -171,7 +170,6 @@ class CoreListenerHandler(UI.Iface):
                     notification.show()
                 except GLib.GError:
                     log.warn('Timeout during notification.')
-
         return callback
 
     def notifySystem(self, note):
@@ -270,20 +268,24 @@ class CoreListenerHandler(UI.Iface):
                 if note.code in SHORTEN_PATH_CODES:
                     note.parameters[0] = os.path.basename(note.parameters[0])
 
-                notif_title = NOTIFICATIONS[lang][
-                    str(note.code) + "_title"].format(*note.parameters)
-                notif_string = NOTIFICATIONS[lang][
-                    str(note.code) + "_description"].format(*note.parameters)
+                code_str = str(note.code)
+                notif_title = NOTIFICATIONS[lang].get(code_str + '_title')
+                if notif_title:
+                    notif_title = notif_title.format(*note.parameters)
+
+                notif_string = NOTIFICATIONS[lang].get(
+                    code_str + '_description')
+                if notif_string:
+                    notif_string = notif_string.format(*note.parameters)
 
                 if note.type & USER_NOTIFY_TYPE_MASK_PERSISTENT:
                     self.app.problem_text = notif_string
-                    self.app.trayicon.wrapper(
-                        lambda: self.app.menuitem_problem.show())
-                    self.app.trayicon.wrapper(
-                        lambda: self.app.menuitem_moreinfo.show())
+                    self.app.trayicon.wrapper(self.app.menuitem_problem.show)
+                    self.app.trayicon.wrapper(self.app.menuitem_moreinfo.show)
 
                 if note.type & USER_NOTIFY_TYPE_MASK_MENU_BAR:
-                    GLib.idle_add(lambda: self.app.trayicon.set_icon("meocloud-activity"))
+                    GLib.idle_add(self.app.trayicon.set_icon,
+                                  'meocloud-activity')
 
                 if (note.type & USER_NOTIFY_TYPE_MASK_BALLOON and
                         display_notifications == "True"):
@@ -292,9 +294,8 @@ class CoreListenerHandler(UI.Iface):
                     GLib.idle_add(cb)
 
             elif note.type == 0:
-                self.app.trayicon.wrapper(
-                    lambda: self.app.menuitem_problem.hide())
-                self.app.trayicon.wrapper(lambda: self.app.update_menu())
+                self.app.trayicon.wrapper(self.app.menuitem_problem.hide)
+                self.app.trayicon.wrapper(self.app.update_menu)
 
         self.last_notify = note.code
 
@@ -303,9 +304,8 @@ class CoreListenerHandler(UI.Iface):
             'CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(
                 statusCode, path, listing))
         if self.app.prefs_window:
-            GLib.idle_add(lambda:
-                          self.app.prefs_window.selective_sync.add_column(
-                              listing))
+            GLib.idle_add(self.app.prefs_window.selective_sync.add_column,
+                          listing)
 
     def networkSettings(self):
         log.debug('CoreListener.networkSettings() <<<<')
