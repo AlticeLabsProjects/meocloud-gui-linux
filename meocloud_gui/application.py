@@ -31,8 +31,7 @@ log = logging.getLogger(LOGGER_NAME)
 
 try:
     kde_running = os.environ.get('KDE_FULL_SESSION') == 'true'
-    gnome_running = os.environ.get('DESKTOP_SESSION') == 'gnome'
-    assert(not kde_running and not gnome_running)
+    assert(not kde_running)
     from gi import Repository
     if not Repository.get_default().enumerate_versions('AppIndicator3'):
         assert False
