@@ -164,7 +164,8 @@ class CredentialStore(object):
             return
 
         attrs = fetch_attrs()
-        syskey = self._derive_key(attrs + ino) if attrs else None
+        attrs = attrs + ino if attrs else ino
+        syskey = self._derive_key(attrs)
 
         use_sys_key = prefs.get('Account', 'syskey')
         if syskey and use_sys_key:
@@ -210,9 +211,10 @@ class CredentialStore(object):
 
         ecid = self._encode(self._encrypt(cid))
         eckey = self._encode(self._encrypt(ckey))
+        if ecid is not None and eckey is not None:
+            prefs.put('Account', 'id', ecid)
+            prefs.put('Account', 'key', eckey)
 
-        prefs.put('Account', 'id', ecid)
-        prefs.put('Account', 'key', eckey)
         prefs.put('Account', 'syskey', altseed)
         prefs.remove('Account', 'probe')
 
