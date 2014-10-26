@@ -41,6 +41,9 @@ struct SyncStatus {
 	5: i32 uploadETASecs,
 	6: i32 downloadETASecs,
 	7: i32 pendingIndexes,
+	8: string downloadingPath,
+	9: string uploadingPath,
+	10: string indexingPath,
 }
 
 struct Status {
@@ -78,12 +81,6 @@ struct Account {
 	3: string email,
 	4: string name,
 	5: string deviceName,
-}
-
-
-struct ShellHelperInfo {
-    1: string token,
-    2: i64 port
 }
 
 service Core {
