@@ -293,7 +293,7 @@ class CoreListenerHandler(UI.Iface):
                         notif_string, notif_title)
                     GLib.idle_add(cb)
 
-            elif note.type == 0:
+            elif note.type == USER_NOTIFY_TYPE_RESET:
                 self.app.trayicon.wrapper(self.app.menuitem_problem.hide)
                 self.app.trayicon.wrapper(self.app.update_menu)
 
@@ -301,8 +301,8 @@ class CoreListenerHandler(UI.Iface):
 
     def remoteDirectoryListing(self, statusCode, path, listing):
         log.debug(
-            'CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.format(
-                statusCode, path, listing))
+            'CoreListener.remoteDirectoryListing({0}, {1}, {2}) <<<<'.
+            format(statusCode, path, listing))
         if self.app.prefs_window:
             GLib.idle_add(self.app.prefs_window.selective_sync.add_column,
                           listing)
