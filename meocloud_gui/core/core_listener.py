@@ -12,7 +12,8 @@ from gi.repository import Notify
 # Thrift related imports
 from meocloud_gui.codes import USER_NOTIFY_TYPE_MASK_PERSISTENT, \
     USER_NOTIFY_TYPE_MASK_MENU_BAR, USER_NOTIFY_TYPE_RESET, \
-    USER_NOTIFY_TYPE_MASK_BALLOON, USER_NOTIFY_CANNOT_WATCH_FS
+    USER_NOTIFY_TYPE_MASK_BALLOON, USER_NOTIFY_CANNOT_WATCH_FS,\
+    USER_NOTIFY_TYPE_MASK_ALERT_WINDOW
 from meocloud_gui.protocol.daemon_core import UI
 from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
@@ -278,7 +279,8 @@ class CoreListenerHandler(UI.Iface):
                 if notif_string:
                     notif_string = notif_string.format(*note.parameters)
 
-                if note.type & USER_NOTIFY_TYPE_MASK_PERSISTENT:
+                if (note.type & USER_NOTIFY_TYPE_MASK_PERSISTENT or
+                        note.type & USER_NOTIFY_TYPE_MASK_ALERT_WINDOW):
                     self.app.problem_text = notif_string
                     self.app.trayicon.wrapper(self.app.menuitem_problem.show)
                     self.app.trayicon.wrapper(self.app.menuitem_moreinfo.show)
