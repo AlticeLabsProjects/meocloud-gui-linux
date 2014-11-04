@@ -149,12 +149,15 @@ class CredentialStore(object):
         self.__decrypt = decrypt
         self.__mac = mac
         self.macsize = macsize
-        self.key = None
-        self.mac_key = None
         self.used_keyring = False
         self.using_kwallet = 'kwallet' in str(keyring.get_keyring()).lower()
         self.ignore_keyring = False
+        self.init()
 
+    def init(self):
+        self.key = None
+        self.mac_key = None
+        prefs = self.prefs
         prefs.save()
         ino = fetch_ino(prefs.path)
 

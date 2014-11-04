@@ -132,6 +132,8 @@ class CoreListenerHandler(UI.Iface):
             account.authKey = '*' * len(account.authKey)
 
         log.debug('CoreListener.authorized({0}) <<<<'.format(account))
+        self.ui_config.creds.clear()
+        self.ui_config.creds.init()
         self.ui_config.creds.cid = account_dict['clientID']
         self.ui_config.creds.ckey = account_dict['authKey']
         self.ui_config.put('Account', 'email', account_dict['email'])
