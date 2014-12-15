@@ -175,6 +175,12 @@ class CoreListenerHandler(UI.Iface):
                     log.warn('Timeout during notification.')
         return callback
 
+    def _open_in_browser(self, url):
+        def callback():
+            webbrowser.open(url)
+            return False
+        return callback
+
     def notifySystem(self, note):
         log.debug('CoreListener.notifySystem({0}, {1}) <<<<'.format(note.code,
                   note.parameters))
@@ -210,7 +216,7 @@ class CoreListenerHandler(UI.Iface):
             url = note.parameters[2]
 
             if result == codes.STR_OK:
-                GLib.idle_add(webbrowser.open, url)
+                GLib.idle_add(self._open_in_browser(url))
 
             elif result == codes.STR_NOTFOUND:
                 msg = ("\"{0}\" isn't synchronized yet. "
