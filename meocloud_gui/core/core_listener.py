@@ -2,6 +2,7 @@
 import os
 import webbrowser
 import locale
+import threading
 
 # GLib, Gdk and Gtk
 from gi.repository import GLib, Gdk, Gtk
@@ -119,7 +120,13 @@ class CoreListenerHandler(UI.Iface):
         else:
             self.setup.pages.set_current_page(1)
 
+
     def authorized(self, account):
+        event = threading.Event()
+        GLib.idle_add(self._authorized, account, event)
+        event.wait()
+
+    def _authorized(self, account, event):
         account_dict = {
             'clientID': account.clientID,
             'authKey': account.authKey,
@@ -154,6 +161,8 @@ class CoreListenerHandler(UI.Iface):
             GLib.idle_add(self.setup.pages.next_page)
 
         GLib.idle_add(self.setup.present)
+
+        event.set()
 
     def endAuthorization(self):
         log.debug('CoreListener.endAuthorization() <<<<')
