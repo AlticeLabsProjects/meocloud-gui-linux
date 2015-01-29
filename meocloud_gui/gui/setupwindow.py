@@ -1,6 +1,6 @@
 import os
 import socket
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.spinnerbox import SpinnerBox
@@ -24,6 +24,23 @@ class SetupWindow(Gtk.Window):
 
         self.app = app
         self.pages = Pages()
+        self.pages.set_name("WelcomePages")
+
+        style_provider = Gtk.CssProvider()
+
+        css = """
+        #WelcomePages {
+            border: 0;
+        }
+        """
+
+        style_provider.load_from_data(css)
+
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), 
+            style_provider,     
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
         try:
             if not app.use_headerbar:
