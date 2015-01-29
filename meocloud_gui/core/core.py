@@ -27,6 +27,7 @@ class Core(object):
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_SHELL_SOCKET_PATH'] = SHELL_LISTENER_SOCKET_ADDRESS
+        self.core_env['CLD_BRAND'] = BRAND.replace('cloud', '')
         self.thread = None
 
         try:
