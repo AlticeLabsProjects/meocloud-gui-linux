@@ -22,7 +22,7 @@ from meocloud_gui.constants import (
     LOGGER_NAME,
     CLOUD_HOME_DEFAULT_PATH,
     CONFIG_PATH, UI_CONFIG_PATH,
-    VERSION, BRAND)
+    VERSION, BRAND, BRAND_PROGRAM_NAME)
 from meocloud_gui import codes
 
 # Logging
@@ -49,7 +49,7 @@ class Application(Gtk.Application):
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.connect("activate", self.on_activate)
 
-        Notify.init('MEO Cloud')
+        Notify.init(BRAND_PROGRAM_NAME)
 
         self.app_path = app_path
         self.brand = BRAND
