@@ -1,0 +1,399 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Oi Cloud\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-09-13 01:22+0100\n"
+"PO-Revision-Date: 2015-01-21 13:59-0300\n"
+"Last-Translator: Priscilla <priscilla.ribeiro@oi.net.br>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.7\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: pt_BR\n"
+
+#: ../meocloud_nautilus/meocloud-nautilus.py:433
+#: ../meocloud_nemo/meocloud-nemo.py:433 ../meocloud_caja/meocloud-caja.py:433
+msgid "Copy Link"
+msgstr "Copiar link"
+
+#: ../meocloud_nautilus/meocloud-nautilus.py:439
+#: ../meocloud_nemo/meocloud-nemo.py:439 ../meocloud_caja/meocloud-caja.py:439
+msgid "Share Folder"
+msgstr "Compartilhar pasta"
+
+#: ../meocloud_nautilus/meocloud-nautilus.py:445
+#: ../meocloud_nemo/meocloud-nemo.py:445 ../meocloud_caja/meocloud-caja.py:445
+msgid "Open in Browser"
+msgstr "Abrir no navegador"
+
+#: ../meocloud_gui/gui/selectivesyncwindow.py:19
+msgid "Selective Sync"
+msgstr "Sincronização seletiva"
+
+#: ../meocloud_gui/gui/selectivesyncwindow.py:40
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../meocloud_gui/gui/selectivesyncwindow.py:42
+msgid "Save"
+msgstr "Salvar"
+
+#: ../meocloud_gui/gui/selectivesyncwindow.py:82
+#: ../meocloud_gui/gui/prefswindow.py:277
+msgid "Sync"
+msgstr "Sincronização"
+
+#: ../meocloud_gui/gui/selectivesyncwindow.py:87
+msgid "Folder"
+msgstr "Pasta"
+
+#: ../meocloud_gui/gui/prefswindow.py:18 ../meocloud_gui/application.py:223
+msgid "Preferences"
+msgstr "Preferências"
+
+#: ../meocloud_gui/gui/prefswindow.py:85
+msgid "Use default icons"
+msgstr "Utilizar ícones normais"
+
+#: ../meocloud_gui/gui/prefswindow.py:87
+msgid "Use dark icons"
+msgstr "Utilizar ícones escuros"
+
+#: ../meocloud_gui/gui/prefswindow.py:89
+msgid "Use white icons"
+msgstr "Utilizar ícones brancos"
+
+#: ../meocloud_gui/gui/prefswindow.py:106
+msgid "Display notifications"
+msgstr "Mostrar notificações"
+
+#: ../meocloud_gui/gui/prefswindow.py:112
+msgid "Start MEO Cloud at login"
+msgstr "Iniciar automaticamente"
+
+#: ../meocloud_gui/gui/prefswindow.py:124
+#, python-brace-format
+msgid "You are logged in as {0}."
+msgstr "Este computador está conectado à conta {0}."
+
+#: ../meocloud_gui/gui/prefswindow.py:126
+msgid "Unlink"
+msgstr "Remover Ligação"
+
+#: ../meocloud_gui/gui/prefswindow.py:131
+msgid "Proxy"
+msgstr "Proxy"
+
+#: ../meocloud_gui/gui/prefswindow.py:136
+msgid "None"
+msgstr "Nenhum"
+
+#: ../meocloud_gui/gui/prefswindow.py:139
+msgid "Automatic"
+msgstr "Automático"
+
+#: ../meocloud_gui/gui/prefswindow.py:142
+msgid "Manual"
+msgstr "Manual"
+
+#: ../meocloud_gui/gui/prefswindow.py:179
+msgid "Bandwidth"
+msgstr "Largura de banda"
+
+#: ../meocloud_gui/gui/prefswindow.py:197
+msgid "Download"
+msgstr "Baixar"
+
+#: ../meocloud_gui/gui/prefswindow.py:212
+msgid "Upload"
+msgstr "Enviar"
+
+#: ../meocloud_gui/gui/prefswindow.py:257
+msgid "MEO Cloud Folder: "
+msgstr "Pasta Oi Cloud: "
+
+#: ../meocloud_gui/gui/prefswindow.py:266
+msgid "Select Synced Folders"
+msgstr "Escolher pastas sincronizadas"
+
+#: ../meocloud_gui/gui/prefswindow.py:268
+msgid "Selective Sync: "
+msgstr "Sincronização seletiva: "
+
+#: ../meocloud_gui/gui/prefswindow.py:275
+#: ../meocloud_gui/gui/prefswindow.py:279
+msgid "General"
+msgstr "Geral"
+
+#: ../meocloud_gui/gui/prefswindow.py:276
+#: ../meocloud_gui/gui/prefswindow.py:281
+msgid "Network"
+msgstr "Rede"
+
+#: ../meocloud_gui/gui/prefswindow.py:280
+msgid "Account"
+msgstr "Conta"
+
+#: ../meocloud_gui/gui/prefswindow.py:282
+#: ../meocloud_gui/gui/setupwindow.py:54
+msgid "Advanced"
+msgstr "Avançado"
+
+#: ../meocloud_gui/gui/prefswindow.py:287
+msgid "Close"
+msgstr "Fechar"
+
+#: ../meocloud_gui/gui/prefswindow.py:407
+#: ../meocloud_gui/gui/missingdialog.py:43
+#: ../meocloud_gui/gui/setupwindow.py:212
+msgid "Please choose a folder"
+msgstr "Por favor, escolha uma pasta"
+
+#: ../meocloud_gui/gui/prefswindow.py:411
+#: ../meocloud_gui/gui/missingdialog.py:47
+#: ../meocloud_gui/gui/setupwindow.py:215
+msgid "Select"
+msgstr "Selecionar"
+
+#: ../meocloud_gui/gui/prefswindow.py:436
+msgid "An error occurred while moving your MEO Cloud folder."
+msgstr "Ocorreu um erro ao mover a sua pasta Oi Cloud."
+
+#: ../meocloud_gui/gui/progressdialog.py:8
+msgid "Moving"
+msgstr "Movendo"
+
+#: ../meocloud_gui/gui/missingdialog.py:12 ../meocloud_gui/application.py:443
+msgid "MEO Cloud Folder Missing"
+msgstr "A sua pasta Oi Cloud desapareceu"
+
+#: ../meocloud_gui/gui/missingdialog.py:21
+msgid "We were unable to find your MEO Cloud folder."
+msgstr "Não conseguimos encontrar a sua pasta Oi Cloud."
+
+#: ../meocloud_gui/gui/missingdialog.py:24
+msgid "Find Folder"
+msgstr "Encontrar Pasta"
+
+#: ../meocloud_gui/gui/missingdialog.py:28
+msgid "Recreate Folder"
+msgstr "Recriar Pasta"
+
+#: ../meocloud_gui/gui/missingdialog.py:32 ../meocloud_gui/application.py:226
+msgid "Quit"
+msgstr "Sair"
+
+#: ../meocloud_gui/gui/missingdialog.py:62
+msgid "The selected folder is not correct."
+msgstr "A pasta escolhida não é a correta."
+
+#: ../meocloud_gui/gui/setupwindow.py:20
+msgid "Setup"
+msgstr "Configuração"
+
+#: ../meocloud_gui/gui/setupwindow.py:41
+msgid "Welcome to MEO Cloud"
+msgstr "Bem-vindo ao Oi Cloud"
+
+#: ../meocloud_gui/gui/setupwindow.py:69
+msgid "Next"
+msgstr "Seguinte"
+
+#: ../meocloud_gui/gui/setupwindow.py:97
+msgid "Device name: "
+msgstr "Nome do dispositivo:"
+
+#: ../meocloud_gui/gui/setupwindow.py:103
+msgid "Folder: "
+msgstr "Pasta: "
+
+#: ../meocloud_gui/gui/setupwindow.py:109
+msgid "Back"
+msgstr "Voltar"
+
+#: ../meocloud_gui/gui/setupwindow.py:111 ../meocloud_gui/application.py:222
+#: ../meocloud_gui/application.py:615
+msgid "Authorize"
+msgstr "Autorizar"
+
+#: ../meocloud_gui/gui/setupwindow.py:138
+#: ../meocloud_gui/gui/setupwindow.py:160
+msgid "Finish"
+msgstr "Terminar"
+
+#: ../meocloud_gui/gui/setupwindow.py:157
+msgid "Your computer has been successfully linked."
+msgstr "O seu computador foi conectado com sucesso ao Oi Cloud."
+
+#: ../meocloud_gui/application.py:197 ../meocloud_gui/application.py:298
+msgid "No Recent Files"
+msgstr "Sem arquivos recentes"
+
+#: ../meocloud_gui/application.py:202
+msgid "Open Folder"
+msgstr "Abrir Pasta"
+
+#: ../meocloud_gui/application.py:203
+msgid "Open Website"
+msgstr "Abrir Website"
+
+#: ../meocloud_gui/application.py:204
+msgid "Recent Files"
+msgstr "Arquivos recentes"
+
+#: ../meocloud_gui/application.py:209
+msgid "More info"
+msgstr "Mais informações"
+
+#: ../meocloud_gui/application.py:211
+msgid "There is a problem synchronizing your files"
+msgstr "Ocorreu um problema ao sincronizar os seus arquivos"
+
+#: ../meocloud_gui/application.py:214 ../meocloud_gui/application.py:614
+msgid "Unauthorized"
+msgstr "Sem autorização"
+
+#: ../meocloud_gui/application.py:224
+msgid "About"
+msgstr "Sobre"
+
+#: ../meocloud_gui/application.py:225
+msgid "Report a Bug"
+msgstr "Reportar um problema"
+
+#: ../meocloud_gui/application.py:372
+msgid "Initializing"
+msgstr "Iniciando"
+
+#: ../meocloud_gui/application.py:373 ../meocloud_gui/application.py:402
+#: ../meocloud_gui/application.py:420 ../meocloud_gui/application.py:427
+msgid "Resume"
+msgstr "Retomar"
+
+#: ../meocloud_gui/application.py:383 ../meocloud_gui/application.py:391
+msgid "Pause"
+msgstr "Suspender"
+
+#: ../meocloud_gui/application.py:390
+msgid "Synced"
+msgstr "Sincronizado"
+
+#: ../meocloud_gui/application.py:401
+msgid "Paused"
+msgstr "Em pausa"
+
+#: ../meocloud_gui/application.py:412
+msgid "Applying selective sync settings..."
+msgstr "Aguardando as definições de sincronização seletiva..."
+
+#: ../meocloud_gui/application.py:419
+msgid "Offline"
+msgstr "Sem acesso à Internet"
+
+#: ../meocloud_gui/application.py:426
+msgid "Error"
+msgstr "Erro"
+
+#: ../meocloud_gui/application.py:444
+msgid "Your MEO Cloud folder is missing."
+msgstr "Não conseguimos encontrar a sua pasta Oi Cloud."
+
+#: ../meocloud_gui/application.py:477
+msgid "Syncing"
+msgstr "Sincronizando"
+
+#: ../meocloud_gui/application.py:486
+#, python-brace-format
+msgid "Downloading {0} file(s) at {1}/s... ({2})"
+msgstr "Baixando {0} arquivo(s) a {1}/s... ({2})"
+
+#: ../meocloud_gui/application.py:492
+#, python-brace-format
+msgid "Downloading {0} file(s)..."
+msgstr "Baixando {0} arquivo(s)..."
+
+#: ../meocloud_gui/application.py:497
+#, python-brace-format
+msgid "Uploading {0} file(s) at {1}/s... ({2})"
+msgstr "Enviando {0} arquivo(s) a {1}/s... ({2})"
+
+#: ../meocloud_gui/application.py:503
+#, python-brace-format
+msgid "Uploading {0} file(s)..."
+msgstr "Enviando {0} arquivo(s)..."
+
+#: ../meocloud_gui/application.py:508
+#, python-brace-format
+msgid "Indexing {0} file(s)..."
+msgstr "Ordenando{0} arquivos(s)..."
+
+#: ../meocloud_gui/application.py:515
+msgid "Listing remote changes..."
+msgstr "Listando alterações remotas..."
+
+#: ../meocloud_gui/application.py:521
+msgid "Downloading files..."
+msgstr "Recebendo arquivos..."
+
+#: ../meocloud_gui/application.py:527
+msgid "Uploading files..."
+msgstr "Enviando arquivos..."
+
+#: ../meocloud_gui/application.py:533
+msgid "Indexing files..."
+msgstr "Ordenando arquivos..."
+
+#: ../meocloud_gui/application.py:592
+#, python-brace-format
+msgid "{0} of {1} used"
+msgstr "{0} de {1} ocupado"
+
+#: ../meocloud_gui/core/core_listener.py:181
+#, python-brace-format
+msgid "A link to \"{0}\" was copied to the clipboard"
+msgstr "Link para \"{0}\" copiado para a área de transferência"
+
+#: ../meocloud_gui/core/core_listener.py:187
+#, python-brace-format
+msgid ""
+"\"{0}\" isn't synchronized yet. Please try again once the synchronization "
+"finishes"
+msgstr ""
+"\"{0}\" ainda não está sincronizado. Por favor, tente novamente quando a "
+"sincronização terminar"
+
+#: ../meocloud_gui/core/core_listener.py:194
+#: ../meocloud_gui/core/core_listener.py:216
+msgid ""
+"An error occurred while trying to complete the operation. Please try again "
+"later"
+msgstr ""
+"Ocorreu um erro ao executar a operação. Por favor, tente novamente  mais "
+"tarde"
+
+#: ../meocloud_gui/utils.py:88
+#, python-brace-format
+msgid ""
+"The MEOCloud folder ({0}) already exists. If you want to use it, the "
+"contents will be synchronized to your account. Would you like to continue?"
+msgstr ""
+"A pasta Oi Cloud ({0}) já existe. Se quiser utilizá-la, os conteúdos serão "
+"sincronizados para a sua conta. Quer continuar?"
+
+#~ msgid "Choose Folder"
+#~ msgstr "Escolher pasta"
+
+#~ msgid "Network Error"
+#~ msgstr "Erro de Rede"
+
+#~ msgid "Please check your Internet connection or proxy settings."
+#~ msgstr ""
+#~ "Por favor verifique a sua ligação de Internet ou as suas definições de "
+#~ "proxy."
