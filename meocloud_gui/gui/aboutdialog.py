@@ -1,7 +1,7 @@
 import os
 from gi.repository import GObject, Gtk
 from gi.repository import GdkPixbuf
-from meocloud_gui.constants import VERSION, BRAND
+from meocloud_gui.constants import VERSION, BRAND, BRAND_PROGRAM_NAME, BRAND_WEBSITE
 
 
 class AboutDialog (GObject.Object):
@@ -17,10 +17,10 @@ class AboutDialog (GObject.Object):
 
         aboutdialog.set_logo(logo_pixbuf)
         aboutdialog.set_authors(authors)
-        aboutdialog.set_program_name("MEO Cloud")
+        aboutdialog.set_program_name(BRAND_PROGRAM_NAME)
         aboutdialog.set_version(VERSION)
         aboutdialog.set_authors(authors)
-        aboutdialog.set_website("http://www.meocloud.pt")
+        aboutdialog.set_website(BRAND_WEBSITE)
         aboutdialog.set_website_label("Website")
 
         aboutdialog.set_title("")
