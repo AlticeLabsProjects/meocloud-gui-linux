@@ -22,7 +22,7 @@ from meocloud_gui.constants import (
     LOGGER_NAME,
     CLOUD_HOME_DEFAULT_PATH,
     CONFIG_PATH, UI_CONFIG_PATH,
-    VERSION)
+    VERSION, BRAND)
 from meocloud_gui import codes
 
 # Logging
@@ -52,6 +52,7 @@ class Application(Gtk.Application):
         Notify.init('MEO Cloud')
 
         self.app_path = app_path
+        self.brand = BRAND
         self.prefs_window = None
 
         self.prefs = Preferences()
@@ -425,7 +426,7 @@ class Application(Gtk.Application):
 
                 # send a notification about the issue
                 notif_icon = os.path.join(
-                    self.app_path, "icons/meocloud.svg")
+                    self.app_path, "icons/{0}/meocloud.svg".format(self.brand))
                 notif_title = _('MEO Cloud Folder Missing')
                 notif_string = _('Your MEO Cloud folder is missing.')
                 with utils.gdk_threads_lock():

@@ -1,5 +1,6 @@
 import os
 import sys
+from settings import BRAND, BRAND_FOLDER_NAME
 
 # Timeouts
 DEFAULT_TIMEOUT = 3
@@ -7,7 +8,7 @@ CONNECTION_REQUIRED_TIMEOUT = 15
 
 HOME_PATH = os.path.expanduser('~')
 CONFIG_PATH = os.path.join(HOME_PATH, '.meocloud')
-CLOUD_HOME_DEFAULT_PATH = os.path.join(HOME_PATH, 'MEOCloud')
+CLOUD_HOME_DEFAULT_PATH = os.path.join(HOME_PATH, BRAND_FOLDER_NAME)
 
 CLIENT_ID = "clientID"
 AUTH_KEY = "authKey"

@@ -1,7 +1,7 @@
 import os
 from gi.repository import GObject, Gtk
 from gi.repository import GdkPixbuf
-from meocloud_gui.constants import VERSION
+from meocloud_gui.constants import VERSION, BRAND
 
 
 class AboutDialog (GObject.Object):
@@ -13,7 +13,7 @@ class AboutDialog (GObject.Object):
 
         authors = ["SAPO"]
         logo_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            os.path.join(app_path, 'icons/meocloud.svg'), 128, 128)
+            os.path.join(app_path, 'icons/{0}/meocloud.svg'.format(BRAND)), 128, 128)
 
         aboutdialog.set_logo(logo_pixbuf)
         aboutdialog.set_authors(authors)

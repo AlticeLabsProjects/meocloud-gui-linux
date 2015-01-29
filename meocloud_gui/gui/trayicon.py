@@ -56,7 +56,7 @@ class TrayIcon (GObject.Object):
             GLib.idle_add(self.icon.set_from_icon_name, name)
         else:
             icon_file = os.path.join(
-                self.app.app_path, "icons/" + name + ".svg")
+                self.app.app_path, "{brand}/icons/{name}.svg".format(brand=self.brand, name=name))
             GLib.idle_add(self.icon.set_from_file, icon_file)
 
     def cycle_sync_icon(self):
