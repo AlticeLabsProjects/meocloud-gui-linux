@@ -7,7 +7,7 @@ DEFAULT_TIMEOUT = 3
 CONNECTION_REQUIRED_TIMEOUT = 15
 
 HOME_PATH = os.path.expanduser('~')
-CONFIG_PATH = os.path.join(HOME_PATH, '.meocloud')
+CONFIG_PATH = os.path.join(HOME_PATH, '.{0}'.format(BRAND))
 CLOUD_HOME_DEFAULT_PATH = os.path.join(HOME_PATH, BRAND_FOLDER_NAME)
 
 CLIENT_ID = "clientID"
@@ -24,7 +24,7 @@ if DEV_MODE:
 # TODO Find a way to set this during the build process
 BETA_MODE = True
 
-CORE_BINARY_FILENAME = 'meocloudd'
+CORE_BINARY_FILENAME = '{0}d'.format(BRAND)
 CORE_LOCK_PATH = os.path.join(CONFIG_PATH, 'daemon.lock')
 CORE_PID_PATH = os.path.join(CONFIG_PATH, 'daemon.pid')
 
@@ -47,8 +47,8 @@ SHELL_PROXY_SOCKET_ADDRESS = os.path.join(UI_CONFIG_PATH,
                                           'meocloud_shell_proxy.socket'
                                           )
 
-LOGGER_NAME = 'meocloud_gui'
-LOG_PATH = os.path.join(UI_CONFIG_PATH, 'meocloud_gui.log')
+LOGGER_NAME = '{0}_gui'.format(BRAND)
+LOG_PATH = os.path.join(UI_CONFIG_PATH, '{0}_gui.log'.format(BRAND))
 
 READBUF_SIZE = 16 * 1024
 CHUNK_SIZE = 4 * 1024

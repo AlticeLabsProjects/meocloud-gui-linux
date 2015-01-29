@@ -8,15 +8,17 @@ import sys
 import shutil
 import signal
 
+from meocloud_gui import settings
+
 try:
     import setproctitle
-    setproctitle.setproctitle("meocloud-gui")
+    setproctitle.setproctitle("{0}-gui".format(settings.BRAND))
 except ImportError:
     pass
 
-sys.path.insert(0, "/opt/meocloud/libs/")
+sys.path.insert(0, "/opt/{0}/libs/".format(settings.BRAND))
 
-if not os.path.isfile("/opt/meocloud/core/meocloudd"):
+if not os.path.isfile("/opt/{brand}/core/{brand}d".format(brand=settings.BRAND)):
     print "Core not found. Aborting."
     sys.exit(1)
 
