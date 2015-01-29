@@ -81,26 +81,26 @@ if __name__ == "__main__":
 
     trans_src = os.path.join(os.path.dirname(own_path), "mo")
     trans_dst = os.path.join(os.path.expanduser('~'),
-                             '.local/share/nautilus-python/extensions/'
-                             'meocloud_mo')
+                             '.local/share/nautilus-python/extensions/',
+                             '{0}_mo'.format(settings.BRAND))
 
     nautilus_py = os.path.join(os.path.dirname(own_path),
                                "meocloud_nautilus/meocloud-nautilus.py")
     nautilus_dir = os.path.join(os.path.expanduser('~'),
                                 '.local/share/nautilus-python/extensions')
-    nautilus_dst = os.path.join(nautilus_dir, "meocloud-nautilus.py")
+    nautilus_dst = os.path.join(nautilus_dir, "{0}-nautilus.py".format(settings.BRAND))
 
     nemo_py = os.path.join(os.path.dirname(own_path),
                            "meocloud_nemo/meocloud-nemo.py")
     nemo_dir = os.path.join(os.path.expanduser('~'),
                             '.local/share/nemo-python/extensions')
-    nemo_dst = os.path.join(nemo_dir, "meocloud-nemo.py")
+    nemo_dst = os.path.join(nemo_dir, "{0}-nemo.py".format(settings.BRAND))
 
     caja_py = os.path.join(os.path.dirname(own_path),
                            "meocloud_caja/meocloud-caja.py")
     caja_dir = os.path.join(os.path.expanduser('~'),
                             '.local/share/caja-python/extensions')
-    caja_dst = os.path.join(caja_dir, "meocloud-caja.py")
+    caja_dst = os.path.join(caja_dir, "{0}-caja.py".format(settings.BRAND))
 
     if not os.path.exists(nautilus_dir):
         os.makedirs(nautilus_dir)
@@ -110,6 +110,23 @@ if __name__ == "__main__":
 
     if not os.path.exists(caja_dir):
         os.makedirs(caja_dir)
+
+    # copy settings file over
+    # setting must be brand agnostic so we can load it
+    # before actually knowing the brand
+    settings_src = os.path.join(os.path.dirname(own_path), "meocloud_gui/settings.py")
+    dirs = ['nautilus-python', 'nemo-python', 'caja-python']
+    for d in dirs:
+        settings_dst = os.path.join(os.path.expanduser('~'),
+                             '.local/share/{0}/extensions/cloud_settings.py'.format(d))
+        if os.path.exists(settings_src) and not os.path.exists(settings_dst):
+            if os.path.lexists(settings_dst):
+                if os.path.islink(settings_dst):
+                    os.unlink(settings_dst)
+                else:
+                    shutil.rmtree(settings_dst)
+
+            os.symlink(settings_src, settings_dst)
 
     if os.path.exists(trans_src) and not os.path.exists(trans_dst):
         if os.path.lexists(trans_dst):

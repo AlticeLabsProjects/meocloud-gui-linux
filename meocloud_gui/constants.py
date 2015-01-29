@@ -1,6 +1,6 @@
 import os
 import sys
-from settings import BRAND, BRAND_FOLDER_NAME
+from settings import *
 
 # Timeouts
 DEFAULT_TIMEOUT = 3

@@ -6,8 +6,10 @@ import errno
 from gi.repository import GLib
 import urlparse
 
-sys.path.insert(0, '/opt/meocloud/libs/')
-sys.path.insert(0, '/opt/meocloud/gui/meocloud_gui/protocol/')
+from cloud_settings import BRAND, BRAND_FOLDER_NAME, BRAND_PROGRAM_NAME
+
+sys.path.insert(0, '/opt/{0}/libs/'.format(BRAND))
+sys.path.insert(0, '/opt/{0}/gui/meocloud_gui/protocol/'.format(BRAND))
 
 from shell.ttypes import OpenMessage, OpenType, \
     ShareMessage, ShareType, SubscribeMessage, SubscribeType
@@ -38,8 +40,8 @@ CHUNK_SIZE = 4 * 1024
 MAX_WRITE_BATCH_SIZE = 32 * 1024
 
 
-PREFS_PATH = os.path.expanduser("~/.meocloud/gui/prefs.ini")
-SHARED_PATH = os.path.expanduser("~/.meocloud/gui/shared_directories")
+PREFS_PATH = os.path.expanduser("~/.{0}/gui/prefs.ini".format(BRAND))
+SHARED_PATH = os.path.expanduser("~/.{0}/gui/shared_directories".format(BRAND))
 
 def deserialize(msg, data):
     transport = TTransport.TMemoryBuffer(data)
@@ -101,7 +103,7 @@ def serialize_thrift_msg(msg):
 def init_localization():
     '''prepare l10n'''
     locale.setlocale(locale.LC_ALL, '')
-    filename = "meocloud_mo/%s.mo" % locale.getlocale()[0][0:2]
+    filename = "%s_mo/%s.mo" % (BRAND, locale.getlocale()[0][0:2])
     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
 
     try:
@@ -178,13 +180,13 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             if val is None:
                 return urlparse.urljoin(
                     'file:', urllib.pathname2url(
-                        os.path.expanduser("~/MEOCloud")))
+                        os.path.expanduser("~/{0}".format(BRAND_FOLDER_NAME))))
             else:
                 return 'file://' + val.replace('file://', '')
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return urlparse.urljoin(
                 'file:', urllib.pathname2url(
-                    os.path.expanduser("~/MEOCloud")))
+                    os.path.expanduser("~/{0}".format(BRAND_FOLDER_NAME))))
 
     def _check_connection(self):
         if self.sock is not None:
@@ -450,7 +452,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         uri = self.uri_to_path(uri)
 
         top_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
-                                             'MEO Cloud', '', '')
+                                             BRAND_PROGRAM_NAME, '', '')
 
         submenu = Nautilus.Menu()
         top_menuitem.set_submenu(submenu)
