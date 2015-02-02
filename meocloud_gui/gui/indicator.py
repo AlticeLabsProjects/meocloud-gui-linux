@@ -60,7 +60,7 @@ class Indicator (GObject.Object):
         else:
             GLib.idle_add(
                 self.ind.set_icon,
-                os.path.join(self.app.app_path, "icons/" + name + ".svg"))
+                os.path.join(self.app.app_path, "{brand}/icons/{name}.svg".format(brand=self.app.brand, name=name)))
 
     def cycle_sync_icon(self):
         if self.syncing < 1:
