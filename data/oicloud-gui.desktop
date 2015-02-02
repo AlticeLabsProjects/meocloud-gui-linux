@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=MEO Cloud
+Name=OI Cloud
 Terminal=false
 Type=Application
-Icon=/opt/meocloud/gui/icons/meocloud/meocloud.svg
-Exec=/usr/bin/meocloud-gui
+Icon=/opt/oicloud/gui/icons/oicloud/meocloud.svg
+Exec=/usr/bin/oicloud-gui
 Categories=Network;FileTransfer;
