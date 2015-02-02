@@ -74,7 +74,7 @@ class Core(object):
                 failed += 1
 
             if failed > 1:
-                os.system("killall meocloudd")
+                os.system("killall {0}d".format(BRAND))
 
             self.process = None
         else:
