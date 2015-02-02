@@ -49,7 +49,7 @@ class SetupWindow(Gtk.Window):
         first_page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         first_page_box.pack_start(Gtk.Label(), True, True, 0)
 
-        self.setup_easy = Gtk.RadioButton.new_with_label(None, "Easy")
+        self.setup_easy = Gtk.RadioButton.new_with_label(None, _("Easy"))
         self.setup_advanced = Gtk.RadioButton.new_with_label_from_widget(
             self.setup_easy, _("Advanced"))
 

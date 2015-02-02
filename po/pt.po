@@ -203,6 +203,10 @@ msgstr "Configuração"
 msgid "Welcome to MEO Cloud"
 msgstr "Bem-vindo à MEO Cloud"
 
+#: ../meocloud_gui/gui/setupwindow.py:52
+msgid "Easy"
+msgstr "Fácil"
+
 #: ../meocloud_gui/gui/setupwindow.py:69
 msgid "Next"
 msgstr "Seguinte"
