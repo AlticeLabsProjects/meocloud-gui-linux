@@ -13,7 +13,7 @@ retry() {
     done
     echo
     echo "An error occurred while installing MEO Cloud!" 1>&2
-    echo "Please try again, and if it still does not work, please contact the support at https://meocloud.pt/help/" 1>&2
+    echo "Please try again, and if it still does not work, please contact the support at #help_url#" 1>&2
     exit 1
 }
 
@@ -40,7 +40,7 @@ then
         rm $TMPKEY
     else
         echo "ERROR: failed to verify integrity of the repository's GPG key!"
-        echo "Please try again, and if it still does not work, please contact the support at https://meocloud.pt/help/"
+        echo "Please try again, and if it still does not work, please contact the support at #help_url#"
         exit 1
     fi
 fi
