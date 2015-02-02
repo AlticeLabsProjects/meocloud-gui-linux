@@ -108,7 +108,7 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(display_notifications, False, True, 10)
 
         # start at login
-        start_at_login = Gtk.CheckButton(_("Start {brand_app} Cloud at login").format(brand_app=BRAND_PROGRAM_NAME))
+        start_at_login = Gtk.CheckButton(_("Start at login"))
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
                                            '{brand}.desktop'.format(brand=BRAND))
