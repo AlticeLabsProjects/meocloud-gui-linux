@@ -22,7 +22,7 @@ from meocloud_gui.constants import (
     LOGGER_NAME,
     CLOUD_HOME_DEFAULT_PATH,
     CONFIG_PATH, UI_CONFIG_PATH,
-    VERSION, BRAND, BRAND_PROGRAM_NAME)
+    VERSION, BRAND, BRAND_PROGRAM_NAME, BRAND_WEBSITE)
 from meocloud_gui import codes
 
 # Logging
@@ -269,7 +269,7 @@ class Application(Gtk.Application):
                 return True
 
     def report_bug(self, w):
-        webbrowser.open("http://ajuda.cld.pt")
+        webbrowser.open(BRAND_WEBSITE)
 
     def show_problem(self, w):
         messagedialog = Gtk.MessageDialog(parent=None,
