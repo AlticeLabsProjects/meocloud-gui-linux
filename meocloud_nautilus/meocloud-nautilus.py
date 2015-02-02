@@ -184,13 +184,13 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
             if val is None:
                 return urlparse.urljoin(
                     'file:', urllib.pathname2url(
-                        os.path.expanduser("~/{0}".format(BRAND_FOLDER_NAME))))
+                        os.path.expanduser("~/{0}".format(settings.BRAND_FOLDER_NAME))))
             else:
                 return 'file://' + val.replace('file://', '')
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return urlparse.urljoin(
                 'file:', urllib.pathname2url(
-                    os.path.expanduser("~/{0}".format(BRAND_FOLDER_NAME))))
+                    os.path.expanduser("~/{0}".format(settings.BRAND_FOLDER_NAME))))
 
     def _check_connection(self):
         if self.sock is not None:

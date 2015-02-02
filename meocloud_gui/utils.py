@@ -29,6 +29,7 @@ from meocloud_gui.stoppablethread import StoppableThread
 MACALGO = hashlib.sha256
 MACSIZE = len(MACALGO().digest())
 
+
 @contextmanager
 def gdk_threads_lock():
     Gdk.threads_enter()
@@ -159,7 +160,7 @@ def create_bookmark(prefs):
         os.makedirs(folder_path)
 
     try:
-        brand_folder = " " + BRAND_FOLDER_NAME # note the space
+        brand_folder = " " + BRAND_FOLDER_NAME
         if os.path.isfile(file_path):
             with open(file_path, 'r') as f:
                 text = f.read()
