@@ -111,7 +111,7 @@ class PrefsWindow(Gtk.Window):
         start_at_login = Gtk.CheckButton(_("Start {brand_app} Cloud at login").format(brand_app=BRAND_PROGRAM_NAME))
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
-                                           'meocloud.desktop')
+                                           '{brand}.desktop'.format(brand=BRAND))
         if embed:
             start_at_login.set_active(True)
         else:
@@ -369,7 +369,7 @@ class PrefsWindow(Gtk.Window):
     def toggle_start_at_login(self, w):
         folder_path = os.path.join(os.path.expanduser('~'),
                                    '.config/autostart')
-        file_path = os.path.join(folder_path, 'meocloud.desktop')
+        file_path = os.path.join(folder_path, '{brand}.desktop'.format(brand=BRAND))
 
         if os.path.isfile(file_path):
             os.remove(file_path)
