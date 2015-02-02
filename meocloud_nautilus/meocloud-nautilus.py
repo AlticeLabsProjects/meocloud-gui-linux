@@ -6,7 +6,11 @@ import errno
 from gi.repository import GLib
 import urlparse
 
-from cloud_settings import BRAND, BRAND_FOLDER_NAME, BRAND_PROGRAM_NAME
+import os
+from importlib import import_module
+
+BRAND = os.path.basename(__file__).replace('-nautilus.py', '')
+settings = import_module('{brand}_settings'.format(brand=BRAND))
 
 sys.path.insert(0, '/opt/{0}/libs/'.format(BRAND))
 sys.path.insert(0, '/opt/{0}/gui/meocloud_gui/protocol/'.format(BRAND))
@@ -452,7 +456,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         uri = self.uri_to_path(uri)
 
         top_menuitem = Nautilus.MenuItem.new('MEOCloudMenuProvider::MEOCloud',
-                                             BRAND_PROGRAM_NAME, '', '')
+                                             settings.BRAND_PROGRAM_NAME, '', '')
 
         submenu = Nautilus.Menu()
         top_menuitem.set_submenu(submenu)

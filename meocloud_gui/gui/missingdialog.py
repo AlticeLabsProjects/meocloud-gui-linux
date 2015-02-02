@@ -2,6 +2,7 @@ import os.path
 
 from gi.repository import Gtk
 import meocloud_gui.utils
+from meocloud_gui.constants import BRAND_PROGRAM_NAME
 
 
 class MissingDialog(Gtk.Dialog):
@@ -10,7 +11,7 @@ class MissingDialog(Gtk.Dialog):
     def __init__(self, app):
         self.app = app
 
-        Gtk.Dialog.__init__(self, title=_("MEO Cloud Folder Missing"))
+        Gtk.Dialog.__init__(self, title=_("{brand_app} Folder Missing").format(brand_app=BRAND_PROGRAM_NAME))
 
         self.set_resizable(False)
 
@@ -19,7 +20,7 @@ class MissingDialog(Gtk.Dialog):
         self.get_children()[0].add(vbox)
 
         self.label = Gtk.Label(
-            _("We were unable to find your MEO Cloud folder."))
+            _("We were unable to find your {brand_app} folder.").format(brand_app=BRAND_PROGRAM_NAME))
         vbox.add(self.label)
 
         self.find_folder = Gtk.Button(_("Find Folder"))
@@ -54,7 +55,7 @@ class MissingDialog(Gtk.Dialog):
             dialog.destroy()
 
             if not os.path.exists(os.path.join(new_path, '.cloudcontrol')):
-                error_dialog = Gtk.Dialog("MEO Cloud", self, 0,
+                error_dialog = Gtk.Dialog(BRAND_PROGRAM_NAME, self, 0,
                                           (Gtk.STOCK_OK,
                                            Gtk.ResponseType.OK))
 

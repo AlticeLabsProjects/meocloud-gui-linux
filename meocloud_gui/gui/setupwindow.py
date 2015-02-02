@@ -4,7 +4,7 @@ from gi.repository import Gtk
 from meocloud_gui.gui.pages import Pages
 from meocloud_gui.gui.prefswindow import PrefsWindow
 from meocloud_gui.gui.spinnerbox import SpinnerBox
-from meocloud_gui.constants import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH
+from meocloud_gui.constants import LOGGER_NAME, CLOUD_HOME_DEFAULT_PATH, BRAND_PROGRAM_NAME
 
 # Logging
 import logging
@@ -30,7 +30,7 @@ class SetupWindow(Gtk.Window):
                 assert False
 
             self.headerbar = Gtk.HeaderBar()
-            self.headerbar.set_title("Welcome to MEO Cloud")
+            self.headerbar.set_title(_("Welcome to {brand_app}").format(brand_app=BRAND_PROGRAM_NAME))
             self.headerbar.set_show_close_button(True)
             self.set_titlebar(self.headerbar)
             self.add(self.pages)
@@ -38,7 +38,7 @@ class SetupWindow(Gtk.Window):
             self.headerbar = None
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             welcome_label = Gtk.Label(
-                "<b>" + _("Welcome to MEO Cloud") + "</b>")
+                "<b>" + _("Welcome to {brand_app}").format(brand_app=BRAND_PROGRAM_NAME) + "</b>")
             welcome_label.set_use_markup(True)
             box.pack_start(welcome_label, False, False, 10)
             box.pack_start(self.pages, True, True, 0)

@@ -6,7 +6,7 @@ from meocloud_gui.gui.selectivesyncwindow import SelectiveSyncWindow
 import meocloud_gui.utils
 
 from meocloud_gui.core import api
-from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH
+from meocloud_gui.constants import CLOUD_HOME_DEFAULT_PATH, BRAND, BRAND_PROGRAM_NAME
 
 
 class PrefsWindow(Gtk.Window):
@@ -108,7 +108,7 @@ class PrefsWindow(Gtk.Window):
         general_box.pack_start(display_notifications, False, True, 10)
 
         # start at login
-        start_at_login = Gtk.CheckButton(_("Start MEO Cloud at login"))
+        start_at_login = Gtk.CheckButton(_("Start {brand_app} Cloud at login").format(brand_app=BRAND_PROGRAM_NAME))
         start_at_login_path = os.path.join(os.path.expanduser('~'),
                                            '.config/autostart/' +
                                            'meocloud.desktop')
@@ -245,7 +245,7 @@ class PrefsWindow(Gtk.Window):
             folder_button = Gtk.Button(self.prefs.get("Advanced", "Folder",
                                        CLOUD_HOME_DEFAULT_PATH))
             folder_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            folder_box.pack_start(Gtk.Label(_("MEO Cloud Folder: ")),
+            folder_box.pack_start(Gtk.Label(_("{brand_app} Folder: ").format(brand_app=BRAND_PROGRAM_NAME)),
                                   False, False, 0)
             folder_box.pack_start(folder_button, True, True, 0)
             advanced_box.pack_start(folder_box, False, True, 10)
@@ -416,14 +416,14 @@ class PrefsWindow(Gtk.Window):
                     GLib.source_remove(timeout)
                     GLib.idle_add(prog.destroy)
 
-                    error_dialog = Gtk.Dialog("MEO Cloud", self, 0,
+                    error_dialog = Gtk.Dialog(BRAND_PROGRAM_NAME, self, 0,
                                               (Gtk.STOCK_OK,
                                                Gtk.ResponseType.OK))
 
                     error_dialog.set_default_size(150, 100)
 
                     label = Gtk.Label(_("An error occurred while moving your "
-                                        "MEO Cloud folder."))
+                                        "{brand_app} folder.").format(brand_app=BRAND_PROGRAM_NAME))
 
                     box = error_dialog.get_content_area()
                     box.add(label)
