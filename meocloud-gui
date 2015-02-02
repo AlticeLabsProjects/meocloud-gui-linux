@@ -118,7 +118,7 @@ if __name__ == "__main__":
     dirs = ['nautilus-python', 'nemo-python', 'caja-python']
     for d in dirs:
         settings_dst = os.path.join(os.path.expanduser('~'),
-                             '.local/share/{0}/extensions/cloud_settings.py'.format(d))
+                             '.local/share/{0}/extensions/{1}_settings.py'.format(d, settings.BRAND))
         if os.path.exists(settings_src) and not os.path.exists(settings_dst):
             if os.path.lexists(settings_dst):
                 if os.path.islink(settings_dst):
