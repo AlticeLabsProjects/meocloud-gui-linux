@@ -209,7 +209,7 @@ class MEOCloudNautilus(Nautilus.InfoProvider, Nautilus.MenuProvider,
         self.sock.setblocking(0)
         try:
             path = os.path.expanduser(
-                '~/.meocloud/gui/meocloud_shell_listener.socket')
+                '~/.{0}/gui/meocloud_shell_listener.socket'.format(BRAND))
             self.sock.connect(path)
         except socket.error as error:
             return False
