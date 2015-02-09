@@ -9,7 +9,8 @@ import urlparse
 import os
 from importlib import import_module
 
-BRAND = os.path.basename(__file__).replace('-nautilus.py', '')
+cur_file, _ = os.path.splitext(os.path.basename(__file__))
+BRAND = cur_file.replace('-nautilus', '')
 settings = import_module('{brand}_settings'.format(brand=BRAND))
 
 sys.path.insert(0, '/opt/{0}/libs/'.format(BRAND))
