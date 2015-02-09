@@ -6,7 +6,7 @@ cd $OWN_DIR
 
 mkdir -p ../mo
 
-langs=( pt br )
+langs=( pt_PT pt_BR )
 
 for lang in "${langs[@]}"; do
     msgfmt -o ../mo/${lang}.mo ${lang}.po
