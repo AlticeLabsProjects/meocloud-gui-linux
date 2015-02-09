@@ -107,8 +107,8 @@ def serialize_thrift_msg(msg):
 def init_localization():
     '''prepare l10n'''
     locale.setlocale(locale.LC_ALL, '')
-    filename = "%s_mo/%s.mo" % (BRAND, locale.getlocale()[0])
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
+    filename = "mo/%s.mo" % (locale.getlocale()[0])
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), filename)
 
     try:
         trans = gettext.GNUTranslations(open(path, "rb"))
