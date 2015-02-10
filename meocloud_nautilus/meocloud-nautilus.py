@@ -9,7 +9,7 @@ import urlparse
 import os
 from importlib import import_module
 
-cur_file, _ = os.path.splitext(os.path.basename(__file__))
+cur_file, ext = os.path.splitext(os.path.basename(__file__))
 BRAND = cur_file.replace('-nautilus', '')
 settings = import_module('{brand}_settings'.format(brand=BRAND))
 
