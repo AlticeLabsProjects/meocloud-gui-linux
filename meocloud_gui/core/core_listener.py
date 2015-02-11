@@ -277,7 +277,9 @@ class CoreListenerHandler(UI.Iface):
                 note.code != self.last_notify)):
             if note.type != 0:
                 loc = locale.getlocale()
-                if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
+                if 'pt_BR' in loc and 'br' in NOTIFICATIONS:
+                    lang = 'br'
+                elif 'pt' in loc  and 'pt' in NOTIFICATIONS:
                     lang = 'pt'
                 else:
                     lang = 'en'

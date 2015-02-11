@@ -72,7 +72,7 @@ conversion_pipeline = {
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: {0} <infile> <outfile> [platform]'.format(sys.argv[0]))
+        print('usage: {0} <infile> <outfile> [brand] [platform]'.format(sys.argv[0]))
         sys.exit(1)
 
     try:
@@ -87,8 +87,11 @@ if __name__ == '__main__':
         print('Could not open output file: {1}'.format(oerr))
         sys.exit(1)
 
-    if len(sys.argv) == 4:
-        platform = sys.argv[3]
+    if len(sys.argv) > 3:
+        APP_NAME = sys.argv[3]
+
+    if len(sys.argv) == 5:
+        platform = sys.argv[4]
     else:
         platform = sys.platform
 
