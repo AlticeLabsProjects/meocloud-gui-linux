@@ -65,7 +65,7 @@ NOTIFICATIONS = {
 
         '250_title': 'Pasta Partilhada Criada',
         '250_description': 'A pasta partilhada "{0}" foi criada na pasta MEO Cloud',
-        '251_title': 'Pasta Parilhada Apagada',
+        '251_title': 'Pasta Partilhada Apagada',
         '251_description': 'A pasta partilhada "{0}" foi apagada da pasta MEO Cloud',
         '252_title': 'Pasta Não Partilhada',
         '252_description': 'A pasta "{0}" deixou de estar partilhada',
@@ -83,7 +83,7 @@ NOTIFICATIONS = {
         '505_title': 'Espaço insuficiente no seu disco',
         '505_description': 'A MEO Cloud parou devido a falta de espaço no seu disco. Verifique, por favor, se tem espaço suficiente.',
         '506_title': 'Erro genérico no seu disco',
-        '506_description': 'A APP_ NAME parou devido a um problema no seu disco. Verifique, por favor, se tem espaço suficiente ou permissões de escrita.',
+        '506_description': 'A MEO Cloud parou devido a um problema no seu disco. Verifique, por favor, se tem espaço suficiente ou permissões de escrita.',
         '507_title': 'Erro interno',
         '507_description': 'A MEO Cloud irá terminar. Se o problema persistir, contacte por favor a nossa equipa de suporte através de ajuda.cld.pt',
         '508_title': 'Erro interno',
