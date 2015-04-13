@@ -90,7 +90,7 @@ def get_network_settings(ui_config, download=None, upload=None):
     if upload is not None:
         network_settings.uploadBandwidth = upload * 1024
 
-    use_proxy = ui_config.get('Network', 'Proxy', 'None')
+    use_proxy = ui_config.get('Network', 'Proxy')
 
     if use_proxy == 'Manual':
         address = ui_config.get('Network', 'ProxyAddress', '')
@@ -109,7 +109,7 @@ def get_network_settings(ui_config, download=None, upload=None):
 
             network_settings.proxyUser = user
             network_settings.proxyPassword = password
-    elif use_proxy == 'Automatic':
+    elif use_proxy == 'Automatic' or use_proxy is None:
         auto_configure_proxy(network_settings)
 
     return network_settings
