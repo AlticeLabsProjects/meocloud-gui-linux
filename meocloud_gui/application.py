@@ -22,7 +22,8 @@ from meocloud_gui.constants import (
     LOGGER_NAME,
     CLOUD_HOME_DEFAULT_PATH,
     CONFIG_PATH, UI_CONFIG_PATH,
-    VERSION)
+    VERSION, BRAND, BRAND_PROGRAM_NAME,
+    BRAND_WEBSITE, BRAND_HELP_WEBSITE)
 from meocloud_gui import codes
 
 # Logging
@@ -49,9 +50,10 @@ class Application(Gtk.Application):
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.connect("activate", self.on_activate)
 
-        Notify.init('MEO Cloud')
+        Notify.init(BRAND_PROGRAM_NAME)
 
         self.app_path = app_path
+        self.brand = BRAND
         self.prefs_window = None
 
         self.prefs = Preferences()
@@ -268,7 +270,7 @@ class Application(Gtk.Application):
                 return True
 
     def report_bug(self, w):
-        webbrowser.open("http://ajuda.cld.pt")
+        webbrowser.open(BRAND_HELP_WEBSITE)
 
     def show_problem(self, w):
         messagedialog = Gtk.MessageDialog(parent=None,
@@ -425,7 +427,7 @@ class Application(Gtk.Application):
 
                 # send a notification about the issue
                 notif_icon = os.path.join(
-                    self.app_path, "icons/meocloud.svg")
+                    self.app_path, "icons/{0}/meocloud.svg".format(self.brand))
                 notif_title = _('MEO Cloud Folder Missing')
                 notif_string = _('Your MEO Cloud folder is missing.')
                 with utils.gdk_threads_lock():

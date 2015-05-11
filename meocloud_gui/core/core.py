@@ -8,7 +8,7 @@ from meocloud_gui.constants import (CORE_LISTENER_SOCKET_ADDRESS,
                                     DAEMON_LISTENER_SOCKET_ADDRESS,
                                     SHELL_LISTENER_SOCKET_ADDRESS,
                                     LOGGER_NAME, CORE_BINARY_FILENAME,
-                                    CORE_PID_PATH)
+                                    CORE_PID_PATH, BRAND)
 from meocloud_gui.utils import test_already_running, get_own_dir
 
 import logging
@@ -22,11 +22,12 @@ class Core(object):
         self.core_client = core_client
         self.process = None
         # assumes core binary is in same dir as daemon
-        self.core_binary_path = "/opt/meocloud/core/" + CORE_BINARY_FILENAME
+        self.core_binary_path = "/opt/{0}/core/".format(BRAND) + CORE_BINARY_FILENAME
         self.core_env = os.environ.copy()
         self.core_env['CLD_CORE_SOCKET_PATH'] = DAEMON_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_UI_SOCKET_PATH'] = CORE_LISTENER_SOCKET_ADDRESS
         self.core_env['CLD_SHELL_SOCKET_PATH'] = SHELL_LISTENER_SOCKET_ADDRESS
+        self.core_env['CLD_BRAND'] = BRAND.replace('cloud', '')
         self.thread = None
 
         try:
@@ -73,7 +74,7 @@ class Core(object):
                 failed += 1
 
             if failed > 1:
-                os.system("killall meocloudd")
+                os.system("killall {0}d".format(BRAND))
 
             self.process = None
         else:

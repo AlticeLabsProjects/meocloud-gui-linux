@@ -20,7 +20,7 @@ from meocloud_gui.protocol.daemon_core.ttypes import Account
 from meocloud_gui.thrift_utils import ThriftListener
 
 # Application specific imports
-from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH)
+from meocloud_gui.constants import (LOGGER_NAME, UI_CONFIG_PATH, BRAND)
 from meocloud_gui.core import api
 from meocloud_gui.gui.setupwindow import SetupWindow
 from meocloud_gui.strings import NOTIFICATIONS
@@ -67,7 +67,7 @@ class CoreListenerHandler(UI.Iface):
         self.ignore_sync = ignore_sync
         self.last_notify = 0
 
-        image_path = os.path.join(self.app.app_path, 'icons/meocloud.svg')
+        image_path = os.path.join(self.app.app_path, 'icons/{0}/meocloud.svg'.format(BRAND))
         self.app_icon_path = image_path
 
     ### THRIFT METHODS ###
@@ -277,7 +277,9 @@ class CoreListenerHandler(UI.Iface):
                 note.code != self.last_notify)):
             if note.type != 0:
                 loc = locale.getlocale()
-                if 'pt' in loc or 'pt_PT' in loc or 'pt_BR' in loc:
+                if 'pt_BR' in loc and 'br' in NOTIFICATIONS:
+                    lang = 'br'
+                elif 'pt' in loc  and 'pt' in NOTIFICATIONS:
                     lang = 'pt'
                 else:
                     lang = 'en'

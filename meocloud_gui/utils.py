@@ -21,12 +21,14 @@ from meocloud_gui.constants import (CLOUD_HOME_DEFAULT_PATH, CONFIG_PATH,
                                     UI_CONFIG_PATH, LOGGER_NAME, LOG_PATH,
                                     DEBUG_ON_PATH, DEBUG_OFF_PATH,
                                     DEV_MODE, BETA_MODE,
-                                    PURGEMETA_PATH, PURGEALL_PATH)
+                                    PURGEMETA_PATH, PURGEALL_PATH,
+                                    BRAND, BRAND_FOLDER_NAME, BRAND_PROGRAM_NAME)
 from meocloud_gui.stoppablethread import StoppableThread
 
 
 MACALGO = hashlib.sha256
 MACSIZE = len(MACALGO().digest())
+
 
 @contextmanager
 def gdk_threads_lock():
@@ -90,9 +92,9 @@ def clean_cloud_path(prefs):
             dialog = Gtk.MessageDialog(
                 None, 0, Gtk.MessageType.QUESTION,
                 Gtk.ButtonsType.YES_NO,
-                _("The MEOCloud folder ({0}) already exists. If you want to "
+                _("The {0} folder ({1}) already exists. If you want to "
                   "use it, the contents will be synchronized to your account. "
-                  "Would you like to continue?").format(cloud_home))
+                  "Would you like to continue?").format(BRAND_FOLDER_NAME, cloud_home))
             response = dialog.run()
             dialog.destroy()
 
@@ -105,7 +107,7 @@ def clean_cloud_path(prefs):
 def create_startup_file(base_path=None):
     folder_path = os.path.join(os.path.expanduser('~'),
                                '.config/autostart')
-    file_path = os.path.join(folder_path, 'meocloud.desktop')
+    file_path = os.path.join(folder_path, '{0}.desktop'.format(BRAND))
 
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
@@ -117,9 +119,9 @@ def create_startup_file(base_path=None):
         desktop_file = open(file_path, 'w')
         desktop_file.write("[Desktop Entry]\n")
         desktop_file.write("Type=Application\n")
-        desktop_file.write("Name=MEO Cloud\n")
+        desktop_file.write("Name={0}\n".format(BRAND_PROGRAM_NAME))
         desktop_file.write("Exec=" + os.path.join(base_path,
-                           "meocloud-gui") + "\n")
+                           "{0}-gui".format(BRAND)) + "\n")
         desktop_file.close()
     except EnvironmentError:
         logging.getLogger(LOGGER_NAME).warning(
@@ -143,7 +145,7 @@ def clean_bookmark(prefs):
         f.close()
 
         f = open(file_path, 'w')
-        f.write(text.replace("" + cloud_home + " MEOCloud", ""))
+        f.write(text.replace("" + cloud_home + " " + BRAND_FOLDER_NAME, ""))
         f.close()
 
 
@@ -158,22 +160,23 @@ def create_bookmark(prefs):
         os.makedirs(folder_path)
 
     try:
+        brand_folder = " " + BRAND_FOLDER_NAME
         if os.path.isfile(file_path):
             with open(file_path, 'r') as f:
                 text = f.read()
                 if cloud_home in text:
                     return
-                elif " MEOCloud" in text:
+                elif brand_folder in text:
                     file(cloud_home, 'w').writelines(
                         [l for l in file(cloud_home).readlines()
-                         if ' MEOCloud' not in l])
+                         if brand_folder not in l])
 
             f = open(file_path, 'a')
-            f.write("\n" + cloud_home + " MEOCloud\n")
+            f.write("\n" + cloud_home + brand_folder + "\n")
             f.close()
         else:
             f = open(file_path, 'w')
-            f.write(cloud_home + " MEOCloud\n")
+            f.write(cloud_home + brand_folder + "\n")
             f.close()
     except EnvironmentError:
         logging.getLogger(LOGGER_NAME).warning(

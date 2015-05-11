@@ -19,7 +19,7 @@
 # Shared folders
 "250_title" = "Pasta Partilhada Criada"
 "250_description" = "A pasta partilhada \"%S\" foi criada na pasta APP_NAME"
-"251_title" = "Pasta Parilhada Apagada"
+"251_title" = "Pasta Partilhada Apagada"
 "251_description" = "A pasta partilhada \"%S\" foi apagada da pasta APP_NAME"
 "252_title" = "Pasta Não Partilhada"
 "252_description" = "A pasta \"%S\" deixou de estar partilhada"
@@ -38,7 +38,7 @@
 "505_title" = "Espaço insuficiente no seu disco"
 "505_description" = "A APP_NAME parou devido a falta de espaço no seu disco. Verifique, por favor, se tem espaço suficiente."
 "506_title" = "Erro genérico no seu disco"
-"506_description" = "A APP_ NAME parou devido a um problema no seu disco. Verifique, por favor, se tem espaço suficiente ou permissões de escrita."
+"506_description" = "A APP_NAME parou devido a um problema no seu disco. Verifique, por favor, se tem espaço suficiente ou permissões de escrita."
 "507_title" = "Erro interno"
 "507_description" = "A APP_NAME irá terminar. Se o problema persistir, contacte por favor a nossa equipa de suporte através de ajuda.cld.pt"
 "508_title" = "Erro interno"
