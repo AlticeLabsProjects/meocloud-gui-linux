@@ -1,2 +1,4 @@
 keyring
 thrift==0.9.1
+pygobject3 
+python3-gobject
